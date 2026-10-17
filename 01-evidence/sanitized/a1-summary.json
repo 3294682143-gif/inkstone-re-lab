@@ -1,0 +1,37 @@
+{
+  "scenario": "A1",
+  "navErr": null,
+  "input": {
+    "placeholder": "描述一个科研问题、假设，或者直接粘贴一段论文片段……",
+    "candidates": 1
+  },
+  "submitVia": "button",
+  "apiResponses": [
+    {
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/chat/new",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/models",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/chat",
+      "status": 200,
+      "ct": "text/event-stream"
+    },
+    {
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/chat/1018638/title",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/workspace/1018638/files",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    }
+  ],
+  "send": null
+}

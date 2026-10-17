@@ -1,0 +1,2 @@
+action_id,timestamp,scenario,browser_session,input_marker,request_ids,screenshot_ref,result,notes
+A0,2026-10-17T17:55:00+08:00,A0,headless-patchright-chromium-1248(no-login),none,R001;R002;R003;R004;R005;R006;R007,01-evidence/sanitized/a0-page.html,页面加载成功 title="书生·端砚 Intern InkStone",未登录；未注入 Hook；未发送消息

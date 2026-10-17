@@ -1,0 +1,35 @@
+{
+  "storageState": "01-evidence/private/inkstone-auth.json",
+  "title": "书生·端砚 Intern InkStone",
+  "navErr": null,
+  "apiStatuses": {
+    "/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectClientInfo/1792236191432?": 200,
+    "/api/user-center/v1/users/getUserInfo": 200,
+    "/api/user-center/v1/messages/unreadlist": 200,
+    "/api/user-center/v1/team/my_team_list": 200,
+    "/api/tokenplan/v1/users/free-grant-status": 200,
+    "/api/orbit/v1/chat/list?": 200,
+    "/api/orbit/v1/models": 200,
+    "/api/spacebe/v1/space/list?": 200,
+    "/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectConsoleInfo/1792236195984?": 200
+  },
+  "still401": [],
+  "ok200": [
+    "/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectClientInfo/1792236191432?",
+    "/api/user-center/v1/users/getUserInfo",
+    "/api/user-center/v1/messages/unreadlist",
+    "/api/user-center/v1/team/my_team_list",
+    "/api/tokenplan/v1/users/free-grant-status",
+    "/api/orbit/v1/chat/list?",
+    "/api/orbit/v1/models",
+    "/api/spacebe/v1/space/list?",
+    "/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectConsoleInfo/1792236195984?"
+  ],
+  "loggedInGuess": true,
+  "dom": {
+    "hasLoginWord": false,
+    "hasLogoutWord": false,
+    "hasUserInfoWord": false,
+    "inputCount": 1
+  }
+}

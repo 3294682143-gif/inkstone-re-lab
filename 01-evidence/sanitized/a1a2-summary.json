@@ -1,0 +1,568 @@
+{
+  "a1res": {
+    "ok": true,
+    "inputIndex": 0,
+    "candidates": 1
+  },
+  "a2res": {
+    "ok": true,
+    "inputIndex": 0,
+    "candidates": 1
+  },
+  "conversationId": "1018682",
+  "requests": [
+    {
+      "path": "/api/user-center/v1/users/getUserInfo",
+      "contentType": "application/json",
+      "postDataKeys": [
+        "jwt"
+      ],
+      "postDataHasA1": false,
+      "postDataHasA2": false
+    },
+    {
+      "path": "/api/orbit/v1/chat/new",
+      "contentType": "application/json",
+      "postDataKeys": [
+        "scenario"
+      ],
+      "postDataHasA1": false,
+      "postDataHasA2": false
+    },
+    {
+      "path": "/api/orbit/v1/chat",
+      "contentType": "application/json",
+      "postDataKeys": [
+        "scenario",
+        "thinking_mode",
+        "planning_mode",
+        "model",
+        "query",
+        "chat_id"
+      ],
+      "postDataHasA1": true,
+      "postDataHasA2": false
+    },
+    {
+      "path": "/api/orbit/v1/chat/1018682/title",
+      "contentType": "application/json",
+      "postDataKeys": [
+        "scenario"
+      ],
+      "postDataHasA1": false,
+      "postDataHasA2": false
+    },
+    {
+      "path": "/api/orbit/v1/chat",
+      "contentType": "application/json",
+      "postDataKeys": [
+        "scenario",
+        "thinking_mode",
+        "planning_mode",
+        "model",
+        "query",
+        "chat_id"
+      ],
+      "postDataHasA1": false,
+      "postDataHasA2": true
+    }
+  ],
+  "responses": [
+    {
+      "path": "/chat/",
+      "status": 200,
+      "ct": "text/html"
+    },
+    {
+      "path": "/css/vendors.43717d3f.css",
+      "status": 200,
+      "ct": "text/css"
+    },
+    {
+      "path": "/js/main.63f27b75.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/remoteEntry.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/js/vendors.1cb37f21.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/js/vendor-react.0b181b8c.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/js/vendor-markdown.1a2f21c3.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/css/597.efe435f3.chunk.css",
+      "status": 200,
+      "ct": "text/css"
+    },
+    {
+      "path": "/js/137.202041b5.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/js/vendor-copilot.26498263.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/js/597.629ea519.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/js/vendor-antd.06aaee88.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/t/c/font_3858115_canajbyr6yf.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/images/agent-menu.4361b82a.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/images/topic-space-library.cb3143ef.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "https://discovery.intern-ai.org.cn/a472a6c5-c192-4dbb-b1a8-0fd3c0560b1b",
+      "status": 200,
+      "ct": "text/javascript"
+    },
+    {
+      "path": "/migo-web/sensors/sensorsdata.min.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/images/intern-discovery-logo.4889763e.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/images/research-model-footer.6fcf7c33.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/images/notice-model-footer.9c9f43f1.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectClientInfo/1792236458739",
+      "status": 200,
+      "ct": "application/json"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/v1/web/start",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/images/topic-space-library.cb3143ef.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/images/agent-menu.4361b82a.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/v1/web/tags",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/user-center/v1/users/getUserInfo",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/moce/remoteEntry-var.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/api/user-center/v1/team/my_team_list",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/user-center/v1/messages/unreadlist",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/api/tokenplan/v1/users/free-grant-status",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/orbit/v1/chat/list",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/images/history.833da2b0.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/images/history.833da2b0.svg",
+      "status": 200,
+      "ct": "image/svg+xml"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/remoteEntry.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/virtualExposes-stLctsZd.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/preload-helper-CkCuUFUU.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/runtimeInit-BUkdM_Jo.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index.cjs-BgaQYHXq.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs-Db2ZS5NC.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_router_mf_2_dom__loadShare__.mjs-BEHOCTth.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-Bh7AjB1F.css",
+      "status": 200,
+      "ct": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs_commonjs-proxy-NHBfaYmM.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/remote-app-j8k-XzOr.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_dom__loadShare__.mjs-7zeyoQMr.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-RYWN22G0.css",
+      "status": 200,
+      "ct": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-BXHFF-HQ.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-5p1CqXmB.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/api/orbit/v1/models",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/spacebe/v1/space/list",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/platform-config-upload/discoverypublic-mainchat-homequickstart.production.json",
+      "status": 200,
+      "ct": "application/json"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectConsoleInfo/1792236463274",
+      "status": 200,
+      "ct": "application/json"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/api/orbit/v1/chat/new",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/katex-DunD_WIt.css",
+      "status": 200,
+      "ct": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-C2XFlSG8.css",
+      "status": 200,
+      "ct": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-Cd5teKeb.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/katex.min-BJ_89gDk.js",
+      "status": 200,
+      "ct": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/js/192.da63b80c.chunk.js",
+      "status": 200,
+      "ct": "application/javascript"
+    },
+    {
+      "path": "/api/orbit/v1/models",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/orbit/v1/chat",
+      "status": 200,
+      "ct": "text/event-stream"
+    },
+    {
+      "path": "/api/orbit/v1/chat/1018682/title",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/v1/web/i",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/api/orbit/v1/workspace/1018682/files",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/v1/web/i",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/v1/web/i",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/api/orbit/v1/chat",
+      "status": 200,
+      "ct": "text/event-stream"
+    },
+    {
+      "path": "/api/orbit/v1/workspace/1018682/files",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/sa.gif",
+      "status": 200,
+      "ct": "image/gif"
+    },
+    {
+      "path": "/v1/web/i",
+      "status": 200,
+      "ct": "application/json; charset=utf-8"
+    }
+  ],
+  "streams": {
+    "/api/orbit/v1/chat_1792236467782": {
+      "eventCount": 14,
+      "eventTypes": {
+        "(no-event)": 14
+      },
+      "dataKeys": [
+        "event",
+        "cid",
+        "mid",
+        "thinking",
+        "thinking_duration",
+        "answer",
+        "followup"
+      ],
+      "hasDoneMarker": false,
+      "headSanitized": "data: {\"event\":\"workflow_started\",\"cid\":1018682,\"mid\":1270400}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270400,\"thinking\":\"ç”¨æˆ·\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270400,\"thinking\":\"è¦æ±‚æˆ‘åª\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270400,\"thinking\":\"å›žå¤\\\"\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270400,\"thinking\":\"OK\\\"ã€‚è¿™æ˜¯ä¸€ä¸ª\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270400,\"thinking\":\"ç®€å•çš„æŒ‡ä»¤ï¼Œä¸éœ€è¦\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270400,\"thinking\":\"æœç´¢æˆ–ä»»ä½•å¤æ‚\"}\n\ndata: {\"cid\":1018682,\"event\":"
+    },
+    "/api/orbit/v1/chat_1792236608046": {
+      "eventCount": 30,
+      "eventTypes": {
+        "(no-event)": 30
+      },
+      "dataKeys": [
+        "event",
+        "cid",
+        "mid",
+        "thinking",
+        "thinking_duration",
+        "answer",
+        "followup"
+      ],
+      "hasDoneMarker": false,
+      "headSanitized": "data: {\"event\":\"workflow_started\",\"cid\":1018682,\"mid\":1270440}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270440,\"thinking\":\"ç”¨æˆ·\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270440,\"thinking\":\"è¦æ±‚æˆ‘\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270440,\"thinking\":\"å¤è¿°å…¶\"}\n\ndata: {\"event\":\"message\",\"cid\":1018682,\"mid\":1270440,\"thinking\":\"ä¸Šä¸€æ¡æ¶ˆæ¯ä¸­çš„æµ‹\"}\n\ndata: {\"event\":\"message\",\"cid\":1018682,\"mid\":1270440,\"thinking\":\"è¯•\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":1270440,\"thinking\":\"æ ‡è®°ã€‚å›žé¡¾å¯¹è¯\"}\n\ndata: {\"cid\":1018682,\"event\":\"message\",\"mid\":12704"
+    }
+  }
+}

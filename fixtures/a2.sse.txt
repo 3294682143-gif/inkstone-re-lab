@@ -1,0 +1,60 @@
+data: {"event": "workflow_started", "cid": "SESSION_A", "mid": "MSG_1"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "用户"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "要求我"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "复述其"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "上一条消息中的测"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "试"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "标记。回顾对话"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "历史，用户第一条"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "消息是：\"INK"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "STONE-RE"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "-A1：请只回复"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": " OK。\""}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "\n\n测试标记是"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": " \"INKSTO"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "NE-RE-A1"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "\"。\n\n"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "这是一个简单的复述"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "任务，不需要"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "搜索或工具调用"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "thinking": "，"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking": "直接回复即可。"}
+
+data: {"cid": "SESSION_A", "event": "message", "mid": "MSG_1", "thinking_duration": 1533}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "answer": "您上一条消息中的"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "answer": "测试标记是：**"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "answer": "INKSTONE"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "answer": "-RE-A1**"}
+
+data: {"event": "message", "cid": "SESSION_A", "mid": "MSG_1", "answer": "。"}
+
+data: {"cid": "SESSION_A", "event": "message_end", "mid": "MSG_1"}
+
+data: {"cid": "SESSION_A", "event": "followup", "followup": [{"text": "请复述我上一条消息中的测试标记。", "type": "suggest", "extra": ""}, {"text": "围绕「请复述我上一条消息中的测试标记」补充关键前提与边界", "type": "suggest", "extra": ""}, {"text": "用一个具体案例验证「请复述我上一条消息中的测试标记」的判断", "type": "suggest", "extra": ""}], "mid": "MSG_1"}
+
+data: {"event": "workflow_finished", "cid": "SESSION_A", "mid": "MSG_1"}
+

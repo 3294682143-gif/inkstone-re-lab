@@ -1,0 +1,849 @@
+{
+  "url": "https://discovery.intern-ai.org.cn/chat/",
+  "scenario": "A0",
+  "storageStateLoaded": true,
+  "title": "书生·端砚 Intern InkStone",
+  "navErr": null,
+  "records": [
+    {
+      "kind": "request",
+      "ts": 1792234192225,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/chat/",
+      "rtype": "document",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192368,
+      "status": 200,
+      "contentType": "text/html",
+      "url": "https://discovery.intern-ai.org.cn/chat/"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192374,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/vendors.1cb37f21.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192374,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/main.63f27b75.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192374,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/remoteEntry.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192375,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/css/vendors.43717d3f.css",
+      "rtype": "stylesheet",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192494,
+      "status": 200,
+      "contentType": "text/css",
+      "url": "https://discovery.intern-ai.org.cn/css/vendors.43717d3f.css"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192558,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/main.63f27b75.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192564,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/remoteEntry.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192628,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/vendors.1cb37f21.js"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192639,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-react.0b181b8c.chunk.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192639,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-antd.06aaee88.chunk.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192639,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-markdown.1a2f21c3.chunk.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192640,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-copilot.26498263.chunk.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192640,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/137.202041b5.chunk.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192640,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/css/597.efe435f3.chunk.css",
+      "rtype": "stylesheet",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234192640,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/js/597.629ea519.chunk.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192690,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-react.0b181b8c.chunk.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192699,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-markdown.1a2f21c3.chunk.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192736,
+      "status": 200,
+      "contentType": "text/css",
+      "url": "https://discovery.intern-ai.org.cn/css/597.efe435f3.chunk.css"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192752,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/137.202041b5.chunk.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192775,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-copilot.26498263.chunk.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192827,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/597.629ea519.chunk.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234192854,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/js/vendor-antd.06aaee88.chunk.js"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193211,
+      "method": "GET",
+      "url": "blob:https://discovery.intern-ai.org.cn/8add2359-7a4c-4912-a26d-0f45ad6435d5",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193215,
+      "method": "GET",
+      "url": "https://at.alicdn.com/t/c/font_3858115_canajbyr6yf.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193215,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/migo-web/sensors/sensorsdata.min.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193217,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://at.alicdn.com/t/c/font_3858115_canajbyr6yf.js"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193302,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/topic-space-library.cb3143ef.svg",
+      "rtype": "other",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193303,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/agent-menu.4361b82a.svg",
+      "rtype": "other",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193303,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/intern-discovery-logo.4889763e.svg",
+      "rtype": "image",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193303,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/research-model-footer.6fcf7c33.svg",
+      "rtype": "image",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193303,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/notice-model-footer.9c9f43f1.svg",
+      "rtype": "image",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193304,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/topic-space-library.cb3143ef.svg"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193384,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/agent-menu.4361b82a.svg"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193386,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/research-model-footer.6fcf7c33.svg"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193387,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/notice-model-footer.9c9f43f1.svg"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193389,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/intern-discovery-logo.4889763e.svg"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193453,
+      "status": 200,
+      "contentType": "text/javascript",
+      "url": "blob:https://discovery.intern-ai.org.cn/8add2359-7a4c-4912-a26d-0f45ad6435d5"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193494,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193494,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/unlogined-avatar.ef5a3a99.svg",
+      "rtype": "image",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193494,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://static.openxlab.org.cn/migo-web/sensors/sensorsdata.min.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193540,
+      "status": 200,
+      "contentType": "application/javascript",
+      "url": "https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193545,
+      "method": "POST",
+      "url": "https://aurora.openxlab.org.cn/v1/web/start",
+      "rtype": "fetch",
+      "hasPostData": true
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193549,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/unlogined-avatar.ef5a3a99.svg"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193569,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/remoteEntry.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193644,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/remoteEntry.js"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193650,
+      "method": "GET",
+      "url": "https://openxlab.org.cn/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectClientInfo/1792234193649?buryId=&operatorUid=visitor&operatedObjInfo=%7B%22os%22:%22Linux%22,%22osVersion%22:%22Unknown%22,%22browserName%22:%22Chrome%22,%22browserVersion%22:%22Chrome:%20156.0.8078.4%22,%22isMobile%22:false,%22screenSizeWidth%22:1280,%22screenSizeHeight%22:720,%22windowSizeWidth%22:1280,%22windowSizeHeight%22:720,%22userAgent%22:%22mozilla/5.0%20(x11;%20linux%20x86_64)%20applewebkit/537.36%20(khtml,%20like%20gecko)%20headlesschrome/156.0.8078.4%20safari/537.36%22,%22platform%22:%22Linux%20x86_64%22,%22language%22:%22en-US%22,%22isWeChart%22:false,%22gpu%22:%22ANGLE%20(Google,%20Vulkan%201.3.0%20(SwiftShader%20Device%20(Subzero)%20(0x0000C0DE)),%20SwiftShader%20driver)%22,%22printWater%22:%222cb55a2bcab84f56f7de8e6cdbf8b286%22,%22executeTimestamp%22:%221792234193649%22,%22performanceNow%22:%221421.8999996185303%22,%22location%22:%22https://discovery.intern-ai.org.cn/chat/%22%7D",
+      "rtype": "image",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193652,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index.cjs-BgaQYHXq.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193653,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/virtualExposes-stLctsZd.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193653,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/preload-helper-CkCuUFUU.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193653,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/runtimeInit-BUkdM_Jo.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193680,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/virtualExposes-stLctsZd.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193680,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/preload-helper-CkCuUFUU.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193681,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/runtimeInit-BUkdM_Jo.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193681,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index.cjs-BgaQYHXq.js"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193687,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/remote-app-j8k-XzOr.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193687,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-5p1CqXmB.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193687,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs-Db2ZS5NC.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193687,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_router_mf_2_dom__loadShare__.mjs-BEHOCTth.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193687,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs_commonjs-proxy-NHBfaYmM.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193687,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_dom__loadShare__.mjs-7zeyoQMr.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193688,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-Bh7AjB1F.css",
+      "rtype": "stylesheet",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193688,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-BXHFF-HQ.js",
+      "rtype": "script",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193688,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-RYWN22G0.css",
+      "rtype": "stylesheet",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193709,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193709,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193711,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/remote-app-j8k-XzOr.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193722,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs-Db2ZS5NC.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193724,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_router_mf_2_dom__loadShare__.mjs-BEHOCTth.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193724,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs_commonjs-proxy-NHBfaYmM.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193724,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_dom__loadShare__.mjs-7zeyoQMr.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193724,
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-Bh7AjB1F.css"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193731,
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "url": "https://aurora.openxlab.org.cn/v1/web/start"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193733,
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-RYWN22G0.css"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193793,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/topic-space-library.cb3143ef.svg",
+      "rtype": "fetch",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193793,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/images/agent-menu.4361b82a.svg",
+      "rtype": "fetch",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193793,
+      "method": "GET",
+      "url": "https://aurora.openxlab.org.cn/v1/web/tags",
+      "rtype": "fetch",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193793,
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://openxlab.org.cn/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectClientInfo/1792234193649?buryId=&operatorUid=visitor&operatedObjInfo=%7B%22os%22:%22Linux%22,%22osVersion%22:%22Unknown%22,%22browserName%22:%22Chrome%22,%22browserVersion%22:%22Chrome:%20156.0.8078.4%22,%22isMobile%22:false,%22screenSizeWidth%22:1280,%22screenSizeHeight%22:720,%22windowSizeWidth%22:1280,%22windowSizeHeight%22:720,%22userAgent%22:%22mozilla/5.0%20(x11;%20linux%20x86_64)%20applewebkit/537.36%20(khtml,%20like%20gecko)%20headlesschrome/156.0.8078.4%20safari/537.36%22,%22platform%22:%22Linux%20x86_64%22,%22language%22:%22en-US%22,%22isWeChart%22:false,%22gpu%22:%22ANGLE%20(Google,%20Vulkan%201.3.0%20(SwiftShader%20Device%20(Subzero)%20(0x0000C0DE)),%20SwiftShader%20driver)%22,%22printWater%22:%222cb55a2bcab84f56f7de8e6cdbf8b286%22,%22executeTimestamp%22:%221792234193649%22,%22performanceNow%22:%221421.8999996185303%22,%22location%22:%22https://discovery.intern-ai.org.cn/chat/%22%7D"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193797,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-BXHFF-HQ.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193802,
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-5p1CqXmB.js"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193803,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/topic-space-library.cb3143ef.svg"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193803,
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "url": "https://discovery.intern-ai.org.cn/images/agent-menu.4361b82a.svg"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193807,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193877,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193878,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193887,
+      "method": "GET",
+      "url": "https://static.openxlab.org.cn/platform-config-upload/discoverypublic-mainchat-homequickstart.production.json?t=1792234193824",
+      "rtype": "fetch",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193887,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/models",
+      "rtype": "xhr",
+      "hasPostData": false
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193887,
+      "method": "GET",
+      "url": "https://discovery.intern-ai.org.cn/api/spacebe/v1/space/list?page=1&page_size=100",
+      "rtype": "xhr",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193888,
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "url": "https://aurora.openxlab.org.cn/v1/web/tags"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193895,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193934,
+      "status": 401,
+      "contentType": "text/plain; charset=utf-8",
+      "url": "https://discovery.intern-ai.org.cn/api/spacebe/v1/space/list?page=1&page_size=100"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234193941,
+      "status": 401,
+      "contentType": "text/plain; charset=utf-8",
+      "url": "https://discovery.intern-ai.org.cn/api/orbit/v1/models"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193995,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193997,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234193998,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234194000,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234194002,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234194004,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234194005,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "request",
+      "ts": 1792234194007,
+      "method": "POST",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production",
+      "rtype": "ping",
+      "hasPostData": true
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194044,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194044,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194047,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194085,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194087,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194100,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194120,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194124,
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://static.openxlab.org.cn/platform-config-upload/discoverypublic-mainchat-homequickstart.production.json?t=1792234193824"
+    },
+    {
+      "kind": "response",
+      "ts": 1792234194128,
+      "status": 200,
+      "contentType": "image/gif",
+      "url": "https://sensorsdata.intern-ai.org.cn/sa.gif?project=production"
+    },
+    {
+      "kind": "request",
+      "ts": 1792234197866,
+      "method": "GET",
+      "url": "https://openxlab.org.cn/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectConsoleInfo/1792234197864?buryId=&operatorUid=visitor&operatedObjInfo=%7B%22consoleLogs%22:%5B%7B%22level%22:%22info%22,%22message%22:%22%5BRemoteLoader%5D%5Battempt%5D%20%E7%AC%AC%201%20%E6%AC%A1%E5%8A%A0%E8%BD%BD%EF%BC%88retryCount=0%EF%BC%89%20%7B%5Cn%20%20%5C%22remoteName%5C%22:%20%5C%22discovery_chat%5C%22,%5Cn%20%20%5C%22remoteUrl%5C%22:%20%5C%22/moce/remoteEntry-var.js%5C%22,%5Cn%20%20%5C%22exposedModule%5C%22:%20%5C%22./RemoteApp%5C%22,%5Cn%20%20%5C%22loadSessionKey%5C%22:%20%5C%22discovery_chat::/moce/remoteEntry-var.js::./RemoteApp%5C%22,%5Cn%20%20%5C%22reloadRemoteOnRouteChange%5C%22:%20false,%5Cn%20%20%5C%22loadTimeoutMs%5C%22:%2030000%5Cn%7D%22,%22timestamp%22:1792234193482%7D,%7B%22level%22:%22info%22,%22message%22:%22%5BRemoteLoader%5D%5Bload%5D%20%E6%8F%92%E5%85%A5%20script%EF%BC%8C%E8%AF%B7%E6%B1%82%20remoteEntry%20%7B%5Cn%20%20%5C%22remoteName%5C%22:%20%5C%22discovery_chat%5C%22,%5Cn%20%20%5C%22finalUrl%5C%22:%20%5C%22https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js%5C%22,%5Cn%20%20%5C%22bustEntryCache%5C%22:%20false%5Cn%7D%22,%22timestamp%22:1792234193483%7D,%7B%22level%22:%22info%22,%22message%22:%22%5BRemoteLoader%5D%5Bload%5D%20remoteEntry%20%E8%84%9A%E6%9C%AC%20onload%20%7B%5Cn%20%20%5C%22remoteName%5C%22:%20%5C%22discovery_chat%5C%22,%5Cn%20%20%5C%22finalUrl%5C%22:%20%5C%22https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js%5C%22%5Cn%7D%22,%22timestamp%22:1792234193568%7D,%7B%22level%22:%22error%22,%22message%22:%22%5BClientDetector%20error%5D%20serviceHost%20is%20empty,%20please%20init%20first!%22,%22timestamp%22:1792234193939%7D,%7B%22level%22:%22error%22,%22message%22:%22%5BClientDetector%20error%5D%20serviceHost%20is%20empty,%20please%20init%20first!%22,%22timestamp%22:1792234193945%7D%5D,%22os%22:%22Linux%22,%22osVersion%22:%22Unknown%22,%22browserName%22:%22Chrome%22,%22browserVersion%22:%22Chrome:%20156.0.8078.4%22,%22isMobile%22:false,%22screenSizeWidth%22:1280,%22screenSizeHeight%22:720,%22windowSizeWidth%22:1280,%22windowSizeHeight%22:720,%22userAgent%22:%22mozilla/5.0%20(x11;%20linux%20x86_64)%20applewebkit/537.36%20(khtml,%20like%20gecko)%20headlesschrome/156.0.8078.4%20safari/537.36%22,%22platform%22:%22Linux%20x86_64%22,%22language%22:%22en-US%22,%22isWeChart%22:false,%22gpu%22:%22ANGLE%20(Google,%20Vulkan%201.3.0%20(SwiftShader%20Device%20(Subzero)%20(0x0000C0DE)),%20SwiftShader%20driver)%22,%22printWater%22:%222cb55a2bcab84f56f7de8e6cdbf8b286%22,%22executeTimestamp%22:%221792234193617%22,%22performanceNow%22:%221389.6999998092651%22,%22location%22:%22https://discovery.intern-ai.org.cn/chat/%22%7D",
+      "rtype": "image",
+      "hasPostData": false
+    },
+    {
+      "kind": "response",
+      "ts": 1792234197913,
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://openxlab.org.cn/gw/data-bury/api/v1/bury/collect/discovery-host-fe/fe_bury_sdk_collectConsoleInfo/1792234197864?buryId=&operatorUid=visitor&operatedObjInfo=%7B%22consoleLogs%22:%5B%7B%22level%22:%22info%22,%22message%22:%22%5BRemoteLoader%5D%5Battempt%5D%20%E7%AC%AC%201%20%E6%AC%A1%E5%8A%A0%E8%BD%BD%EF%BC%88retryCount=0%EF%BC%89%20%7B%5Cn%20%20%5C%22remoteName%5C%22:%20%5C%22discovery_chat%5C%22,%5Cn%20%20%5C%22remoteUrl%5C%22:%20%5C%22/moce/remoteEntry-var.js%5C%22,%5Cn%20%20%5C%22exposedModule%5C%22:%20%5C%22./RemoteApp%5C%22,%5Cn%20%20%5C%22loadSessionKey%5C%22:%20%5C%22discovery_chat::/moce/remoteEntry-var.js::./RemoteApp%5C%22,%5Cn%20%20%5C%22reloadRemoteOnRouteChange%5C%22:%20false,%5Cn%20%20%5C%22loadTimeoutMs%5C%22:%2030000%5Cn%7D%22,%22timestamp%22:1792234193482%7D,%7B%22level%22:%22info%22,%22message%22:%22%5BRemoteLoader%5D%5Bload%5D%20%E6%8F%92%E5%85%A5%20script%EF%BC%8C%E8%AF%B7%E6%B1%82%20remoteEntry%20%7B%5Cn%20%20%5C%22remoteName%5C%22:%20%5C%22discovery_chat%5C%22,%5Cn%20%20%5C%22finalUrl%5C%22:%20%5C%22https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js%5C%22,%5Cn%20%20%5C%22bustEntryCache%5C%22:%20false%5Cn%7D%22,%22timestamp%22:1792234193483%7D,%7B%22level%22:%22info%22,%22message%22:%22%5BRemoteLoader%5D%5Bload%5D%20remoteEntry%20%E8%84%9A%E6%9C%AC%20onload%20%7B%5Cn%20%20%5C%22remoteName%5C%22:%20%5C%22discovery_chat%5C%22,%5Cn%20%20%5C%22finalUrl%5C%22:%20%5C%22https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js%5C%22%5Cn%7D%22,%22timestamp%22:1792234193568%7D,%7B%22level%22:%22error%22,%22message%22:%22%5BClientDetector%20error%5D%20serviceHost%20is%20empty,%20please%20init%20first!%22,%22timestamp%22:1792234193939%7D,%7B%22level%22:%22error%22,%22message%22:%22%5BClientDetector%20error%5D%20serviceHost%20is%20empty,%20please%20init%20first!%22,%22timestamp%22:1792234193945%7D%5D,%22os%22:%22Linux%22,%22osVersion%22:%22Unknown%22,%22browserName%22:%22Chrome%22,%22browserVersion%22:%22Chrome:%20156.0.8078.4%22,%22isMobile%22:false,%22screenSizeWidth%22:1280,%22screenSizeHeight%22:720,%22windowSizeWidth%22:1280,%22windowSizeHeight%22:720,%22userAgent%22:%22mozilla/5.0%20(x11;%20linux%20x86_64)%20applewebkit/537.36%20(khtml,%20like%20gecko)%20headlesschrome/156.0.8078.4%20safari/537.36%22,%22platform%22:%22Linux%20x86_64%22,%22language%22:%22en-US%22,%22isWeChart%22:false,%22gpu%22:%22ANGLE%20(Google,%20Vulkan%201.3.0%20(SwiftShader%20Device%20(Subzero)%20(0x0000C0DE)),%20SwiftShader%20driver)%22,%22printWater%22:%222cb55a2bcab84f56f7de8e6cdbf8b286%22,%22executeTimestamp%22:%221792234193617%22,%22performanceNow%22:%221389.6999998092651%22,%22location%22:%22https://discovery.intern-ai.org.cn/chat/%22%7D"
+    }
+  ]
+}

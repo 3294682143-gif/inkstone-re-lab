@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+!.env.example
+01-evidence/private/
+browser-data/
+storage-state*.json
+*.log

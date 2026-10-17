@@ -1,0 +1,118 @@
+{
+  "summary": {
+    "n": 3,
+    "allOk": true,
+    "sessions": [
+      {
+        "session": 1,
+        "chatId": 1018985,
+        "ok": true,
+        "turn1": {
+          "status": 200,
+          "finished": true,
+          "answerLen": 2
+        },
+        "turn2": {
+          "status": 200,
+          "finished": true,
+          "answerLen": 18,
+          "hasMarker": true
+        }
+      },
+      {
+        "session": 2,
+        "chatId": 1018987,
+        "ok": true,
+        "turn1": {
+          "status": 200,
+          "finished": true,
+          "answerLen": 2
+        },
+        "turn2": {
+          "status": 200,
+          "finished": true,
+          "answerLen": 36,
+          "hasMarker": true
+        }
+      },
+      {
+        "session": 3,
+        "chatId": 1018988,
+        "ok": true,
+        "turn1": {
+          "status": 200,
+          "finished": true,
+          "answerLen": 2
+        },
+        "turn2": {
+          "status": 200,
+          "finished": true,
+          "answerLen": 36,
+          "hasMarker": true
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "session": 1,
+      "chatId": 1018985,
+      "turn1": {
+        "ok": true,
+        "status": 200,
+        "finished": true,
+        "cid": 1018985,
+        "answer": "OK"
+      },
+      "turn2": {
+        "ok": true,
+        "status": 200,
+        "finished": true,
+        "cid": 1018985,
+        "answer": "INKSTONE-RE-REG-01"
+      },
+      "turn2_has_marker": true,
+      "ok": true
+    },
+    {
+      "session": 2,
+      "chatId": 1018987,
+      "turn1": {
+        "ok": true,
+        "status": 200,
+        "finished": true,
+        "cid": 1018987,
+        "answer": "OK"
+      },
+      "turn2": {
+        "ok": true,
+        "status": 200,
+        "finished": true,
+        "cid": 1018987,
+        "answer": "您上一条消息中的测试标记是：**INKSTONE-RE-REG-02**"
+      },
+      "turn2_has_marker": true,
+      "ok": true
+    },
+    {
+      "session": 3,
+      "chatId": 1018988,
+      "turn1": {
+        "ok": true,
+        "status": 200,
+        "finished": true,
+        "cid": 1018988,
+        "answer": "OK"
+      },
+      "turn2": {
+        "ok": true,
+        "status": 200,
+        "finished": true,
+        "cid": 1018988,
+        "answer": "您上一条消息中的测试标记是：**INKSTONE-RE-REG-03**"
+      },
+      "turn2_has_marker": true,
+      "ok": true
+    }
+  ]
+}

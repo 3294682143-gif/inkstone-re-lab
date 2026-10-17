@@ -1,0 +1,74 @@
+{
+  "A3": {
+    "newConversationId": "1018771",
+    "chatPostBodies_areA1Text": [
+      true
+    ],
+    "chatPostBodyKeys": [
+      [
+        "scenario",
+        "thinking_mode",
+        "planning_mode",
+        "model",
+        "query",
+        "chat_id"
+      ]
+    ],
+    "sseStreams": [
+      {
+        "k": "/api/orbit/v1/chat_1792236899223",
+        "eventCount": 18,
+        "types": {
+          "workflow_started": 1,
+          "message": 14,
+          "message_end": 1,
+          "followup": 1,
+          "workflow_finished": 1
+        }
+      }
+    ]
+  },
+  "A4": {
+    "openedVia": "history-text",
+    "detailRequests": [
+      {
+        "path": "/api/user-center/v1/messages/unreadlist",
+        "status": 200
+      },
+      {
+        "path": "/api/orbit/v1/chat/list",
+        "status": 200
+      },
+      {
+        "path": "/api/user-center/v1/messages/unreadlist",
+        "status": 200
+      },
+      {
+        "path": "/api/orbit/v1/chat/list",
+        "status": 200
+      },
+      {
+        "path": "/api/orbit/v1/chat/1018771/detail",
+        "status": 200
+      },
+      {
+        "path": "/api/orbit/v1/chat/1018771/detail",
+        "status": 200
+      }
+    ],
+    "sseStreams": [
+      {
+        "k": "/api/orbit/v1/chat_1792236899223",
+        "eventCount": 18,
+        "types": {
+          "workflow_started": 1,
+          "message": 14,
+          "message_end": 1,
+          "followup": 1,
+          "workflow_finished": 1
+        }
+      }
+    ]
+  },
+  "responsesCount": 170
+}
