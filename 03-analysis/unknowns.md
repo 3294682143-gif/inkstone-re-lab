@@ -21,3 +21,19 @@
 2. U3：A1 期间开启网络记录并按需下载新 chunk。
 3. U5/U9：A1+A2 对比。
 4. U6/U7/U8：按需。
+
+---
+
+## 修复轮更新（2026-10-17）
+
+| 编号 | 未知项 | 状态 |
+| --- | --- | --- |
+| U1 | 鉴权类别与位置 | **已解决**：`Authorization: Bearer <uaa-token>` + Cookie（实测请求头） |
+| U2 | 发送请求（URL/方法/Body/CT） | **已解决**：`POST /api/orbit/v1/chat`，JSON 体 |
+| U3 | 流式发送代码（chunk） | 部分：由网络记录侧证为 SSE；未做完整反混淆 |
+| U4 | 传输类型与事件类型 | **已解决**：SSE；`workflow_started/message/message_end/followup/workflow_finished` |
+| U5 | 会话/消息字段返回名 | **已解决**：`cid`/`mid`（实测），会话 id 来自 `chat/new` 的 `data.id` |
+| U6 | `aurora.openxlab.org.cn` 用途 | 未解决（第一轮外） |
+| U7 | 停止生成（A5）语义 | **未解决（未取证）** |
+| U8 | `chat/list` 方法 | 已观察为 GET（登录后 200） |
+| U9 | 选项→字段映射（A6） | **未解决（未取证）**；已知 `model`/`thinking_mode`/`planning_mode` 字段存在于请求体 |

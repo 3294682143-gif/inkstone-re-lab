@@ -1,0 +1,133 @@
+{
+  "tool": "regress",
+  "generatedAt": "2026-10-17T14:09:05.094Z",
+  "mark": "ACCEPT-20261017T140842Z",
+  "summary": {
+    "n": 3,
+    "executed": 3,
+    "completedTurns": 6,
+    "distinctSessionIds": true,
+    "allOk": true,
+    "sessions": [
+      {
+        "session": 1,
+        "chatId": 1021107,
+        "ok": true,
+        "reason": null,
+        "turn1": {
+          "status": 200,
+          "finished": true,
+          "cid": 1021107,
+          "answerLen": 2
+        },
+        "turn2": {
+          "status": 200,
+          "finished": true,
+          "cid": 1021107,
+          "answerLen": 44,
+          "hasMarker": true
+        }
+      },
+      {
+        "session": 2,
+        "chatId": 1021113,
+        "ok": true,
+        "reason": null,
+        "turn1": {
+          "status": 200,
+          "finished": true,
+          "cid": 1021113,
+          "answerLen": 2
+        },
+        "turn2": {
+          "status": 200,
+          "finished": true,
+          "cid": 1021113,
+          "answerLen": 44,
+          "hasMarker": true
+        }
+      },
+      {
+        "session": 3,
+        "chatId": 1021117,
+        "ok": true,
+        "reason": null,
+        "turn1": {
+          "status": 200,
+          "finished": true,
+          "cid": 1021117,
+          "answerLen": 2
+        },
+        "turn2": {
+          "status": 200,
+          "finished": true,
+          "cid": 1021117,
+          "answerLen": 44,
+          "hasMarker": true
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "session": 1,
+      "mark": "ACCEPT-20261017T140842Z-01",
+      "chatId": 1021107,
+      "ok": true,
+      "turn1": {
+        "status": 200,
+        "finished": true,
+        "cid": 1021107,
+        "answerLen": 2
+      },
+      "turn2": {
+        "status": 200,
+        "finished": true,
+        "cid": 1021107,
+        "answerLen": 44,
+        "hasMarker": true
+      },
+      "reason": null
+    },
+    {
+      "session": 2,
+      "mark": "ACCEPT-20261017T140842Z-02",
+      "chatId": 1021113,
+      "ok": true,
+      "turn1": {
+        "status": 200,
+        "finished": true,
+        "cid": 1021113,
+        "answerLen": 2
+      },
+      "turn2": {
+        "status": 200,
+        "finished": true,
+        "cid": 1021113,
+        "answerLen": 44,
+        "hasMarker": true
+      },
+      "reason": null
+    },
+    {
+      "session": 3,
+      "mark": "ACCEPT-20261017T140842Z-03",
+      "chatId": 1021117,
+      "ok": true,
+      "turn1": {
+        "status": 200,
+        "finished": true,
+        "cid": 1021117,
+        "answerLen": 2
+      },
+      "turn2": {
+        "status": 200,
+        "finished": true,
+        "cid": 1021117,
+        "answerLen": 44,
+        "hasMarker": true
+      },
+      "reason": null
+    }
+  ]
+}

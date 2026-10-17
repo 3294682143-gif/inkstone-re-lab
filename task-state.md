@@ -52,3 +52,28 @@
 
 - 若需 A5/A6：在登录态下对聊天页操作「停止」/切换模型并采集。
 - 如需覆盖更多功能（附件/分享）：新增场景采集。
+
+---
+
+## 修复轮（2026-10-17）
+
+- 基线提交：`bdf3ebba93843be1a0234b5fe00f4d0af3d635fb`
+- 代码版本：本轮提交（见 git log）
+- 状态：**P0–P6 已通过（离线 + 在线）；A5/A6 未完成**
+
+### 已完成
+- 缺陷 1 依赖/环境可复现：`package.json`+`package-lock.json`+`README.md`；`undici` 改为项目依赖；移除所有 DSH 绝对路径；代理仅在显式配置时启用。
+- 缺陷 2 参数冲突拒绝：`src/args.mjs` + `src/client.mjs`；`--dry-run --live` 退出 2、零网络、不读凭据。
+- 缺陷 3 严格校验：`src/chat-session.mjs`；HTTP/Content-Type/业务/`workflow_finished`；缺结束判失败；超时与清理。
+- 缺陷 4 回归加固：`src/regress.mjs`；`--n` 校验、标记纳入判定、会话去重与一致性、非零退出、`--out`。
+- 离线测试：27 项通过（原 10 + 新 17）。
+- 全新副本验证：`npm ci`/`npm test`/`--help`/`--dry-run --fixture` 均符合预期。
+- 在线验收：3 组×2 轮，`allOk=true`，exit 0；结果 `05-validation/accept-20261017T140842Z/regression.json`。
+
+### 未完成 / 阻塞
+- A5 停止生成、A6 模型/选项切换：未取证。
+- 错误流/取消收尾事件形态：未知。
+- DeepSpider / `rev_*`：未使用。
+
+### 下一项最小动作
+- 如需 A5/A6：登录态下对页面操作「停止」/切换模型并采集。

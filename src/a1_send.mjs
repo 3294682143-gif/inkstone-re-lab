@@ -3,24 +3,23 @@
 // 只打印脱敏摘要，绝不把凭证/原文打印到 stdout。
 // 用法: node src/a1_send.mjs --text "INKSTONE-RE-A1：请只回复 OK。" --storage-state 01-evidence/private/inkstone-auth.json
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { launchProxy, loadPatchright, resolveBrowserProxy } from './browser-lib.mjs';
 
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 
 function arg(n, d=undefined){ const i=process.argv.indexOf(`--${n}`); return i>=0?(process.argv[i+1]??true):d; }
 const STORAGE = arg('storage-state', '01-evidence/private/inkstone-auth.json');
 const TEXT = arg('text', 'INKSTONE-RE-A1：请只回复 OK。');
 const URL_ = arg('url', 'https://discovery.intern-ai.org.cn/chat/');
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
+const PROXY = resolveBrowserProxy(process.env);
 mkdirSync('01-evidence/private', {recursive:true});
 mkdirSync('01-evidence/sanitized/streams', {recursive:true});
 
 if (!existsSync(STORAGE)) { console.log(JSON.stringify({error:'storage-state not found'})); process.exit(2); }
 
 const raw = { sent: null, responses: [] };
-const browser = await chromium.launch({ headless: true, proxy: { server: PROXY } });
+const browser = await chromium.launch({ headless: true, ...launchProxy(PROXY) });
 const context = await browser.newContext({ storageState: STORAGE });
 
 context.on('request', async (rq) => {

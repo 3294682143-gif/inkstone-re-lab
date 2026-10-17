@@ -2,20 +2,18 @@
 // 只做页面加载观察；不注入 Hook、不发送业务消息、不需要登录。
 // 用法: node src/a0_capture.mjs [url]
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { createRequire } from 'node:module';
-// 从已装好 patchright 的 profile 解析（项目目录本身无 node_modules）
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+import { launchProxy, loadPatchright, resolveBrowserProxy } from './browser-lib.mjs';
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 
 const URL_ = process.argv[2] || 'https://discovery.intern-ai.org.cn/chat/';
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
+const PROXY = resolveBrowserProxy(process.env);
 const OUT = '01-evidence/sanitized';
 mkdirSync(OUT, { recursive: true });
 mkdirSync('01-evidence/sanitized/streams', { recursive: true });
 
 const records = [];
-const browser = await chromium.launch({ headless: true, proxy: { server: PROXY } });
+const browser = await chromium.launch({ headless: true, ...launchProxy(PROXY) });
 const context = await browser.newContext();
 const page = await context.newPage();
 

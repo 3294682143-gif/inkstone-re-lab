@@ -68,3 +68,15 @@
 - 站点前端更新后需重新采集：`/api/orbit/v1/chat` 字段、SSE 事件类型、auth 头形态。
 - 可复用：`src/stream-parser.mjs` + `tests/`（协议不变即可复用）。
 - 凭证轮换：覆盖 `01-evidence/private/inkstone-auth.json`。
+
+---
+
+## 本轮修复轮更新（2026-10-17）
+
+> 历史报告保留不变。本轮修复了 4 个缺陷并完成离线+在线验收。
+
+- 修复：依赖可复现（package.json/lock/README、移除 DSH 硬编码、代理可选）；`--dry-run/--live` 冲突拒绝；不完整流与业务错误判失败；回归判定加固（含 `--out`）。
+- 离线：`node --test` 27/27 通过；全新副本 `npm ci` 后可复现。
+- 在线：3 组×2 轮全部通过（会话 1021107/1021113/1021117，`allOk=true`，exit 0）。
+- 详见 `05-validation/round2-fix-20261017.md`。
+- 未完成：A5/A6；错误流形态未知；DeepSpider/`rev_*` 未使用。

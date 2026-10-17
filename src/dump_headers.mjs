@@ -1,12 +1,11 @@
 // 诊断：抓取浏览器对 /api/orbit 的 POST 请求头（只列名称；值脱敏/仅长度），用于对齐最小客户端。
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+import { loadPatchright } from './browser-lib.mjs';
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 function arg(n,d=undefined){const i=process.argv.indexOf(`--${n}`);return i>=0?(process.argv[i+1]??true):d;}
 const STORAGE=arg('storage-state','01-evidence/private/inkstone-auth.json');
-const PROXY=process.env.HTTPS_PROXY||process.env.https_proxy||'http://127.0.0.1:9999';
+const PROXY=resolveBrowserProxy(process.env);
 const SENSITIVE=/cookie|authorization|token|jwt|auth|x-s|secret|sign|nonce|timestamp|x-csrf|csrf/i;
 const SAFE=new Set(['content-type','accept','origin','referer','user-agent','accept-language','sec-ch-ua','sec-fetch-mode','x-requested-with','app-id','x-app-id','tenant-id','x-tenant-id']);
 const captured=[];

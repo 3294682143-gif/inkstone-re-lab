@@ -6,17 +6,16 @@
 //   node src/capture_chat.mjs --storage-state 01-evidence/private/inkstone-auth.json \
 //        --a1 "INKSTONE-RE-A1：请只回复 OK。" --a2 "请复述我上一条消息中的测试标记。"
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { launchProxy, loadPatchright, resolveBrowserProxy } from './browser-lib.mjs';
 
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 
 function arg(n, d=undefined){ const i=process.argv.indexOf(`--${n}`); return i>=0?(process.argv[i+1]??true):d; }
 const STORAGE = arg('storage-state', '01-evidence/private/inkstone-auth.json');
 const A1 = arg('a1', 'INKSTONE-RE-A1：请只回复 OK。');
 const A2 = arg('a2', '请复述我上一条消息中的测试标记。');
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
+const PROXY = resolveBrowserProxy(process.env);
 const HOME = 'https://discovery.intern-ai.org.cn/chat/';
 mkdirSync('01-evidence/private', {recursive:true});
 mkdirSync('01-evidence/sanitized/streams', {recursive:true});
@@ -25,7 +24,7 @@ if (!existsSync(STORAGE)) { console.log(JSON.stringify({error:'storage-state not
 const raws = { reqs: {}, resps: [], streams: {} };
 const sanitize = (s) => String(s).replace(/[A-Za-z0-9_-]{24,}/g, '<BLOB>');
 
-const browser = await chromium.launch({ headless: true, proxy: { server: PROXY } });
+const browser = await chromium.launch({ headless: true, ...launchProxy(PROXY) });
 const context = await browser.newContext({ storageState: STORAGE });
 
 // 请求体

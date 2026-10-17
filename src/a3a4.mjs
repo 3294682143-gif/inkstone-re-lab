@@ -2,15 +2,14 @@
 // A4：刷新页面并打开刚才的会话，观察历史恢复。
 // 原始件写 private；脱敏摘要写 sanitized。stdout 只打印脱敏摘要。
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+import { loadPatchright } from './browser-lib.mjs';
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 function arg(n,d=undefined){const i=process.argv.indexOf(`--${n}`);return i>=0?(process.argv[i+1]??true):d;}
 const STORAGE=arg('storage-state','01-evidence/private/inkstone-auth.json');
 const A1TEXT=arg('text','INKSTONE-RE-A1：请只回复 OK。');
 const OPEN_ID=arg('open-id', null);
-const PROXY=process.env.HTTPS_PROXY||process.env.https_proxy||'http://127.0.0.1:9999';
+const PROXY=resolveBrowserProxy(process.env);
 const HOME='https://discovery.intern-ai.org.cn/chat/';
 mkdirSync('01-evidence/private',{recursive:true});
 mkdirSync('01-evidence/sanitized',{recursive:true});

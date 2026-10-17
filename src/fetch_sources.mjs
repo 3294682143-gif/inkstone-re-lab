@@ -2,11 +2,10 @@
 // 仅获取页面正常加载所涉及的资源；不猜测、不越权。
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { createRequire } from 'node:module';
+import { resolveBrowserProxy } from './browser-lib.mjs';
 
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
-const { ProxyAgent, fetch: ufetch } = await import(_req.resolve('undici')).catch(() => ({}));
+const PROXY = resolveBrowserProxy(process.env);
+import { ProxyAgent } from 'undici';
 
 const net = JSON.parse(readFileSync('01-evidence/sanitized/a0-network.json', 'utf8'));
 const urls = [...new Set(net.records.filter(r => r.kind === 'request' && r.rtype === 'script').map(r => r.url))]

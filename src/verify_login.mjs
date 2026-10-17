@@ -2,22 +2,21 @@
 // 只输出脱敏摘要（状态码/端点/页面标记），不打印任何凭证内容。
 // 用法: node src/verify_login.mjs --storage-state 01-evidence/private/inkstone-auth.json
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { launchProxy, loadPatchright, resolveBrowserProxy } from './browser-lib.mjs';
 
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 
 function arg(n, d=undefined){ const i=process.argv.indexOf(`--${n}`); return i>=0?(process.argv[i+1]??true):d; }
 const STORAGE = arg('storage-state', '01-evidence/private/inkstone-auth.json');
 const URL_ = arg('url', 'https://discovery.intern-ai.org.cn/chat/');
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
+const PROXY = resolveBrowserProxy(process.env);
 const OUT = '01-evidence/sanitized'; mkdirSync(OUT, {recursive:true});
 
 if (!existsSync(STORAGE)) { console.log(JSON.stringify({error:'storage-state not found', STORAGE})); process.exit(2); }
 
 const api = {};   // url -> status
-const browser = await chromium.launch({ headless: true, proxy: { server: PROXY } });
+const browser = await chromium.launch({ headless: true, ...launchProxy(PROXY) });
 const context = await browser.newContext({ storageState: STORAGE });   // ★ 同一 BrowserContext 复用登录态
 context.on('response', (res) => {
   const u = res.url();

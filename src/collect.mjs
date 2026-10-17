@@ -16,10 +16,9 @@
 //   --url <url>             默认 https://discovery.intern-ai.org.cn/chat/
 //   --headful               需要 DISPLAY 时才可用；无显示环境请勿使用
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { launchProxy, loadPatchright, resolveBrowserProxy } from './browser-lib.mjs';
 
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const _pw = await import(_req.resolve('patchright'));
+const _pw = await loadPatchright();
 const chromium = _pw.chromium ?? _pw.default?.chromium;
 
 function arg(name, def = undefined) {
@@ -31,13 +30,13 @@ const SCEN = arg('scenario', 'A0');
 const STORAGE = arg('storage-state', null);      // ← 登录态文件路径（可空）
 const USERDATA = arg('user-data-dir', null);     // ← 或持久化用户目录
 const HEADFUL = !!arg('headful', false);
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
+const PROXY = resolveBrowserProxy(process.env);
 
 const OUT = '01-evidence/sanitized';
 mkdirSync(OUT, { recursive: true });
 
 const records = [];
-const launchOpts = { headless: !HEADFUL, proxy: { server: PROXY } };
+const launchOpts = { headless: !HEADFUL, ...launchProxy(PROXY) };
 
 let browser, context;
 if (USERDATA) {

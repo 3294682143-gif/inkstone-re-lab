@@ -1,124 +1,145 @@
 #!/usr/bin/env node
-// client.mjs — Intern InkStone 聊天最小客户端（P5）。
-// 仅使用实测接口与鉴权类别：Cookie(uaa-token/ssouid/acw_tc) 从本地 storageState 读取。
-// 默认不联网；--live 才发真实请求。凭证只从本地文件读取，不写入代码/日志。
-//
-// 用法:
-//   node src/client.mjs --help
-//   node src/client.mjs --dry-run --fixture fixtures/first-turn.json
-//   node src/client.mjs --live --scenario new-conversation --text "INKSTONE-RE-LIVE-01：请只回复 OK。" --storage-state 01-evidence/private/inkstone-auth.json
-//   node src/client.mjs --live --scenario follow-up --conversation-id <id> --text "请复述我上一条消息中的测试标记。" --storage-state ...
-import { readFileSync, existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
+// client.mjs — Intern InkStone 聊天最小客户端（CLI 核心，可被测试以依赖注入方式调用）。
+// 默认/--dry-run 不发网络请求；--live 才联网。凭证只从本地 storageState 读取，不写入源码/日志。
+// 代理仅在明确配置时启用（--proxy 或 INKSTONE_PROXY/HTTPS_PROXY/HTTP_PROXY），否则直连。
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { parseArgs, ArgError } from './args.mjs';
 import { SSEFrameParser, ChatStreamMerger } from './stream-parser.mjs';
 import { buildChatSendBody, buildChatNewBody, CHAT_SEND_PATH, CHAT_NEW_PATH } from './build-chat-request.mjs';
+import { readAuth, resolveProxy, buildHeaders, createHttpClient, DEFAULT_BASE_URL } from './net.mjs';
+import { createChatSession, ChatError } from './chat-session.mjs';
 
-const _req = createRequire('/home/ma-user/.dsh/profiles/web/package.json');
-const { ProxyAgent } = await import(_req.resolve('undici'));
-const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || 'http://127.0.0.1:9999';
-const BASE = 'https://discovery.intern-ai.org.cn';
+export const HELP = `Intern InkStone 最小客户端
 
-function arg(n, d=undefined){ const i=process.argv.indexOf(`--${n}`); return i>=0?(process.argv[i+1]??true):d; }
-const HELP = !!arg('help', false);
-const DRY = !!arg('dry-run', false);
-const LIVE = !!arg('live', false);
-const SCEN = arg('scenario', 'new-conversation');
-const TEXT = arg('text', null);
-const CONV = arg('conversation-id', null);
-const FIXTURE = arg('fixture', null);
-const STORAGE = arg('storage-state', '01-evidence/private/inkstone-auth.json');
+用法: node src/client.mjs [选项]
 
-if (HELP) {
-  console.log(`Intern InkStone 最小客户端
-用法: node src/client.mjs [--dry-run|--live] [选项]
+  --help                      显示本帮助（不读取登录态、不联网）
+  --dry-run                   仅本地构造与校验，绝不发送网络请求（默认行为）
+  --live                      显式启用真实网络调用（与 --dry-run 互斥）
+  --scenario <name>           new-conversation（默认） | follow-up
+  --text <text>               本轮用户文本（--live 必填）
+  --conversation-id <id>      follow-up 时指定上一轮真实返回的会话 id
+  --fixture <path>            读取本地脱敏样本（.sse.txt 或含 sse 字段的 .json）作为一次响应
+  --model <key>               模型 key（默认 Auto）
+  --storage-state <path>      本地登录态文件；亦可用环境变量 INKSTONE_STORAGE_STATE
+  --base-url <url>            接口基址；亦可用 INKSTONE_BASE_URL（默认 ${DEFAULT_BASE_URL}）
+  --proxy <url>               显式代理；亦可用 INKSTONE_PROXY/HTTPS_PROXY/HTTP_PROXY（未配置则直连）
+  --timeout-ms <ms>           请求/读取超时（默认 60000；0 表示不超时）
 
-  --help                     显示本帮助
-  --dry-run                  仅本地检查，绝不发送网络请求（默认行为）
-  --fixture <path>           读取本地脱敏样本作为一次响应
-  --live                     显式启用真实网络调用
-  --scenario new-conversation 正常创建一个新会话并发第一条消息
-  --scenario follow-up        在上一次真实返回的会话下追问
-  --conversation-id <id>     追问时指定上一轮真实返回的会话 id
-  --text <text>              本轮用户文本
-  --storage-state <path>     本地登录态文件（cookies），默认 01-evidence/private/inkstone-auth.json
+退出码: 0 成功；1 运行失败（HTTP/业务/未正常结束）；2 参数错误（含 --dry-run 与 --live 冲突）。
 
-鉴权: Cookie(uaa-token/ssouid/acw_tc) 从 storageState 读取，不写入源码/日志。
-结束语义: SSE 的 workflow_finished（不使用 [DONE]）。`);
-  process.exit(0);
+鉴权: 仅从 storageState 读取 Cookie 与 uaa-token；--help/--dry-run 不读取、不联网。
+结束语义: SSE 的 workflow_finished（不使用 [DONE]）。
+环境变量: 本程序不会自动加载 .env 文件；请用 shell 导出（export INKSTONE_BASE_URL=...）或在命令行传参。`;
+
+const SPEC = {
+  booleans: ['help', 'dry-run', 'live'],
+  values: ['scenario', 'text', 'conversation-id', 'fixture', 'model', 'storage-state', 'base-url', 'proxy', 'timeout-ms'],
+};
+
+function readFixture(path) {
+  const raw = readFileSync(path, 'utf8');
+  if (path.endsWith('.json')) { const j = JSON.parse(raw); return j.sse ?? ''; }
+  return raw;
 }
 
-function readAuth(path) {
-  if (!existsSync(path)) throw new Error(`storage-state 不存在: ${path}`);
-  const d = JSON.parse(readFileSync(path, 'utf8'));
-  const host = 'discovery.intern-ai.org.cn';
-  const jar = (d.cookies || []).filter(c => host.endsWith(c.domain.replace(/^\./, '')) || c.domain.includes('openxlab'));
-  const cookie = jar.map(c => `${c.name}=${c.value}`).join('; ');
-  const tk = (d.cookies || []).find(c => c.name === 'uaa-token')?.value;
-  if (!tk) throw new Error('storage-state 缺少 uaa-token（无法构造 Authorization）');
-  return { cookie, token: tk };
-}
-const headers = (auth) => ({ 'content-type': 'application/json', 'accept': 'text/event-stream, application/json',
-  'origin': BASE, 'referer': BASE + '/chat/', 'cookie': auth.cookie, 'authorization': 'Bearer ' + auth.token,
-  'user-agent': 'Mozilla/5.0' });
+/**
+ * CLI 逻辑核心。deps 允许注入：env / stdout / stderr / fetchImpl / readAuth。
+ * @returns {Promise<number>} 退出码
+ */
+export async function run(argv, deps = {}) {
+  const env = deps.env ?? process.env;
+  const out = deps.stdout ?? ((s) => process.stdout.write(s + '\n'));
+  const err = deps.stderr ?? ((s) => process.stderr.write(s + '\n'));
 
-async function postJson(path, body, auth, accept) {
-  const dispatcher = new ProxyAgent(PROXY);
-  const res = await fetch(BASE + path, { method: 'POST', headers: { ...headers(auth), accept: accept || 'application/json' },
-    body: JSON.stringify(body), dispatcher });
-  return res;
-}
-
-async function runNewConversation(auth) {
-  const rNew = await postJson(CHAT_NEW_PATH, buildChatNewBody({}), auth);
-  const j = await rNew.json();
-  if (j.code !== 0 || !j.data?.id) throw new Error('chat/new 失败: code=' + j.code + ' msg=' + (j.msg || j.message || ''));
-  const chatId = j.data.id;
-  console.log(`[new-conversation] 会话 id=${chatId}`);
-  await sendAndMerge(chatId, auth);
-  return chatId;
-}
-
-async function sendAndMerge(chatId, auth) {
-  const body = buildChatSendBody({ chatId, query: TEXT,
-    model: arg('model', 'Auto'), thinkingMode: arg('thinking-mode', true) !== 'false', planningMode: false });
-  const res = await postJson(CHAT_SEND_PATH, body, auth, 'text/event-stream');
-  console.log(`[send] POST ${CHAT_SEND_PATH} -> ${res.status} ${res.headers.get('content-type')}`);
-  if (!res.ok) { let t=''; try{ t=await res.text(); }catch{} throw new Error('send 失败: ' + res.status + ' body=' + t.slice(0,200)); }
-  const parser = new SSEFrameParser(); const merger = new ChatStreamMerger();
-  const reader = res.body.getReader();
-  for (;;) { const { done, value } = await reader.read(); if (done) break;
-    merger.applyAll(parser.push(value)); if (merger.finished) break; }
-  merger.applyAll(parser.flush());
-  console.log(`[result] cid=${merger.cid} finished=${merger.finished} answer=${JSON.stringify(merger.answer)}`);
-  return merger;
-}
-
-// ---------------- main ----------------
-try {
-  if (FIXTURE) {
-    let txt;
-    if (FIXTURE.endsWith('.json')) { const j = JSON.parse(readFileSync(FIXTURE, 'utf8')); txt = j.sse ?? ''; }
-    else txt = readFileSync(FIXTURE, 'utf8');
-    const merger = new ChatStreamMerger().applyAll([...new SSEFrameParser().push(txt)]);
-    console.log(JSON.stringify({ mode: 'fixture', finished: merger.finished, answer: merger.answer }, null, 2));
-    process.exit(0);
+  // 1) 参数解析（未知参数/缺值在这里就失败）
+  let parsed;
+  try { parsed = parseArgs(argv, SPEC); }
+  catch (e) {
+    if (e instanceof ArgError) { err('[error] ' + e.message); return 2; }
+    throw e;
   }
-  // 构造（本地）
-  if (SCEN === 'new-conversation') {
-    buildChatNewBody({});
-    if (TEXT) buildChatSendBody({ chatId: 1, query: TEXT }); // 仅校验字段（chat_id 占位不用于发送）
-    console.log(`[dry-run] 将: POST ${CHAT_NEW_PATH} {scenario:1} → 取 id → POST ${CHAT_SEND_PATH} {scenario,thinking_mode,planning_mode,model,query,chat_id}`);
-  } else if (SCEN === 'follow-up') {
-    if (!CONV) throw new Error('follow-up 需要 --conversation-id');
-    buildChatSendBody({ chatId: CONV, query: TEXT || '' });
-    console.log(`[dry-run] 将: POST ${CHAT_SEND_PATH} 到会话 ${CONV}`);
-  } else throw new Error('未知 --scenario: ' + SCEN);
-  if (!LIVE) { console.log('[dry-run] 未发送任何网络请求。加 --live 才联网。'); process.exit(0); }
-  if (!TEXT) throw new Error('--live 需要 --text');
-  const auth = readAuth(STORAGE);
-  if (SCEN === 'new-conversation') await runNewConversation(auth);
-  else await sendAndMerge(CONV, auth);
-} catch (e) {
-  console.error('[error] ' + e.message);
-  process.exit(1);
+  const { flags, vals } = parsed;
+
+  // 2) help 最优先：不读凭据、不联网
+  if (flags.help) { out(HELP); return 0; }
+
+  // 3) 冲突：--dry-run 与 --live（在读凭据/联网之前）
+  if (flags['dry-run'] && flags.live) { err('[error] --dry-run 与 --live 不能同时使用'); return 2; }
+
+  // 4) 场景校验（读凭据/联网之前）
+  const scenario = vals.scenario ?? 'new-conversation';
+  if (scenario !== 'new-conversation' && scenario !== 'follow-up') {
+    err('[error] 未知 --scenario: ' + scenario); return 2;
+  }
+  if (scenario === 'follow-up' && !vals['conversation-id']) {
+    err('[error] follow-up 需要 --conversation-id'); return 2;
+  }
+  const timeoutMs = Number(vals['timeout-ms'] ?? env.INKSTONE_TIMEOUT_MS ?? 60000);
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0) { err('[error] --timeout-ms 必须是非负数字'); return 2; }
+
+  const baseUrl = vals['base-url'] ?? env.INKSTONE_BASE_URL ?? DEFAULT_BASE_URL;
+  const storage = vals['storage-state'] ?? env.INKSTONE_STORAGE_STATE ?? '01-evidence/private/inkstone-auth.json';
+  const model = vals.model ?? 'Auto';
+
+  // 5) fixture 离线模式：不读凭据、不联网
+  if (vals.fixture) {
+    try {
+      const text = readFixture(vals.fixture);
+      const merger = new ChatStreamMerger().applyAll([...new SSEFrameParser().push(text), ...new SSEFrameParser().flush()]);
+      const finished = merger.finished;
+      out(JSON.stringify({ mode: 'fixture', finished, answer: merger.answer }, null, 2));
+      return finished ? 0 : 1;               // 不完整样本也判失败
+    } catch (e) { err('[error] 读取样本失败: ' + e.message); return 1; }
+  }
+
+  // 6) 默认/--dry-run：只做本地构造，零网络
+  const dry = flags['dry-run'] || !flags.live;
+  if (dry) {
+    try {
+      if (scenario === 'new-conversation') {
+        buildChatNewBody({});
+        if (vals.text) buildChatSendBody({ chatId: 1, query: vals.text, model });
+        out(`[dry-run] 将: POST ${CHAT_NEW_PATH} {scenario:1} → 取 id → POST ${CHAT_SEND_PATH} {scenario,thinking_mode,planning_mode,model,query,chat_id}`);
+      } else {
+        buildChatSendBody({ chatId: vals['conversation-id'], query: vals.text || '', model });
+        out(`[dry-run] 将: POST ${CHAT_SEND_PATH} 到会话 ${vals['conversation-id']}`);
+      }
+    } catch (e) { err('[error] ' + e.message); return 2; }
+    out('[dry-run] 未发送任何网络请求。加 --live 才联网。');
+    return 0;
+  }
+
+  // 7) live
+  if (!vals.text) { err('[error] --live 需要 --text'); return 2; }
+
+  let auth;
+  try { auth = (deps.readAuth ?? readAuth)(storage); }
+  catch (e) { err('[error] ' + e.message); return 1; }
+
+  const http = createHttpClient({ baseUrl, proxy: resolveProxy(env, vals.proxy ?? null), fetchImpl: deps.fetchImpl, timeoutMs });
+  const session = createChatSession({ http, headers: buildHeaders(auth, baseUrl), timeoutMs });
+
+  try {
+    if (scenario === 'new-conversation') {
+      const id = await session.newConversation();
+      out(`[new-conversation] 会话 id=${id}`);
+      const r = await session.send(id, vals.text, { model, thinkingMode: true });
+      out(`[result] cid=${r.cid} finished=${r.finished} answer=${JSON.stringify(r.answer)}`);
+    } else {
+      const r = await session.send(vals['conversation-id'], vals.text, { model, thinkingMode: true });
+      out(`[result] cid=${r.cid} finished=${r.finished} answer=${JSON.stringify(r.answer)}`);
+    }
+    return 0;
+  } catch (e) {
+    const extra = (e instanceof ChatError && e.partial) ? ` (partial answer 长度=${e.partial.length}，未完成)` : '';
+    err('[error] ' + e.message + extra);
+    return 1;
+  }
+}
+
+// 直接运行时执行
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  process.exitCode = await run(process.argv.slice(2));
 }

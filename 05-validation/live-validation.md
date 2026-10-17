@@ -37,3 +37,16 @@
 - 凭证更新：重新导出 storageState 覆盖同路径即可；客户端不写死值。
 - 未实现/未验证：停止生成（A5）、模型切换（A6）、附件、错误流形态。
 - 轮次间隔加了 1.5s，避免高频调用；未触发 429。
+
+---
+
+## 本轮修复轮·在线验收（2026-10-17）
+
+> 历史记录（上文）保留不变。
+
+- 命令：`node src/regress.mjs --n 3 --mark ACCEPT-20261017T140842Z --storage-state 01-evidence/private/inkstone-auth.json --out 05-validation/accept-20261017T140842Z/regression.json`
+- 退出码：0；`allOk=true`；`executed=3`；`completedTurns=6`；`distinctSessionIds=true`。
+- 会话 ID：1021107 / 1021113 / 1021117（真实创建、互异）。
+- 每轮 `status=200` 且 `finished=true`；每组追问均包含各自首轮标记。
+- 结果文件：`05-validation/accept-20261017T140842Z/regression.json`（脱敏，无凭证）。
+- 登录态探测：`GET /api/orbit/v1/models` → 200（有效）。

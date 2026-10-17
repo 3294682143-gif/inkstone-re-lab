@@ -1,0 +1,19 @@
+{
+  "name": "inkstone-re-lab",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Intern InkStone 聊天接口分析与最小客户端（离线解析器 + 请求构造 + 最小客户端 + 回归）",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "client": "node src/client.mjs",
+    "regress": "node src/regress.mjs"
+  },
+  "dependencies": {
+    "undici": "^6.21.0"
+  }
+}
