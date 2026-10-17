@@ -50,3 +50,5 @@
 - 每轮 `status=200` 且 `finished=true`；每组追问均包含各自首轮标记。
 - 结果文件：`05-validation/accept-20261017T140842Z/regression.json`（脱敏，无凭证）。
 - 登录态探测：`GET /api/orbit/v1/models` → 200（有效）。
+
+- 所测代码版本：`2657ec4d845a2f619fc5ed9f23d09eb80e560545`
