@@ -70,5 +70,5 @@ test('envelope code!=0 → remote_rejected', async () => {
 
 test('checkpoint 结果缺 applied → 抛错', async () => {
   const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, fetchImpl: countingFetch(() => jsonResponse(env({ status: 'x' }))) });
-  await assert.rejects(() => a.conversationCheckpoint(1, 't1', {}), /checkpoint result invalid/);
+  await assert.rejects(() => a.conversationCheckpoint(1, 't1', {}), (e) => e.kind === 'invalid_response');
 });

@@ -24,15 +24,26 @@ RAW=01-evidence/private/desktop-027
   'resources/app.asar' 'resources/runtime/*' 'resources/app-update.yml'
 
 # 1) 提取应用自有 ASAR（不执行应用代码）
+#    每次提取都用“唯一新路径”：out 与 manifest 都不能指向已存在的文件（脚本会拒绝覆盖）。
+#    已提交的基线清单是 06-desktop/evidence/asar-manifest.json，不要覆盖它。
+RUN=$(date -u +%Y%m%dT%H%M%SZ)
+ASAR_OUT="$RAW/asar-$RUN"                 # 私有、被 .gitignore 忽略
+ASAR_MAN="$RAW/asar-manifest-$RUN.json"   # 本轮原始清单（私有）
 python3 tools/inspect_inkstone_asar.py \
   --asar "$RAW/payload/resources/app.asar" \
-  --out  "$RAW/asar" \
-  --manifest 06-desktop/evidence/asar-manifest.json
+  --out  "$ASAR_OUT" \
+  --manifest "$ASAR_MAN"
+
+# 2) 与已提交的基线清单比较（一致→退出0；不一致→非零并打印差异）
+python3 tools/compare_asar_manifest.py \
+  --baseline  06-desktop/evidence/asar-manifest.json \
+  --candidate "$ASAR_MAN"
 ```
 
-预期：`{"total_entries":6035,"extracted":181}`；主 bundle 哈希 `f4b8148d…`。
+预期：`{"total_entries":6035,"extracted":181}`；主 bundle 哈希 `f4b8148d…`；比较输出 `manifest matches baseline`。
 
-> `$PLUGINSDIR` 是字面路径，不要让 shell 替换。
+> - `$PLUGINSDIR` 是字面路径，不要让 shell 替换。
+> - 未收到真实安装包/app.asar 时，第 1–2 步标为 **BLOCKED / NOT_RUN**；用合成 fixture 只能验证脚本逻辑，不能替代真实重提取。
 
 ## 离线实现（纯 Node，不 import electron）
 

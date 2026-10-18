@@ -87,33 +87,127 @@ export function parseMessage(line) {
 }
 
 /**
- * 关联器：发送请求、按 id 关联响应，并把 turn.send 的 accepted 与真正完成区分开。
- * - turn.send 的响应 result.accepted === true 只代表“已受理”。
- * - 真正完成来自异步通知 turn.completed / turn.failed（按 session_ref/request_id 关联）。
+ * 合法 turn 状态（静态证据：`turnStatus()` 仅接受下值，见 06-desktop/contracts/cloud-gateway.md）。
+ * 终态映射：complete→completed（成功）；stopped→stopped；error→failed；running→仍 pending；其它/缺失→unknown（不算成功）。
+ */
+export const TURN_STATUSES = Object.freeze(['running', 'complete', 'stopped', 'error']);
+export const TURN_OUTCOMES = Object.freeze(['pending', 'completed', 'stopped', 'failed', 'unknown']);
+
+function terminalOutcome(method, status) {
+  if (method === 'turn.failed') return 'failed';
+  switch (status) {
+    case 'complete': return 'completed';
+    case 'stopped': return 'stopped';
+    case 'error': return 'failed';
+    case 'running': return null;   // 非终态，保持 pending
+    default: return 'unknown';     // 缺失或未知状态：终态但非成功
+  }
+}
+
+/**
+ * 关联器：发送请求（JSONL `id`）→ 关联响应；并把 `turn.send` 的 accepted（回合 `request_id`）
+ * 与异步终态通知 `turn.completed`/`turn.failed` 区分开。
+ *
+ * 关键点：
+ * - JSONL 请求 `id` 与回合 `request_id` 是不同标识，分别用于响应关联与本回合终态。
+ * - 只有已登记（来自 accepted 响应）的回合才会被通知影响；未知/重复/跨会话/过期的通知不污染已有任务。
+ * - 若终态通知先于 accepted 响应到达（协议允许的乱序），有限缓存并在登记后重放；缓存有上限。
+ * - 终态一经确定不被后续事件覆盖（terminate-once）。
  */
 export class DriverCorrelator {
-  constructor() { this.pending = new Map(); this.responses = new Map(); this.notifications = []; this.turnStates = new Map(); this.ready = null; this._seq = 0; }
+  constructor({ orphanLimit = 64 } = {}) {
+    this.pending = new Map();       // jsonl id -> {method, params}
+    this.responses = new Map();     // jsonl id -> correlated response
+    this.notifications = [];
+    this.turns = new Map();         // request_id -> {sessionRef, turnId, outcome, status, terminal}
+    this.unmatched = [];            // 未关联/重复/跨会话等，单独保存
+    this.orphans = new Map();       // request_id -> 先到的终态通知（有界）
+    this.orphanLimit = orphanLimit;
+    this.ready = null;
+    this._seq = 0;
+  }
   nextId(prefix = 'req') { return `${prefix}-${++this._seq}`; }
   request(method, params = {}, prefix) { const id = this.nextId(prefix); this.pending.set(id, { method, params }); return { id, method, params }; }
-  /** 喂入一行输出；返回一个分类结果。 */
+
+  /** 喂入一行输出；返回分类结果（响应带 correlated 标记；通知原样）。 */
   handleLine(line) {
     const msg = parseMessage(line);
-    if (msg.kind === 'notification') {
-      this.notifications.push(msg);
-      if (msg.method === 'driver.ready') this.ready = msg.params?.protocol_version ?? null;
-      if (msg.method === 'turn.completed' || msg.method === 'turn.failed') {
-        const key = msg.params?.request_id ?? msg.params?.session_ref;
-        if (key) this.turnStates.set(String(key), msg.method === 'turn.completed' ? 'completed' : 'failed');
-      }
-      return msg;
+    return msg.kind === 'notification' ? this._handleNotification(msg) : this._handleResponse(msg);
+  }
+
+  _handleResponse(msg) {
+    const req = this.pending.get(msg.id);
+    if (!req) {                                  // 未知 / 重复 / 过期响应：不落 responses
+      const rec = { ...msg, correlated: false, reason: 'unknown-response-id' };
+      this.unmatched.push(rec);
+      return rec;
     }
     this.pending.delete(msg.id);
-    this.responses.set(msg.id, msg);
+    const correlated = { ...msg, request: req, correlated: true };
+    this.responses.set(msg.id, correlated);
+    // accepted 的 turn.send：登记回合（request_id），并重放可能先到的终态通知
+    if (correlated.ok && isRecord(msg.result) && msg.result.accepted === true && typeof msg.result.request_id === 'string') {
+      this._registerTurn(msg.result.request_id, msg.result.session_ref);
+    }
+    return correlated;
+  }
+
+  _registerTurn(requestId, sessionRef) {
+    if (!this.turns.has(requestId)) {
+      this.turns.set(requestId, { sessionRef: sessionRef ?? null, turnId: null, outcome: 'pending', status: null, terminal: false });
+    }
+    const buffered = this.orphans.get(requestId);
+    if (buffered) { this.orphans.delete(requestId); this._applyTerminal(buffered); }
+  }
+
+  _handleNotification(msg) {
+    this.notifications.push(msg);
+    if (msg.method === 'driver.ready') { this.ready = msg.params?.protocol_version ?? null; return msg; }
+    if (msg.method === 'turn.completed' || msg.method === 'turn.failed') { this._terminalNotification(msg); }
     return msg;
   }
+
+  _terminalNotification(msg) {
+    const requestId = msg.params?.request_id;
+    if (typeof requestId !== 'string' || requestId.length === 0) {
+      this.unmatched.push({ ...msg, reason: 'terminal-without-request-id' });
+      return;                                     // 无法安全关联，不污染任何回合
+    }
+    if (!this.turns.has(requestId)) {             // 终态先于 accepted：有界缓存，登记后重放
+      this.orphans.delete(requestId);
+      this.orphans.set(requestId, msg);
+      while (this.orphans.size > this.orphanLimit) this.orphans.delete(this.orphans.keys().next().value);
+      return;
+    }
+    this._applyTerminal(msg);
+  }
+
+  _applyTerminal(msg) {
+    const requestId = msg.params?.request_id;
+    const turn = this.turns.get(requestId);
+    if (!turn) return;
+    const sessionRef = msg.params?.session_ref;
+    if (turn.sessionRef != null && sessionRef != null && String(sessionRef) !== String(turn.sessionRef)) {
+      this.unmatched.push({ ...msg, reason: 'session-mismatch' });   // 跨会话/串扰：忽略
+      return;
+    }
+    if (turn.terminal) { this.unmatched.push({ ...msg, reason: 'already-terminal' }); return; }  // 终态不被覆盖
+    const outcome = terminalOutcome(msg.method, msg.params?.status);
+    if (typeof msg.params?.turn_id === 'string') turn.turnId = msg.params.turn_id;
+    if (outcome === null) { turn.status = msg.params?.status ?? null; return; }   // running：仍 pending
+    turn.outcome = outcome;
+    turn.status = msg.method === 'turn.failed' ? 'failed' : (msg.params?.status ?? null);
+    turn.terminal = true;
+  }
+
   /** turn.send 的响应是否“已受理”（不代表完成）。 */
-  static isAccepted(response) { return response?.kind === 'response' && response.ok === true && response.result?.accepted === true; }
-  /** 用 request_id 或 session_ref 判定该轮是否已到达终态。 */
-  turnOutcome(key) { return this.turnStates.get(String(key)) ?? 'pending'; }
+  static isAccepted(response) {
+    const r = response?.correlated ? response : response;
+    return r?.kind === 'response' && r.ok === true && isRecord(r.result) && r.result.accepted === true;
+  }
+  /** 按回合 request_id 判定终态（pending/completed/stopped/failed/unknown）。 */
+  turnOutcome(requestId) { return this.turns.get(String(requestId))?.outcome ?? 'pending'; }
+  /** 是否有已登记且已到达终态的回合。 */
+  isTerminal(requestId) { return this.turns.get(String(requestId))?.terminal === true; }
   isReady() { return this.ready === HEADLESS_CHAT_PROTOCOL_VERSION; }
 }

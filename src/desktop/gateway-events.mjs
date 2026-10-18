@@ -114,6 +114,7 @@ export class GatewayStreamMerger {
     this.tools = new Map(); this.toolOrder = [];
     this.usage = null; this.stopReason = null; this.error = null;
     this.terminal = false; this.events = 0;
+    this._seq = undefined;              // 关键：重置序列校验状态，否则复用实例处理第二条流会误报
   }
   apply(event) {
     this.events += 1;

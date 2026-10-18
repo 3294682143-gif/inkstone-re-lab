@@ -108,3 +108,31 @@
 - 解包与哈希：`06-desktop/evidence/`；契约：`06-desktop/contracts/`；结果：`06-desktop/validation/2026-10-18-linux-static/results.json`；读我：`06-desktop/README.md`。
 - 实现：`src/desktop/{gateway-events,driver-jsonl,models-contract,cloud-adapter}.mjs`；样本：`fixtures/desktop/*.synthetic.*`。
 - 原始包/完整源码/工具在 `01-evidence/private/desktop-027/`（不入库）。
+
+---
+
+## 桌面协议修复轮（2026-10-19，Linux 离线）
+
+- 审查基线提交：`f4ce887074c6e168c038ec03d08a0bfd6ff39ff4`
+- 源码版本：工作区改动（尚未提交）
+- 范围：五项缺陷的复现/修复/测试/文档；无登录态、无真实 API、无 Windows
+
+### 五项修复（均 PASS，离线）
+| 缺陷 | 文件 | 测试 |
+| --- | --- | --- |
+| P1 DriverCorrelator 终态/关联 | src/desktop/driver-jsonl.mjs | tests/desktop/driver-jsonl.test.mjs |
+| P1 cloud timeout/abort 生命周期 | src/desktop/cloud-adapter.mjs | tests/desktop/cloud-adapter-lifecycle.test.mjs |
+| P2 local-turn 响应契约校验 | src/desktop/cloud-adapter.mjs | tests/desktop/local-turn-contract.test.mjs |
+| P2 GatewayStreamMerger.reset | src/desktop/gateway-events.mjs | tests/desktop/gateway-reset.test.mjs |
+| P2 ASAR 提取命令冲突 | 06-desktop/README.md, tools/compare_asar_manifest.py | tests/desktop/asar-tools.test.mjs |
+
+- 修复前（stash 回退 src）：desktop tests 57 / 22 失败（lifecycle 用例在基线代码下挂起）。
+- 修复后：`node --test tests/desktop/*.test.mjs` 62/62；`npm test` 91/91。
+- 证据：`06-desktop/validation/2026-10-19-five-fixes/results.json`。
+
+### 仍未验证（如实）
+- P9 Windows 动态：BLOCKED / ENV_WINDOWS_REQUIRED。
+- 桌面 gateway 在线：NOT_RUN / AUTH_REQUIRED。
+- 真实安装包重提取：NOT_RUN（本轮仅以合成 fixture 验证脚本逻辑）。
+- Web A5/A6：NOT_RUN。
+- Linux mock 通过 ≠ Windows 桌面实测通过。

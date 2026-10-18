@@ -1,0 +1,70 @@
+{
+  "round": "2026-10-19-five-fixes",
+  "date_utc": "2026-10-18T12:35:48Z",
+  "environment": "linux-server",
+  "reviewed_baseline_commit": "f4ce887074c6e168c038ec03d08a0bfd6ff39ff4",
+  "source_under_test": "working tree (uncommitted changes on top of f4ce887)",
+  "note": "reviewed_baseline_commit 是审查基线；本轮修复尚未提交，源码版本为工作区改动。",
+  "scope": "五个缺陷的复现、修复、离线测试与文档同步；不涉及登录/真实 API/Windows",
+  "commands": [
+    { "cmd": "npm ci --ignore-scripts --no-audit --no-fund", "exit": 0 },
+    { "cmd": "node --test tests/desktop/*.test.mjs", "exit": 0, "tests": 62, "pass": 62, "fail": 0 },
+    { "cmd": "npm test", "exit": 0, "tests": 91, "pass": 91, "fail": 0 },
+    { "cmd": "git diff --check", "exit": 0 }
+  ],
+  "before_after": {
+    "method": "临时 stash 三个 src 文件回退到基线，运行新测试，再恢复工作区",
+    "before": { "tests": 57, "pass": 34, "fail": 22, "highlight": "cloud-adapter-lifecycle 用例在基线代码下挂起（读取阶段无超时/取消）" },
+    "after": { "tests": 62, "pass": 62, "fail": 0 }
+  },
+  "fixes": [
+    {
+      "id": "P1-driver-correlator",
+      "file": "src/desktop/driver-jsonl.mjs",
+      "root_cause": "按通知方法名直接把 turn.completed 记为 completed；未读 params.status；响应不校验是否对应待处理请求；JSONL id 与回合 request_id 混用；无跨会话/重复/乱序处理",
+      "fix": "新增 TURN_STATUSES/terminalOutcome；终态按 status 映射（complete→completed，stopped→stopped，error→failed，running→pending，其它→unknown）；响应仅关联 pending 中的 id（未知/重复进 unmatched）；以 request_id 登记回合并与 session_ref 交叉校验；跨会话忽略、终态不被覆盖；终态先于 accepted 时有界缓存后重放；isAccepted 仅代表受理",
+      "tests": "tests/desktop/driver-jsonl.test.mjs（14 项）",
+      "status": "PASS"
+    },
+    {
+      "id": "P2-cloud-lifecycle",
+      "file": "src/desktop/cloud-adapter.mjs",
+      "root_cause": "定时器在响应头返回后即清除，body/SSE 读取无超时；requestJson 未传 signal；预取消仍进入 fetch",
+      "fix": "以 withDeadline 让单一 AbortController 覆盖 请求头+body消费+解析/校验；所有公开方法透传 signal；预取消在发起前失败；区分 timeout/aborted/http/json/invalid_response/remote_rejected；不吞 AbortError；finally 清理 timer 与 abort 监听；失败/取消时 cancel reader 且不无限等待；保留 timeoutMs 语义（0=不超时）",
+      "tests": "tests/desktop/cloud-adapter-lifecycle.test.mjs（8 项）",
+      "status": "PASS"
+    },
+    {
+      "id": "P2-local-turn-contract",
+      "file": "src/desktop/cloud-adapter.mjs",
+      "root_cause": "start/complete 接受 data:{}；checkpoint 仅查部分字段",
+      "fix": "抽公共校验函数；start 校验 turn_id/message_id/status/checkpoint_seq；checkpoint 校验 applied/status/checkpoint_seq；complete 校验 turn_id(与请求一致)/message_id/status/checkpoint_seq/usage（input/output 必填非负安全整数，cache_* 可选）；参数 chatId/turnId/body 预校验",
+      "tests": "tests/desktop/local-turn-contract.test.mjs（6 项）",
+      "status": "PASS"
+    },
+    {
+      "id": "P2-merger-reset",
+      "file": "src/desktop/gateway-events.mjs",
+      "root_cause": "reset() 未重置 _seq，复用实例处理第二条流触发 'event sequence is invalid'",
+      "fix": "reset() 将 _seq 置空，并清空 responseId/model/thinking/content/tools/usage/stopReason/error/terminal/events",
+      "tests": "tests/desktop/gateway-reset.test.mjs（5 项）",
+      "status": "PASS"
+    },
+    {
+      "id": "P2-asar-doc",
+      "files": ["06-desktop/README.md", "tools/compare_asar_manifest.py", "tests/desktop/asar-tools.test.mjs"],
+      "root_cause": "README 示例把清单指向已存在的 06-desktop/evidence/asar-manifest.json，脚本拒绝覆盖，文档不可直接复跑",
+      "fix": "README 改用唯一新运行目录（out 与 manifest 均为新路径，放私有目录）；新增 compare_asar_manifest.py（比较归档 SHA/计数与按路径排序的 size/sha256/integrity，忽略无关元数据，不一致非零退出）；保留脚本防覆盖保护",
+      "tests": "tests/desktop/asar-tools.test.mjs（4 项，合成最小 ASAR + 临时目录）",
+      "status": "PASS (合成 fixture)",
+      "real_reextract": "NOT_RUN（本轮未重跑真实安装包；脚本逻辑已用合成 fixture 验证）"
+    }
+  ],
+  "not_run_or_blocked": [
+    { "id": "P9-windows-dynamic", "status": "BLOCKED", "reason": "ENV_WINDOWS_REQUIRED" },
+    { "id": "desktop-cloud-live", "status": "NOT_RUN", "reason": "AUTH_REQUIRED（需要适用于桌面 gateway 的授权；未使用）" },
+    { "id": "real-installer-reextract", "status": "NOT_RUN", "reason": "本轮范围仅缺陷修复；脚本逻辑以合成 fixture 验证" },
+    { "id": "web-A5-A6", "status": "NOT_RUN" }
+  ],
+  "network_requests_during_offline_tests": 0
+}

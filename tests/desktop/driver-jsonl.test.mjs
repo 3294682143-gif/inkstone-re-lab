@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { JsonlFramer, parseRequestLine, parseMessage, encodeRequest, DriverCorrelator, HEADLESS_CHAT_PROTOCOL_VERSION, DriverProtocolError } from '../../src/desktop/driver-jsonl.mjs';
+import { JsonlFramer, parseRequestLine, parseMessage, encodeRequest, DriverCorrelator, DriverProtocolError } from '../../src/desktop/driver-jsonl.mjs';
 
 const SESSION = readFileSync(new URL('../../fixtures/desktop/driver-session.synthetic.jsonl', import.meta.url), 'utf8');
 
@@ -31,26 +31,115 @@ test('响应 / 通知分类', () => {
   assert.equal(parseMessage('{"method":"driver.ready","params":{}}').kind, 'notification');
 });
 
-test('关联器：ready/响应关联/turn 完成或失败/accepted≠completed', () => {
+// —— 真实请求生命周期：先 request() 再喂响应 ——
+function acceptedLine(jsonlId, requestId, sessionRef = 'sess_a') {
+  return JSON.stringify({ id: jsonlId, ok: true, result: { accepted: true, session_ref: sessionRef, request_id: requestId } });
+}
+function completedLine(requestId, status, sessionRef = 'sess_a', turnId = 'turn_a') {
+  return JSON.stringify({ method: 'turn.completed', params: { session_ref: sessionRef, request_id: requestId, turn_id: turnId, status, answer: 'OK', model_ref: 'm' } });
+}
+
+test('正常请求 → accepted → 成功终态', () => {
   const c = new DriverCorrelator();
-  const lines = SESSION.trim().split('\n');
-  for (const l of lines) c.handleLine(l);
+  c.handleLine('{"method":"driver.ready","params":{"protocol_version":"inkstone-headless-chat/v1"}}');
+  const r = c.request('turn.send', { session_ref: 'sess_a', query: 'x' });
+  const resp = c.handleLine(acceptedLine(r.id, 'req_1'));
+  assert.equal(resp.correlated, true);
+  assert.equal(DriverCorrelator.isAccepted(resp), true);       // 只是“已受理”
+  assert.equal(c.turnOutcome('req_1'), 'pending');             // 尚未终态
+  c.handleLine(completedLine('req_1', 'complete'));
+  assert.equal(c.turnOutcome('req_1'), 'completed');
+  assert.equal(c.isTerminal('req_1'), true);
   assert.equal(c.isReady(), true);
-  assert.equal(c.ready, HEADLESS_CHAT_PROTOCOL_VERSION);
-  const turnResp = c.responses.get('turn-1');
-  assert.equal(DriverCorrelator.isAccepted(turnResp), true);            // 已受理
-  assert.equal(c.turnOutcome('req_synth_1'), 'completed');              // 真正完成来自通知
   assert.equal(c.pending.size, 0);
 });
 
-test('accepted:true 单独不构成完成', () => {
+test('accepted 后尚无终态 → pending', () => {
   const c = new DriverCorrelator();
-  c.handleLine('{"id":"turn-1","ok":true,"result":{"accepted":true,"request_id":"req_x","session_ref":"s"}}');
+  const r = c.request('turn.send', {}, 'turn');
+  c.handleLine(acceptedLine(r.id, 'req_x'));
   assert.equal(c.turnOutcome('req_x'), 'pending');
 });
 
-test('turn.failed 通知 → 失败终态', () => {
+test('失败 / 取消 / 未知 / running 状态', () => {
+  const cases = [['stopped', 'stopped'], ['error', 'failed'], ['weird', 'unknown'], [undefined, 'unknown']];
+  for (const [status, expected] of cases) {
+    const c = new DriverCorrelator();
+    const r = c.request('turn.send', {}); c.handleLine(acceptedLine(r.id, 'req_' + status));
+    c.handleLine(completedLine('req_' + status, status));
+    assert.equal(c.turnOutcome('req_' + status), expected, `status=${status}`);
+  }
+  const c2 = new DriverCorrelator();
+  const r2 = c2.request('turn.send', {}); c2.handleLine(acceptedLine(r2.id, 'req_run'));
+  c2.handleLine(completedLine('req_run', 'running'));
+  assert.equal(c2.turnOutcome('req_run'), 'pending');
+  const c3 = new DriverCorrelator();
+  const r3 = c3.request('turn.send', {}); c3.handleLine(acceptedLine(r3.id, 'req_f'));
+  c3.handleLine(JSON.stringify({ method: 'turn.failed', params: { session_ref: 'sess_a', request_id: 'req_f', code: 'E', message: 'boom' } }));
+  assert.equal(c3.turnOutcome('req_f'), 'failed');
+});
+
+test('未知响应 id / 重复响应 不落 responses', () => {
   const c = new DriverCorrelator();
-  c.handleLine('{"method":"turn.failed","params":{"request_id":"req_y","session_ref":"s"}}');
-  assert.equal(c.turnOutcome('req_y'), 'failed');
+  const unknown = c.handleLine('{"id":"nope","ok":true,"result":{}}');
+  assert.equal(unknown.correlated, false);
+  assert.equal(c.responses.has('nope'), false);
+  const r = c.request('turn.send', {});
+  c.handleLine(acceptedLine(r.id, 'req_1'));
+  const dup = c.handleLine(acceptedLine(r.id, 'req_1'));
+  assert.equal(dup.correlated, false);
+  assert.equal(dup.reason, 'unknown-response-id');
+});
+
+test('会话不匹配的终态通知被忽略（不污染）', () => {
+  const c = new DriverCorrelator();
+  const r = c.request('turn.send', {}); c.handleLine(acceptedLine(r.id, 'req_1', 'sess_a'));
+  c.handleLine(completedLine('req_1', 'complete', 'sess_B'));
+  assert.equal(c.turnOutcome('req_1'), 'pending');
+  assert.ok(c.unmatched.some((m) => m.reason === 'session-mismatch'));
+});
+
+test('多请求交错互不串扰', () => {
+  const c = new DriverCorrelator();
+  const a = c.request('turn.send', {}, 'turn');
+  const b = c.request('turn.send', {}, 'turn');
+  c.handleLine(acceptedLine(a.id, 'req_a', 'sess_a'));
+  c.handleLine(acceptedLine(b.id, 'req_b', 'sess_b'));
+  c.handleLine(completedLine('req_b', 'complete', 'sess_b'));
+  assert.equal(c.turnOutcome('req_a'), 'pending');
+  assert.equal(c.turnOutcome('req_b'), 'completed');
+  c.handleLine(completedLine('req_a', 'error', 'sess_a'));
+  assert.equal(c.turnOutcome('req_a'), 'failed');
+});
+
+test('终态确定后，迟到的（错误的）关联事件不能覆盖', () => {
+  const c = new DriverCorrelator();
+  const r = c.request('turn.send', {}); c.handleLine(acceptedLine(r.id, 'req_1'));
+  c.handleLine(completedLine('req_1', 'complete'));
+  c.handleLine(completedLine('req_1', 'error'));
+  assert.equal(c.turnOutcome('req_1'), 'completed');
+  assert.ok(c.unmatched.some((m) => m.reason === 'already-terminal'));
+});
+
+test('协议允许的乱序：终态通知先于 accepted 到达 → 有界缓存后重放', () => {
+  const c = new DriverCorrelator();
+  c.handleLine(completedLine('req_early', 'complete'));
+  assert.equal(c.orphans.size, 1);
+  const r = c.request('turn.send', {});
+  c.handleLine(acceptedLine(r.id, 'req_early'));
+  assert.equal(c.turnOutcome('req_early'), 'completed');
+  assert.equal(c.orphans.size, 0);
+});
+
+test('孤儿缓存有上限（无主通知不无限增长）', () => {
+  const c = new DriverCorrelator({ orphanLimit: 3 });
+  for (let i = 0; i < 10; i++) c.handleLine(completedLine('req_' + i, 'complete'));
+  assert.ok(c.orphans.size <= 3);
+});
+
+test('无 request_id 的终态通知不污染任何回合', () => {
+  const c = new DriverCorrelator();
+  c.handleLine('{"method":"turn.completed","params":{"session_ref":"s"}}');
+  assert.equal(c.turns.size, 0);
+  assert.ok(c.unmatched.some((m) => m.reason === 'terminal-without-request-id'));
 });

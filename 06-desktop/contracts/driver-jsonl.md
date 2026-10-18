@@ -41,3 +41,17 @@
 
 - 真实启动、`driver.ready` 实测、`projects.list`/`models.list` 实返、`turn.completed` 实序列：**BLOCKED / ENV_WINDOWS_REQUIRED**（Linux 无法运行 Windows PE）。
 - 本轮 Linux 侧以 mock 子进程/注入行验证解析与关联（见 `tests/desktop/driver-jsonl.test.mjs`）。
+
+## 7. 终态判定与关联（本轮实现，离线）
+
+- `turn.completed` 的 `params` 采用 `publicTurnResult` 形状：`{session_ref, request_id, turn_id, status, answer, model_ref}`。**必须按 `status` 判定**。
+- 合法 `status`（静态证据 `turnStatus()`）：`running | complete | stopped | error`。映射：
+  - `complete` → 成功（completed）
+  - `stopped` → stopped（非成功）
+  - `error` → failed
+  - `running` → 非终态，保持 pending
+  - 缺失/其它 → unknown（**非成功**）
+- `turn.failed` → failed。
+- 标识符：JSONL 请求 `id`（响应关联）与回合 `request_id`（终态关联）**不同**；accepted 响应中的 `session_ref` 用于交叉校验，避免跨会话串扰。
+- 关联器行为：未知/重复响应不落库；跨会话通知忽略；终态不被迟到事件覆盖；**终态通知先于 accepted 时**有限缓存并在登记后重放（有上限）。
+- `accepted:true` 只代表受理，不代表生成成功。
