@@ -71,18 +71,25 @@ function requireChatId(v) { if (!isPositiveSafeInt(v)) throw invalid('chatId mus
 function abortError(message, kind) { return new CloudAdapterError(message, { kind }); }
 
 /**
- * 有界清理：取消 reader 并 release；即使 cancel() 永不 resolve 也不会无限等待。
- * 上限默认 1000ms；定时器 unref 且清理后 clearTimeout，不残留句柄。
+ * 有界清理：取消 reader 并释放锁；即使 cancel() 永不 resolve 也不会无限等待。
+ * - 兜底定时器**不 unref**：保证调用方 await 期间承诺一定能被兑现（否则进程可能提前以未完成顶层 await 退出）。
+ * - 无论 cancel 同步抛错、异步拒绝、永不结束或正常结束，都在上限内收尾。
+ * - 清理失败不覆盖原始业务/协议/超时/取消错误。
  */
 export async function safeCancel(reader, timeoutMs = 1000) {
-  if (!reader || typeof reader.cancel !== 'function') return;
+  if (!reader) return;
   let t;
   try {
-    await Promise.race([
-      Promise.resolve(reader.cancel()).catch(() => {}),
-      new Promise((resolve) => { t = setTimeout(resolve, timeoutMs); t.unref?.(); }),
-    ]);
-  } catch { /* ignore */ } finally { if (t) clearTimeout(t); }
+    if (typeof reader.cancel === 'function') {
+      await Promise.race([
+        Promise.resolve().then(() => reader.cancel()).catch(() => {}),
+        new Promise((resolve) => { t = setTimeout(resolve, timeoutMs); }),   // 不 unref
+      ]);
+    }
+  } catch { /* ignore：清理异常不覆盖原始错误 */ } finally {
+    if (t) clearTimeout(t);
+    try { if (typeof reader.releaseLock === 'function') reader.releaseLock(); } catch { /* 有未决读取或已释放 */ }
+  }
 }
 
 export function createCloudAdapter({ baseUrl, authority, fetchImpl = fetch, timeoutMs = 30000, dispatcher = undefined } = {}) {
@@ -171,9 +178,11 @@ export function createCloudAdapter({ baseUrl, authority, fetchImpl = fetch, time
         const ct = res.headers?.get?.('content-type') || '';
         if (status === 401) throw new CloudAdapterError('authentication required', { kind: 'auth', status });
         if (!res.ok || !ct.toLowerCase().includes('text/event-stream')) {
-          let snippet = '';
-          try { snippet = (await res.text()).slice(0, 160).replace(/[A-Za-z0-9_-]{24,}/g, '<BLOB>'); } catch { /* ignore */ }
-          throw new CloudAdapterError(`inference not a valid SSE stream (HTTP ${status})${snippet ? ' :: ' + snippet : ''}`, { kind: 'invalid_response', status });
+          // 不吞取消/超时：读取失败（Abort/Timeout）交给 withDeadline 归类；仅成功读到正文才判协议/HTTP 错误。
+          const body = await res.text();
+          const snippet = String(body).slice(0, 160).replace(/[A-Za-z0-9_-]{24,}/g, '<BLOB>');
+          const kind = res.ok ? 'invalid_response' : 'http';
+          throw new CloudAdapterError(`inference not a valid SSE stream (HTTP ${status})${snippet ? ' :: ' + snippet : ''}`, { kind, status });
         }
         const framer = new GatewaySSEFramer();
         const seq = new GatewayEventSequence();

@@ -1,0 +1,36 @@
+  const projectedReviews = mergeReviewProjections(reviews.flatMap((review) => {
+    try {
+      return [
+        projectCoreReview(review)
+      ];
+    } catch (cause) {
+      rejectedReview ??= cause;
+      return [];
+    }
+  }), []);
+  if (rejectedReview !== void 0) {
+    onReviewProjectionFailure?.(rejectedReview);
+  }
+  const durableHistory = {
+    chatId,
+    messages: reconciledTurns.length ? reconciledTurns : projectedMessages,
+    turns: projectedHistoryTurns,
+    activeRequestId: null,
+    reviews: projectedReviews,
+    ...projection ? {
+      projection
+    } : {}
+  };
+  return mergeHistoryProjections(durableHistory, volatileHistory);
+}
+function projectCoreHistoryProjection(value) {
+  const projection = record(value, "history projection");
+  assertExactKeys(projection, [
+    "state",
+    "omittedCount",
+    "codes"
+  ], [], "history projection");
+  const state2 = projection["state"];
+  const omittedCount = nonNegativeInteger$1(projection["omittedCount"], "history projection omitted count");
+  const rawCodes = projection["codes"];
+  if (state2 !== "complete" && state2 !== "partial" || omittedCount > 1e5 || !Array.isArray(rawCodes) || rawCodes.length > 16) {

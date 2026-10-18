@@ -1,0 +1,36 @@
+      throw conflict$2("A turn is already running in this conversation");
+    }
+    if (!/^[A-Za-z0-9_-]{1,160}$/u.test(turnId)) {
+      throw conflict$2("Turn identity is invalid");
+    }
+    record2.unreadCompletion = false;
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const assistantMessageId = randomUUID();
+    record2.messages.push({
+      id: randomUUID(),
+      role: "user",
+      ...origin === "user" ? {} : {
+        origin
+      },
+      content: input.text,
+      status: "complete",
+      createdAt: now,
+      requestId: input.requestId,
+      turnId,
+      ...input.files.length ? {
+        files: input.files.map((file) => ({
+          ...file
+        }))
+      } : {}
+    }, {
+      id: assistantMessageId,
+      role: "assistant",
+      content: "",
+      status: "streaming",
+      createdAt: now,
+      requestId: input.requestId,
+      turnId,
+      modelRef: input.modelRef
+    });
+    if (deriveTitle && record2.summary.title === "\u65B0\u4F1A\u8BDD") {
+      const titleSource = input.text.trim() || input.files[0]?.name || "\u65B0\u4F1A\u8BDD";

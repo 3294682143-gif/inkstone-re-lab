@@ -1,0 +1,51 @@
+function terminalResult(history, requestId, observedTurnId, knownTurnIds, modelRef) {
+  const assistant = [
+    ...history.messages
+  ].reverse().find((message) => message.role === "assistant" && message.requestId === requestId && message.status !== "streaming");
+  const turn = [
+    ...history.turns ?? []
+  ].reverse().find((candidate) => candidate.turnId === observedTurnId || !observedTurnId && !knownTurnIds.has(candidate.turnId));
+  if (turn) {
+    return {
+      requestId,
+      turnId: turn.turnId,
+      status: turn.status,
+      answer: turn.assistant,
+      modelRef: turn.model ?? modelRef
+    };
+  }
+  if (assistant?.turnId) {
+    return {
+      requestId,
+      turnId: assistant.turnId,
+      status: assistant.status === "failed" ? "error" : assistant.status === "stopped" ? "stopped" : "complete",
+      answer: assistant.content,
+      modelRef: assistant.modelRef ?? modelRef
+    };
+  }
+  return void 0;
+}
+function emitCleanupWarning(emit, operation, cause) {
+  const error = safeHeadlessError(cause);
+  emit({
+    type: "cleanup_warning",
+    operation,
+    ...error
+  });
+}
+function readOption(argv, name) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value === name) return argv[index + 1];
+    if (value.startsWith(`${name}=`)) return value.slice(name.length + 1);
+  }
+  return void 0;
+}
+function readOptions(argv, name) {
+  const values = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value === name) {
+      const next = argv[index + 1];
+      if (next !== void 0) values.push(next);
+    } else if (value.startsWith(`${name}=`)) {

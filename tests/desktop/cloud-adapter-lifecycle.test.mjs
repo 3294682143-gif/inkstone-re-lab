@@ -1,5 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createCloudAdapter, CloudAdapterError, safeCancel } from '../../src/desktop/cloud-adapter.mjs';
 
 const BASE = 'https://example.invalid/api/orbit/v1';
@@ -112,4 +117,67 @@ test('正常 SSE 完成后仍正常返回（清理不阻塞成功）', async () 
   const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 1000, fetchImpl: (url, { signal }) => Promise.resolve(bodyResponse({ contentType: 'text/event-stream', body: 'data: {"type":"message_start","response_id":"r","model":"m"}\n\ndata: {"type":"usage","usage":{"input_tokens":1,"output_tokens":1}}\n\ndata: {"type":"message_end","stop_reason":"end_turn"}\n\n', delayMs: 5, signal })) });
   const r = await a.startInference({ request_id: 'r1' });
   assert.equal(r.stopReason, 'end_turn');
+});
+
+// ============ R1-B：safeCancel 有界兑现与释放锁 ============
+test('B1 独立子进程：cancel 永不结束时，等待仍兑现且退出码为 0', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'inkstone-safe-'));
+  const mod = fileURLToPath(new URL('../../src/desktop/cloud-adapter.mjs', import.meta.url));
+  const script = join(dir, 'probe.mjs');
+  writeFileSync(script, `import { safeCancel } from ${JSON.stringify(mod)};\nawait safeCancel({ cancel: () => new Promise(() => {}) }, 50);\nconsole.log('cleanup-finished');\n`);
+  const out = execFileSync(process.execPath, [script], { encoding: 'utf8', timeout: 15000 });
+  assert.match(out, /cleanup-finished/);           // execFileSync 在非零退出时抛错 => 隐含断言退出码为 0
+});
+
+test('B2 cancel 同步抛错 / 异步拒绝 / 正常结束 都不抛出', async () => {
+  await safeCancel({ cancel: () => { throw new Error('sync'); } }, 50);
+  await safeCancel({ cancel: () => Promise.reject(new Error('async')) }, 50);
+  await safeCancel({ cancel: () => Promise.resolve() }, 50);
+});
+
+test('B3 有界：cancel 永不 resolve 也在限定时间内返回', async () => {
+  const t0 = Date.now();
+  await safeCancel({ cancel: () => new Promise(() => {}) }, 200);
+  assert.ok(Date.now() - t0 < 900);
+});
+
+test('B4 正常 SSE 消费结束后 reader 锁被释放（body.locked=false）', async () => {
+  let held;
+  const fetchImpl = (url, { signal }) => Promise.resolve(bodyResponse({
+    contentType: 'text/event-stream', delayMs: 5, signal,
+    body: 'data: {"type":"message_start","response_id":"r","model":"m"}\n\ndata: {"type":"usage","usage":{"input_tokens":1,"output_tokens":1}}\n\ndata: {"type":"message_end","stop_reason":"end_turn"}\n\n',
+  }));
+  const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 1000, fetchImpl: (u, o) => { held = null; const p = fetchImpl(u, o); return p.then((res) => { held = res; return res; }); } });
+  const r = await a.startInference({ request_id: 'r1' });
+  assert.equal(r.stopReason, 'end_turn');
+  assert.equal(held.body.locked, false, '消费结束后应释放 reader 锁');
+});
+
+// ============ R1-C：非 SSE 错误响应不吞取消/超时 ============
+test('C1 非 SSE + body 迟迟不结束 → deadline 保留 timeout', async () => {
+  const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 60, fetchImpl: (url, { signal }) => Promise.resolve(bodyResponse({ contentType: 'application/json', body: '{"msg":"x"}', neverEnd: true, signal })) });
+  const t0 = Date.now();
+  await assert.rejects(() => a.startInference({ request_id: 'r1' }), (e) => e.kind === 'timeout');
+  assert.ok(Date.now() - t0 < 500);
+});
+
+test('C2 非 SSE + body 迟迟不结束 → 调用方 abort 保留 aborted', async () => {
+  const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 5000, fetchImpl: (url, { signal }) => Promise.resolve(bodyResponse({ contentType: 'application/json', body: '{"msg":"x"}', neverEnd: true, signal })) });
+  const ac = new AbortController();
+  setTimeout(() => ac.abort(), 30);
+  await assert.rejects(() => a.startInference({ request_id: 'r1' }, { signal: ac.signal }), (e) => e.kind === 'aborted');
+});
+
+test('C3 非 SSE 但正常收到正文 → 仍按 invalid_response/http 分类', async () => {
+  const ok = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 500, fetchImpl: () => Promise.resolve(bodyResponse({ contentType: 'application/json', body: '{"msg":"x"}', delayMs: 5 })) });
+  await assert.rejects(() => ok.startInference({ request_id: 'r1' }), (e) => e.kind === 'invalid_response');
+  const bad = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 500, fetchImpl: () => Promise.resolve(new Response('boom', { status: 500, headers: { 'content-type': 'text/plain' } })) });
+  await assert.rejects(() => bad.startInference({ request_id: 'r1' }), (e) => e.kind === 'http' && e.status === 500);
+});
+
+test('C4 超时后有限时间内结束（不会挂住）', async () => {
+  const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 60, fetchImpl: (url, { signal }) => Promise.resolve(bodyResponse({ contentType: 'application/json', body: '{}', neverEnd: true, signal })) });
+  const t0 = Date.now();
+  await assert.rejects(() => a.startInference({ request_id: 'r1' }), (e) => e.kind === 'timeout');
+  assert.ok(Date.now() - t0 < 500, '应在限定时间内结束');
 });

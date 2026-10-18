@@ -1,0 +1,27 @@
+async function stopAndDrainHeadlessTurn(host, chatId, requestId) {
+  await host.stopTurn(requestId);
+  const deadline = host.now() + STOP_DRAIN_TIMEOUT_MS;
+  while (host.now() < deadline) {
+    const history = await host.history(chatId);
+    if (history.activeRequestId !== requestId) return true;
+    await host.sleep(POLL_INTERVAL_MS);
+  }
+  return false;
+}
+async function runHeadlessChat(options, host, emit) {
+  const session2 = await createHeadlessSession(host, {
+    project: options.project,
+    model: options.model,
+    workMode: options.workMode,
+    permissionMode: options.permissionMode,
+    cleanup: !options.keepChat
+  });
+  let requestId;
+  let terminal = false;
+  try {
+    const pendingEvents = [];
+    let started = false;
+    const monitor = await startHeadlessTurn(host, session2, options.query, options.timeoutMs, (event) => {
+      requestId = event.params.request_id;
+      if (!started) {
+        pendingEvents.push(event);

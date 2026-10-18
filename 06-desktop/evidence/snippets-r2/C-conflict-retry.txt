@@ -1,0 +1,31 @@
+function validTraceContextIdentifier(value, maximum) {
+  return typeof value === "string" && TRACE_CONTEXT_IDENTIFIER.test(value) && Buffer.byteLength(value, "utf8") <= maximum;
+}
+function validOptionalTraceContextIdentifier(value, maximum) {
+  return value === "" || typeof value === "string" && validTraceContextIdentifier(value, maximum);
+}
+function inferenceConflictCode(payload, kind) {
+  if (!isRecord$9(payload) || !isRecord$9(payload["data"])) return void 0;
+  const data = payload["data"];
+  if (data["ambiguous"] !== void 0 && data["ambiguous"] !== false || payload["ambiguous"] !== void 0 && payload["ambiguous"] !== false) return void 0;
+  if (kind === "turn" && payload["code"] === 409001 && data["reason"] === "TURN_CONFLICT") return "TURN_CONFLICT_RECOVERY";
+  if (payload["code"] === 409005 && data["reason"] === "INFERENCE_ALREADY_RUNNING" && data["retryable"] === true) return "INFERENCE_LEASE_RECOVERY";
+  return void 0;
+}
+function waitForInferenceRetry(signal) {
+  if (signal.aborted) return Promise.reject(abortError());
+  return new Promise((resolve2, reject2) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject2(abortError());
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve2();
+    }, INFERENCE_CONFLICT_DELAY_MS);
+    timer.unref?.();
+    signal.addEventListener("abort", onAbort, {
+      once: true
+    });
+  });
+}

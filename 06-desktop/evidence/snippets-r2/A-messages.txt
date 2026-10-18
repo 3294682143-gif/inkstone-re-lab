@@ -1,0 +1,71 @@
+        content: "species,bill_length_mm,bill_depth_mm\nAdelie,39.1,18.7\nChinstrap,48.7,17.4\nGentoo,50.0,16.3\n"
+      },
+      {
+        name: "association_signal_overview.png",
+        purpose: "output",
+        content: MOCK_PNG_BYTES,
+        coverDataUrl: mockCoverDataUrl("association_signal_overview.png")
+      },
+      {
+        name: "variant_gene_priority.jpg",
+        purpose: "output",
+        content: MOCK_JPEG_BYTES,
+        coverDataUrl: mockCoverDataUrl("variant_gene_priority.jpg")
+      },
+      {
+        name: "cell_context_evidence.jpeg",
+        purpose: "output",
+        content: MOCK_JPEG_BYTES,
+        coverDataUrl: mockCoverDataUrl("cell_context_evidence.jpeg")
+      },
+      {
+        name: "analysis_report.md",
+        purpose: "output",
+        content: [
+          "# \u7814\u7A76\u7ED3\u8BBA",
+          "",
+          "\u672C\u8F6E\u5206\u6790\u4FDD\u7559\u4E86 citation\u3001\u4EE3\u7801\u548C\u8868\u683C\u6837\u5F0F\uFF0C\u7528\u4E8E\u6821\u5BF9 Markdown \u9884\u89C8\u5C01\u9762\u3002",
+          "",
+          '[1](https://www.nature.com/articles/s41560-019-0529-5 "Consensus statement for stability assessment and reporting for perovskite photovoltaics")',
+          "",
+          "```ts",
+          "const score = candidate.effectSize / candidate.pValue;",
+          "```",
+          "",
+          "| \u6587\u4EF6 | \u72B6\u6001 |",
+          "| --- | --- |",
+          "| variant_gene_priority.jpg | \u5DF2\u751F\u6210 |",
+          "| gene_scores.csv | \u5DF2\u751F\u6210 |"
+        ].join("\n"),
+        coverDataUrl: mockCoverDataUrl("analysis_report.md")
+      },
+      {
+        name: "methodology_notes.md",
+        purpose: "output",
+        content: "# \u7814\u7A76\u7ED3\u8BBA\n\n- \u65B9\u6CD5\u8BF4\u660E\u5DF2\u6574\u7406\n- \u8868\u683C\u5B57\u6BB5\u5DF2\u5BF9\u9F50\n- \u4ECD\u9700\u4E13\u5BB6\u590D\u6838\u9608\u503C\n",
+        coverDataUrl: mockCoverDataUrl("methodology_notes.md")
+      },
+      {
+        name: "stability_review.pdf",
+        purpose: "output",
+        content: mockPdfBytes("Stability review"),
+        coverDataUrl: mockCoverDataUrl("stability_review.pdf")
+      },
+      {
+        name: "supplementary_findings.markdown",
+        purpose: "output",
+        content: [
+          "# \u8865\u5145\u7ED3\u8BBA",
+          "",
+          "\u8FD9\u4EFD Markdown \u4EA7\u7269\u7528\u4E8E\u68C0\u67E5 `.markdown` \u6269\u5C55\u540D\u7684\u5C01\u9762\u6837\u5F0F\u3002",
+          "",
+          "| \u6307\u6807 | \u7ED3\u679C |",
+          "| --- | --- |",
+          "| \u53EC\u56DE\u7387 | 0.82 |",
+          "| \u7F6E\u4FE1\u5EA6 | \u9AD8 |"
+        ].join("\n"),
+        coverDataUrl: mockCoverDataUrl("supplementary_findings.markdown")
+      },
+      {
+        name: "dose_response_curve.png",
+        purpose: "output",

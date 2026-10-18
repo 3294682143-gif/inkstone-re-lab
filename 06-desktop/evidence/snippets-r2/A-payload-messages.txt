@@ -1,0 +1,61 @@
+        prompt: "\u5206\u6790\u5B9E\u9A8C\u6761\u4EF6\u7684\u654F\u611F\u6027",
+        response: "| \u53C2\u6570 | \u5F71\u54CD |\n| --- | --- |\n| \u6E29\u5EA6 | \u9AD8 |\n| \u6D53\u5EA6 | \u4E2D |\n| \u65F6\u95F4 | \u4E2D |\n\n\u8BE5\u4F1A\u8BDD\u5DF2\u5F52\u5165\u5386\u53F2\u8BB0\u5F55\u3002"
+      }
+    ];
+    const ids = [];
+    for (const seed of seeds) {
+      const chatId = this.allocateChatId();
+      const turnId = randomUUID();
+      const activities = mockAgentActivities();
+      ids.push(chatId);
+      this.conversations.set(chatId, {
+        summary: {
+          chatId,
+          projectId,
+          title: seed.title,
+          workMode: seed.title === "AmeR \u5B9A\u5411\u8FDB\u5316\u8BC4\u4F30" ? "general" : "research",
+          revision: 1,
+          updatedAt: seed.updatedAt
+        },
+        active: null,
+        unreadCompletion: false,
+        activitiesByTurn: /* @__PURE__ */ new Map([
+          [
+            turnId,
+            activities
+          ]
+        ]),
+        activityCount: activities.length,
+        reviews: /* @__PURE__ */ new Map(),
+        messages: [
+          {
+            id: randomUUID(),
+            role: "user",
+            content: seed.prompt,
+            status: "complete",
+            createdAt: seed.updatedAt,
+            turnId
+          },
+          {
+            id: randomUUID(),
+            role: "assistant",
+            content: seed.response,
+            status: "complete",
+            createdAt: seed.updatedAt,
+            turnId
+          }
+        ]
+      });
+    }
+    this.projectConversations.set(projectId, ids);
+  }
+  allocateChatId() {
+    return this.nextChatId++;
+  }
+}
+function isSameLocalDay$1(left, right) {
+  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
+}
+const MAX_RENDERER_ERROR_BYTES = 1024;
+async function callRuntimeForRenderer(operation) {
+  try {

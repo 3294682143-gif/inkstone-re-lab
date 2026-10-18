@@ -1,0 +1,36 @@
+      "gateway.mcp.list": options.mcpHandlers?.["gateway.mcp.list"] ?? unavailable2,
+      "gateway.mcp.get": options.mcpHandlers?.["gateway.mcp.get"] ?? unavailable2,
+      "gateway.mcp.refresh": options.mcpHandlers?.["gateway.mcp.refresh"] ?? unavailable2,
+      "gateway.mcp.call": options.mcpHandlers?.["gateway.mcp.call"] ?? unavailable2,
+      "gateway.skill.get": (payload) => this.getExternalSkill(payload),
+      "gateway.skill.install.inspect": this.skillInstall ? (payload, context) => this.skillInstall.inspect(payload, context.signal) : unavailable2,
+      "gateway.skill.install.commit": this.skillInstall ? (payload, context) => this.skillInstall.commit(payload, context.signal) : unavailable2,
+      "conversation.start": (payload, context) => this.conversationStart(payload, context.signal),
+      "conversation.checkpoint": (payload, context) => this.conversationCheckpoint(payload, context.signal),
+      "conversation.complete": (payload, context) => this.conversationComplete(payload, context.signal)
+    };
+  }
+  async resolveProxy(payload) {
+    exactKeys$3(payload, [
+      "url"
+    ]);
+    const value = boundedText$5(payload["url"], 8192);
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      throw new LocalRuntimeHandlerError("invalid_request", "Proxy target URL is invalid", false);
+    }
+    if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname || url.username || url.password || url.hash) {
+      throw new LocalRuntimeHandlerError("invalid_request", "Proxy target URL is invalid", false);
+    }
+    const proxy = await this.options.resolveProxy(value);
+    if (typeof proxy !== "string" || Buffer.byteLength(proxy, "utf8") > 4096 || /[\u0000-\u001f\u007f]/u.test(proxy)) {
+      throw new LocalRuntimeHandlerError("gateway_unavailable", "System proxy decision is invalid", true);
+    }
+    return {
+      proxy
+    };
+  }
+  registerExternalSkills(requestId, skills) {
+    this.assertOpen();

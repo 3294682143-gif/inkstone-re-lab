@@ -136,3 +136,43 @@
 - 真实安装包重提取：NOT_RUN（本轮仅以合成 fixture 验证脚本逻辑）。
 - Web A5/A6：NOT_RUN。
 - Linux mock 通过 ≠ Windows 桌面实测通过。
+
+---
+
+## 桌面协议 R1–R4 轮（2026-10-18T13:44:50Z，Linux 离线 + 最小 LIVE）
+
+- 审查基线：`76294a8bff8cbc40981dd66c0d444beebf9691d6`
+- 源码版本：工作区改动（本轮提交见 git log）
+- 环境：Linux / Node v24.7.0 / Python 3.10.6
+
+### R1（三个缺陷修复 — 全部 PASS，离线）
+| 缺陷 | 文件 | 测试 |
+| --- | --- | --- |
+| A DriverCorrelator 严格关联（session_ref/方法/类型/turn_id/isAccepted） | src/desktop/driver-jsonl.mjs | tests/desktop/driver-jsonl.test.mjs |
+| B safeCancel 兑现有界等待 + releaseLock（子进程） | src/desktop/cloud-adapter.mjs | tests/desktop/cloud-adapter-lifecycle.test.mjs |
+| C 非 SSE 错误响应不吞取消/超时 | src/desktop/cloud-adapter.mjs | tests/desktop/cloud-adapter-lifecycle.test.mjs |
+
+- 修复前（stash 回退两 src）：desktop 77 项 / 13 失败（A:7 B:2 C:4）。
+- 修复后：desktop 84/84；全量 113/113。
+
+### R2（静态协议 — STATIC_CONFIRMED）
+- 新增：`06-desktop/contracts/inference-request.md`、`local-turn-lifecycle.md`、`cancel-recovery.md`。
+- 证据片段：`06-desktop/evidence/snippets-r2/`。
+- 已确认：providerRequest 删除 lifecycle_owner；payload 必填字段与 admission；scopeKey/leaseKey/duplicate/retired；turn.stop {requestId,expectedTurnId}; stopAndDrain 5000/100ms；409001/409005 恢复码与 canRecover/waitForInferenceRetry(750ms)；accepted 正常先于终态。
+- 仍 UNKNOWN：messages/tools 元素结构、local-turn 请求体构造来源、服务端 turn.stop 语义/计费、409 完整形状。
+
+### R3（离线集成闭环 — MOCK_VERIFIED）
+- 新增 `src/desktop/recovery.mjs`；`tests/desktop/inference-flow.test.mjs`（7 场景）：新建→推理→终态→本地轮次同步；追问；工具片段合并+合成结果；取消；超时/错误/缺结束；冲突恢复判定；多回合隔离。
+
+### R4（最小真实网关）
+- LIVE_VERIFIED：`GET /local-agent/models`（protocol_version=2.0，9 模型）；`POST /chat/new`（scenario:2）。
+- NOT_RUN：推理首轮/追问/本地轮次同步/在线取消 —— 因 messages/tools 元素结构与 local-turn 请求体构造 **UNKNOWN**，不在未确认前构造猜测载荷。
+- 授权来源：`01-evidence/private/inkstone-auth.json`（uaa-token + ssouid）；未打印/未提交内容。
+
+### 状态区分（不混淆）
+- 历史：76294a8 基线 `npm test` 93/93、desktop 64/64（旧统计，保留）。
+- 本轮：desktop 84/84、全量 113/113（工作区改动）。
+- 未完成保留：Web A5/A6（NOT_RUN）、Windows 动态（BLOCKED/ENV_WINDOWS_REQUIRED）、原生 RPC（UNKNOWN）。
+
+### 证据路径
+`06-desktop/validation/round3-20261018T134450Z/results.json`

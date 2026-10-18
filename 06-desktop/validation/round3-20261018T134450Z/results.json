@@ -1,0 +1,89 @@
+{
+  "round": "round3-20261018T134450Z",
+  "date_utc": "2026-10-18T13:44:50Z",
+  "environment": "linux-server",
+  "reviewed_baseline_commit": "76294a8bff8cbc40981dd66c0d444beebf9691d6",
+  "source_under_test": "working tree (uncommitted changes on top of 76294a8)",
+  "node": "v24.7.0",
+  "python": "3.10.6",
+  "commands": [
+    { "cmd": "npm ci --ignore-scripts --no-audit --no-fund", "exit": 0 },
+    { "cmd": "node --test tests/desktop/*.test.mjs", "exit": 0, "tests": 84, "pass": 84, "fail": 0 },
+    { "cmd": "npm test", "exit": 0, "tests": 113, "pass": 113, "fail": 0 },
+    { "cmd": "git diff --check", "exit": 0 }
+  ],
+  "R1_fixes": [
+    {
+      "id": "A-driver-correlator",
+      "file": "src/desktop/driver-jsonl.mjs",
+      "root_cause": "accepted 未与原始 turn.send 请求核对（session_ref/方法/类型）；终态通知缺 session_ref 仍被接受；turn_id 可被替换；未知响应 isAccepted 仍可能为 true",
+      "fix": "仅实际待处理的 turn.send accepted 才登记；核对 accepted.session_ref 与原请求 params.session_ref；校验 request_id/session_ref 类型与必填；拒绝非 turn.send/accepted、重复 request_id、跨会话；turn_id 一旦记录不可被替换；isAccepted 要求 correlated===true；提前通知缓存仅在完整身份校验后应用",
+      "test_file": "tests/desktop/driver-jsonl.test.mjs",
+      "before": "A1-A7 共 7 项失败",
+      "after": "PASS"
+    },
+    {
+      "id": "B-safeCancel",
+      "file": "src/desktop/cloud-adapter.mjs",
+      "root_cause": "兜底定时器 unref 导致未完成顶层 await 提前退出（退出码 13）；未 releaseLock",
+      "fix": "兜底定时器不 unref，保证 await 期间兑现；清理后 clearTimeout；finally 调用 releaseLock（无条件、容错）；cancel 同步抛错/异步拒绝/永不结束/正常结束均覆盖",
+      "test_file": "tests/desktop/cloud-adapter-lifecycle.test.mjs",
+      "before": "子进程退出码 13（未完成 await）、B4 锁未释放 失败",
+      "after": "PASS（子进程 exit 0；normal 完成后 body.locked=false）"
+    },
+    {
+      "id": "C-non-sse-abort",
+      "file": "src/desktop/cloud-adapter.mjs",
+      "root_cause": "非 SSE 分支读取 res.text() 用空 catch，吞掉取消/超时",
+      "fix": "非 SSE 分支直接 await res.text()（读失败交给 withDeadline 归类 timeout/aborted）；仅成功读到正文才判 invalid_response/http",
+      "test_file": "tests/desktop/cloud-adapter-lifecycle.test.mjs",
+      "before": "C1-C4 失败（超时/取消被吞）",
+      "after": "PASS"
+    }
+  ],
+  "R2_evidence": {
+    "files": [
+      "06-desktop/contracts/inference-request.md",
+      "06-desktop/contracts/local-turn-lifecycle.md",
+      "06-desktop/contracts/cancel-recovery.md",
+      "06-desktop/evidence/snippets-r2/*.txt"
+    ],
+    "confirmed": [
+      "providerRequest={...payload} 后 delete lifecycle_owner 再发送（M:37138-37142）",
+      "payload 必填：protocol_version=2.0 / inference_kind(turn|detached) / lifecycle_owner / chat_id / turn_id|inference_id / request_id / model / messages[] / tools[]（M:38977-38990, M:37108-37148）",
+      "admission：model 精确匹配 1 个能力；limits max_messages/max_tools/max_request_bytes（M:37149-37186）",
+      "scopeKey=chatId\\0kind\\0identity；leaseKey=chatId\\0parent；duplicate_request；retired 上限 256（M:38990, M:37133, M:37220）",
+      "turn.stop RPC 载荷 {requestId, expectedTurnId}，要求 result.stopped===true（M:56786）",
+      "stopAndDrainHeadlessTurn 轮询上限 5000ms / 间隔 100ms（M:117893, M:118069）",
+      "409001 TURN_CONFLICT→TURN_CONFLICT_RECOVERY；409005 INFERENCE_ALREADY_RUNNING(retryable)→INFERENCE_LEASE_RECOVERY；ambiguous 必须 false（M:39046）",
+      "canRecoverInferenceConflict：drain proof 异 id、age<=5000、未抑制/取消/关闭/兄弟（M:37301）",
+      "waitForInferenceRetry 固定 750ms，尊重 abort（M:39054）",
+      "accepted 先于终态通知（正常序）；stdout 单一不能据以断言乱序（M:117992-118090）"
+    ],
+    "unknown": [
+      "messages/tools 的元素结构（role/content/tool_use/tool_result 编码）——本路径未展开",
+      "local-turn 请求体（body）的构造来源",
+      "服务端对 turn.stop 的真实语义与计费影响",
+      "409 分支完整数据形状"
+    ]
+  },
+  "R3_integration": {
+    "test_file": "tests/desktop/inference-flow.test.mjs",
+    "scenarios": 7,
+    "module_added": "src/desktop/recovery.mjs",
+    "notes": "全部使用注入 fetch 与合成数据；工具结果合成、不运行真实工具；不启动 Electron/Windows"
+  },
+  "R4_live": [
+    { "id": "models", "status": "LIVE_VERIFIED", "detail": "GET /local-agent/models → 200；protocol_version=2.0；models=9", "auth_source": "01-evidence/private/inkstone-auth.json (uaa-token + ssouid)" },
+    { "id": "createConversation", "status": "LIVE_VERIFIED", "detail": "POST /chat/new (scenario:2) → 200；返回 id（不记录为凭证）" },
+    { "id": "inference-turn", "status": "NOT_RUN", "reason": "messages/tools 元素结构 UNKNOWN；不在未确认前构造猜测的推理载荷" },
+    { "id": "local-turn-sync", "status": "NOT_RUN", "reason": "loca-turn 请求体构造来源 UNKNOWN" },
+    { "id": "cancel-online", "status": "NOT_RUN", "reason": "依赖已发起的推理；同上" }
+  ],
+  "not_run_or_blocked": [
+    { "id": "P9-windows-dynamic", "status": "BLOCKED", "reason": "ENV_WINDOWS_REQUIRED" },
+    { "id": "web-A5-A6", "status": "NOT_RUN" },
+    { "id": "native-rpc-internals", "status": "UNKNOWN" }
+  ],
+  "legend": "STATIC_CONFIRMED / MOCK_VERIFIED / LIVE_VERIFIED / INFERRED / UNKNOWN；NOT_RUN/BLOCKED 不计入通过。"
+}

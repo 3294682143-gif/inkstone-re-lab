@@ -1,0 +1,41 @@
+  return typeof value === "string" && (empty || value.length > 0) && Buffer.byteLength(value, "utf8") <= maximum;
+}
+function inferenceScope(payload) {
+  const kind = payload["inference_kind"];
+  const owner = payload["lifecycle_owner"];
+  const hasTraceContext = Object.hasOwn(payload, "trace_context");
+  if (payload["protocol_version"] !== "2.0" || kind !== "turn" && kind !== "detached" || owner !== "turn" && owner !== "independent" || kind === "turn" && (owner !== "turn" || "inference_id" in payload || "parent_turn_id" in payload || hasTraceContext) || kind === "detached" && "turn_id" in payload) {
+    throw new LocalRuntimeHandlerError("invalid_request", "Inference scope is invalid");
+  }
+  if (hasTraceContext) {
+    validateInferenceTraceContext(payload["trace_context"]);
+  }
+  const chatId = positiveInteger$5(payload["chat_id"], "chat_id");
+  const identity2 = requiredIdentifier(payload[kind === "turn" ? "turn_id" : "inference_id"], "inference identity");
+  const parent = "parent_turn_id" in payload ? requiredIdentifier(payload["parent_turn_id"], "parent_turn_id") : identity2;
+  return {
+    scopeKey: `${chatId}\0${kind}\0${identity2}`,
+    leaseKey: `${chatId}\0${parent}`,
+    inferenceKind: kind,
+    independent: kind === "detached" && owner === "independent"
+  };
+}
+function validateInferenceTraceContext(value) {
+  if (!isRecord$9(value)) invalidInferenceTraceContext();
+  const context = value;
+  const allowed = /* @__PURE__ */ new Set([
+    "schema_version",
+    "agent_id",
+    "parent_agent_id",
+    "parent_call_id",
+    "run_kind",
+    "purpose",
+    "round",
+    "name",
+    "role",
+    "domain"
+  ]);
+  if (Object.keys(context).some((key) => !allowed.has(key)) || context["schema_version"] !== TRACE_CONTEXT_SCHEMA_VERSION || !validTraceContextIdentifier(context["agent_id"], 128) || typeof context["run_kind"] !== "string" || !TRACE_CONTEXT_RUN_KINDS.has(context["run_kind"])) {
+    invalidInferenceTraceContext();
+  }
+  if (context["parent_agent_id"] !== void 0 && !validOptionalTraceContextIdentifier(context["parent_agent_id"], 128)) {

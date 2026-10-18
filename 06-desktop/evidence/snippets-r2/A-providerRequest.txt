@@ -1,0 +1,101 @@
+    this.assertOpen();
+    if (signal.aborted) throw abortError();
+    const scope = inferenceScope(payload);
+    if (this.active.has(requestId) || this.retired.has(requestId) || [
+      ...this.active.values()
+    ].some((active2) => active2.scopeKey === scope.scopeKey)) {
+      throw new LocalRuntimeHandlerError("duplicate_request", "Inference identity is already active or retired");
+    }
+    const providerRequest = {
+      ...payload
+    };
+    delete providerRequest["lifecycle_owner"];
+    const requestBody = JSON.stringify(providerRequest);
+    const requestBytes = Buffer.byteLength(requestBody, "utf8");
+    const limits2 = asRecord$1(this.capabilities["limits"]);
+    const models = this.capabilities["models"];
+    const model = boundedText$5(providerRequest["model"], 120);
+    const messages2 = providerRequest["messages"];
+    const tools2 = providerRequest["tools"];
+    const matchingModels = Array.isArray(models) ? models.filter((candidate) => {
+      const capability = asRecord$1(candidate);
+      const modelId = capability["id"];
+      return modelId === model || capability["canonical_id"] === model && typeof modelId === "string" && modelId.toLowerCase() !== "auto";
+    }) : [];
+    if (!Array.isArray(messages2) || !Array.isArray(tools2)) {
+      const failure2 = new LocalRuntimeHandlerError("invalid_request", "Inference request exceeds the admitted model capabilities", false, {
+        failure_stage: "admission",
+        dispatch_state: "not_dispatched",
+        disposition: "incompatible"
+      });
+      this.reportInference("start_rejected", requestId, {
+        ...inferenceFailureDiagnostic(failure2)
+      });
+      throw failure2;
+    }
+    const requestLimit = firstExceededInferenceLimit([
+      {
+        axis: "messages",
+        actual: messages2.length,
+        maximum: positiveInteger$5(limits2["max_messages"], "max_messages")
+      },
+      {
+        axis: "tools",
+        actual: tools2.length,
+        maximum: positiveInteger$5(limits2["max_tools"], "max_tools")
+      },
+      {
+        axis: "request_bytes",
+        actual: requestBytes,
+        maximum: positiveInteger$5(limits2["max_request_bytes"], "max_request_bytes")
+      }
+    ]);
+    if (matchingModels.length !== 1 || requestLimit) {
+      const failure2 = requestLimit ? new InferenceRequestLimitError(requestLimit) : new LocalRuntimeHandlerError("invalid_request", "Inference request exceeds the admitted model capabilities", false, {
+        failure_stage: "admission",
+        dispatch_state: "not_dispatched",
+        disposition: "incompatible"
+      });
+      this.reportInference("start_rejected", requestId, {
+        ...inferenceFailureDiagnostic(failure2)
+      });
+      throw failure2;
+    }
+    const streamId = `stream_${randomUUID().replaceAll("-", "")}`;
+    const controller = new AbortController();
+    const deliveryController = new AbortController();
+    const recoveryProof = this.drainedInferences.get(scope.leaseKey);
+    this.drainedInferences.delete(scope.leaseKey);
+    const active = {
+      ...scope,
+      requestId,
+      streamId,
+      controller,
+      deliveryController,
+      task: Promise.resolve(),
+      deliverySuppressed: false,
+      semanticTerminalDrain: false,
+      drainRecorded: false,
+      ...recoveryProof && !this.hasInferenceSibling(scope.leaseKey) ? {
+        recoveryProof
+      } : {}
+    };
+    this.active.set(requestId, active);
+    active.task = this.pumpInference(active, providerRequest).finally(() => {
+      if (this.active.get(requestId)?.streamId === streamId) {
+        this.active.delete(requestId);
+      }
+      this.retired.set(requestId, {
+        ...scope,
+        requestId,
+        streamId,
+        drainRecorded: active.drainRecorded,
+        ...active.semanticTerminal ? {
+          semanticTerminal: active.semanticTerminal
+        } : {}
+      });
+      while (this.retired.size > 256) {
+        const first = this.retired.keys().next().value;
+        if (!first) break;
+        this.retired.delete(first);
+      }

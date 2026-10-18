@@ -1,0 +1,35 @@
+  canRecoverInferenceConflict(active) {
+    const proof = active.recoveryProof;
+    const age = proof ? Date.now() - proof.drainedAt : -1;
+    return Boolean(proof && proof.requestId !== active.requestId && age >= 0 && age <= INFERENCE_DRAIN_PROOF_MS && !active.deliverySuppressed && !active.controller.signal.aborted && !this.closed && !this.hasInferenceSibling(active.leaseKey, active.requestId));
+  }
+  async readWeb(kind, payload, signal) {
+    this.assertOpen();
+    const invocation = parseWebInvocation(payload, kind);
+    const consumed = await this.options.webAdmission.consumeWebAdmission(webConsumePayload(invocation));
+    assertConsumedWebAdmission(consumed, invocation);
+    let sealed;
+    let metrics = {
+      itemCount: 0,
+      wireBytes: 0,
+      decodedBytes: 0,
+      redirectCount: 0
+    };
+    let failure2;
+    try {
+      if (kind === "search" || kind === "academic_search") {
+        const provider = kind === "search" ? managedSearchRequest(invocation, this.options.authority.locale) : managedAcademicSearchRequest(invocation, this.options.authority.locale);
+        const result = await this.requestJson(kind === "search" ? "/local-agent/web-search" : "/local-agent/academic-search", "POST", provider.body, AbortSignal.any([
+          signal,
+          AbortSignal.timeout(2e4)
+        ]));
+        sealed = kind === "search" ? sealManagedSearchResult(invocation, provider.requestId, result) : sealManagedAcademicSearchResult(invocation, provider.requestId, result);
+      } else {
+        sealed = await fixedWebFetch(invocation, signal);
+      }
+      metrics = sealed.metrics;
+    } catch (cause) {
+      failure2 = kind === "search" || kind === "academic_search" ? classifyManagedSearchFailure(cause, kind === "search" ? Boolean(invocation.request.search?.provider) : Boolean(invocation.request.academic_search?.provider)) : cause;
+      if ((kind === "search" || kind === "academic_search") && failure2 instanceof LocalRuntimeHandlerError) {
+        this.options.onWebFailure?.({
+          kind,

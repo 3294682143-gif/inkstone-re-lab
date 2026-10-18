@@ -1,0 +1,41 @@
+        continue;
+      }
+      overlays.push(entry);
+    }
+    if (!overlays.length) return history;
+    const messages2 = [
+      ...history.messages
+    ];
+    const turns = [
+      ...history.turns ?? []
+    ];
+    for (const entry of overlays) {
+      messages2.push({
+        id: `interrupted:${entry.turnId}:user`,
+        role: "user",
+        content: entry.userText,
+        status: "complete",
+        createdAt: entry.capturedAt,
+        requestId: entry.requestId,
+        turnId: entry.turnId
+      }, {
+        id: `interrupted:${entry.turnId}:assistant`,
+        role: "assistant",
+        content: "",
+        status: "failed",
+        errorMessage: entry.failure.message,
+        createdAt: entry.capturedAt,
+        requestId: entry.requestId,
+        turnId: entry.turnId
+      });
+      const turnSummary = {
+        turnId: entry.turnId,
+        user: entry.userText,
+        assistant: "",
+        status: "error",
+        createdAt: entry.capturedAt,
+        updatedAt: entry.capturedAt
+      };
+      turns.push(turnSummary);
+    }
+    return {

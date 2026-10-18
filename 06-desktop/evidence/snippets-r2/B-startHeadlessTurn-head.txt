@@ -1,0 +1,19 @@
+async function startHeadlessTurn(host, session2, query, timeoutMs, emit, options = {}) {
+  const text2 = query.trim();
+  if (!text2) {
+    throw headlessError("HEADLESS_INVALID_PARAMS", "query must not be empty");
+  }
+  if (Buffer.byteLength(text2, "utf8") > 1e5) {
+    throw headlessError("HEADLESS_INVALID_PARAMS", "query exceeds 100 KiB");
+  }
+  assertTimeout(timeoutMs);
+  const initialHistory = await host.history(session2.conversation.chatId);
+  const knownTurnIds = new Set((initialHistory.turns ?? []).map((turn) => turn.turnId));
+  const requestId = host.createId();
+  let observedTurnId;
+  let terminalFailure;
+  const dispose = host.subscribe((event) => {
+    if (!eventMatchesRequest(event, requestId)) return;
+    if ("turnId" in event && typeof event.turnId === "string") {
+      observedTurnId = event.turnId;
+    }

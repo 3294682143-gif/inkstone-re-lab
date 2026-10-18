@@ -1,0 +1,71 @@
+  const stage = boundedText(failure2["stage"], 64);
+  if (!Object.hasOwn(DURABLE_CHAT_FAILURE_STAGE_MESSAGES, stage)) {
+    throw new Error("Core Runtime history turn failure stage is invalid");
+  }
+  return chatFailureMessageForRenderer(code, stage);
+}
+function projectHistoryTurn(value, activities, projectArtifact2, projectReferences, transcriptAnswers, allowDisplayOmissions) {
+  const turn = record(value, "history turn");
+  const turnId = requiredId(turn["turnId"], "history turn ID");
+  const user = boundedHistoryText(turn["user"]);
+  const durableAssistant = boundedHistoryText(turn["assistant"]);
+  const answerPresentation = projectHistoryAnswerPresentation(turn["answerPresentation"]);
+  const modelRef = turn["model"] === void 0 ? void 0 : boundedText(turn["model"], 120);
+  const status = turn["status"];
+  if (status !== "complete" && status !== "stopped" && status !== "error") {
+    throw new Error("Core Runtime history turn status is invalid");
+  }
+  const durableFailureMessage = projectHistoryTurnFailureMessage(turn["failure"]);
+  if (status !== "error" && durableFailureMessage !== void 0) {
+    throw new Error("Core Runtime history turn failure is invalid");
+  }
+  const errorMessage2 = status === "error" ? durableFailureMessage ?? "Local Agent \u8FD0\u884C\u5931\u8D25" : void 0;
+  const assistant = status === "stopped" && !durableAssistant.trim() ? transcriptAnswers.get(turnId) ?? durableAssistant : durableAssistant;
+  const createdAt = allowDisplayOmissions && turn["createdAt"] === void 0 ? "" : timestamp(turn["createdAt"]);
+  const updatedAt = allowDisplayOmissions && turn["updatedAt"] === void 0 ? "" : timestamp(turn["updatedAt"]);
+  const citations = projectChatCitations(activities.get(turnId)?.events ?? []);
+  const files = projectHistoryTurnFiles(turn, turnId, activities.get(turnId)?.events ?? [], projectArtifact2);
+  const references = projectReferences?.(turnId) ?? [];
+  const answerContinuations = projectAnswerContinuations(turn["answerContinuations"]);
+  const origin = appTurnOrigin(turn["origin"]);
+  return [
+    {
+      id: `turn-user-${turnId}`,
+      role: "user",
+      ...origin ? {
+        origin
+      } : {},
+      content: user,
+      status: "complete",
+      createdAt,
+      turnId,
+      ...references.length ? {
+        files: references
+      } : {}
+    },
+    {
+      id: `turn-assistant-${turnId}`,
+      role: "assistant",
+      content: assistant,
+      status: status === "error" ? "failed" : status === "stopped" ? "stopped" : "complete",
+      createdAt: updatedAt,
+      turnId,
+      ...errorMessage2 ? {
+        errorMessage: errorMessage2
+      } : {},
+      ...modelRef ? {
+        modelRef
+      } : {},
+      ...files.length ? {
+        files
+      } : {},
+      ...citations.length ? {
+        citations
+      } : {},
+      ...answerContinuations ? {
+        answerContinuations
+      } : {},
+      ...answerPresentation ? {
+        answerPresentation: answerPresentation.presentation
+      } : {}
+    }

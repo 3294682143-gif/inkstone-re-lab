@@ -1,0 +1,61 @@
+  "read_current_file",
+  "list_session_sources",
+  "read_lineage",
+  "read_file",
+  "read_table",
+  "inspect_evidence_pointers"
+]);
+const traceV23Schema = z.object({
+  ...traceBase,
+  kind: z.enum([
+    "started",
+    "tool_call",
+    "tool_result",
+    "submission"
+  ]),
+  toolName: z.union([
+    evidenceToolSchema,
+    z.enum([
+      "submit_output",
+      "verdict"
+    ])
+  ]).optional()
+}).strict();
+const traceV24Schema = z.object({
+  ...traceBase,
+  kind: z.enum([
+    "started",
+    "note",
+    "tool_call",
+    "tool_result",
+    "submission"
+  ]),
+  toolName: z.union([
+    evidenceToolSchema,
+    z.enum([
+      "publish_review_note",
+      "submit_output"
+    ])
+  ]).optional(),
+  activity: activitySchema.optional(),
+  outcome: outcomeSchema.optional(),
+  note: noteSchema.optional()
+}).strict();
+const traceV25Schema = z.object({
+  ...traceBase,
+  kind: z.enum([
+    "started",
+    "narration",
+    "tool_call",
+    "tool_result",
+    "submission"
+  ]),
+  toolName: z.union([
+    evidenceToolSchema,
+    z.literal("submit_output")
+  ]).optional(),
+  activity: activitySchema.optional(),
+  outcome: outcomeSchema.optional(),
+  narration: narrationSchema.optional()
+}).strict();
+const traceSchema = z.union([
