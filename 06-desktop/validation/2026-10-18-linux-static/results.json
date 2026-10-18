@@ -1,0 +1,35 @@
+{
+  "round": "2026-10-18-linux-static",
+  "environment": "linux-server",
+  "baseline_commit": "126f58dc330e8e0d1ac4f7cd8b3d5a943da5da6e",
+  "sample": {
+    "file": "inkstone-desktop-0.2.7-setup.exe",
+    "size": 285650528,
+    "sha256": "eb8ef2da7c67df4fd2728a686cf84c1699fa410746af2d5b08f6e9b89d6dfcd8",
+    "match": true
+  },
+  "commands": [
+    { "cmd": "npm ci", "exit": 0, "note": "added 1 package (undici)" },
+    { "cmd": "node --test", "exit": 0, "tests": 61, "pass": 61, "fail": 0 },
+    { "cmd": "node --test tests/desktop/*.test.mjs", "exit": 0, "tests": 32, "pass": 32, "fail": 0 },
+    { "cmd": "python3 tools/inspect_inkstone_asar.py ...", "exit": 0, "note": "6035 entries / 181 extracted" },
+    { "cmd": "sha256sum <installer/inner7z/asar/runtime>", "exit": 0, "note": "全部与文档一致" }
+  ],
+  "checks": [
+    { "id": "P6.1-A", "desc": "client fixture 用同一 SSEFrameParser 执行 push/flush", "status": "PASS", "evidence": "tests/offline-client.test.mjs 尾帧用例" },
+    { "id": "P6.1-B", "desc": "regress 写入失败非零退出，且不覆盖历史证据", "status": "PASS", "evidence": "tests/regress.test.mjs 写入失败用例" },
+    { "id": "P7-unpack", "desc": "NSIS→7z→ASAR 复现 + 哈希清单", "status": "PASS", "evidence": "06-desktop/evidence/{sample-manifest,asar-manifest}.json" },
+    { "id": "P7-contracts", "desc": "架构/IPC/认证/云gateway/driver/native 契约", "status": "PASS (static)", "evidence": "06-desktop/contracts/*" },
+    { "id": "P8-gateway-parser", "desc": "桌面 SSE type 事件解析 + 序列校验", "status": "PASS", "evidence": "src/desktop/gateway-events.mjs + tests/desktop/gateway-events.test.mjs" },
+    { "id": "P8-driver-jsonl", "desc": "JSONL 解析/关联，accepted≠completed", "status": "PASS", "evidence": "src/desktop/driver-jsonl.mjs + tests/desktop/driver-jsonl.test.mjs" },
+    { "id": "P8-models-contract", "desc": "protocol_version 2.0 能力目录契约", "status": "PASS", "evidence": "src/desktop/models-contract.mjs + tests/desktop/models-contract.test.mjs" },
+    { "id": "P8-cloud-adapter", "desc": "可注入 fetch 的 HTTP adapter（含 SSE 失败判据）", "status": "PASS", "evidence": "src/desktop/cloud-adapter.mjs + tests/desktop/cloud-adapter.test.mjs" },
+    { "id": "P8-no-electron", "desc": "桌面模块不 import electron/解包产物", "status": "PASS", "evidence": "tests/desktop/no-electron.test.mjs" },
+    { "id": "P10-native-static", "desc": "Go PE 构建信息/字符串/职责", "status": "PARTIAL", "evidence": "06-desktop/contracts/native-runtime.md" },
+    { "id": "P9-windows-dynamic", "desc": "Windows 实机动态闭环", "status": "BLOCKED", "reason": "ENV_WINDOWS_REQUIRED" },
+    { "id": "desktop-cloud-live", "desc": "桌面 gateway 在线验证", "status": "NOT_RUN", "reason": "AUTH_REQUIRED (无适用于 /local-agent 的桌面授权；不假设 Web storageState 适用)" }
+  ],
+  "legend": "PASS / FAIL / BLOCKED / NOT_RUN / N/A；BLOCKED 与 NOT_RUN 不计入通过。",
+  "network_requests_during_offline_tests": 0,
+  "executed_application_code": false
+}

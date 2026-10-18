@@ -1,0 +1,18 @@
+data: {"type": "message_start", "response_id": "resp_synth_1", "model": "synth-model"}
+
+data: {"type": "thinking_delta", "text": "思考中"}
+
+data: {"type": "content_delta", "text": "OK"}
+
+data: {"type": "tool_use_start", "id": "tool_1", "name": "echo"}
+
+data: {"type": "tool_input_delta", "id": "tool_1", "partial_json": "{\"a\":"}
+
+data: {"type": "tool_input_delta", "id": "tool_1", "partial_json": "1}"}
+
+data: {"type": "tool_use_end", "id": "tool_1", "input": {"a": 1}}
+
+data: {"type": "usage", "usage": {"input_tokens": 10, "output_tokens": 2, "cache_read_tokens": 0, "cache_write_tokens": 0}}
+
+data: {"type": "message_end", "stop_reason": "end_turn"}
+

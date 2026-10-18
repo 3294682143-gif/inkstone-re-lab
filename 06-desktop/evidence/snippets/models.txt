@@ -1,0 +1,86 @@
+      content: entry.snapshot.content,
+      digest: entry.snapshot.digest,
+      bundleDigest: entry.snapshot.bundleDigest,
+      resources: entry.snapshot.resources.map((resource) => ({
+        ...resource
+      }))
+    };
+  }
+  async getModels(signal) {
+    this.assertOpen();
+    const startedAt = performance.now();
+    this.reportModels("models_started", {
+      timeoutMs: 3e4
+    });
+    try {
+      const response = await this.requestJson("/local-agent/models", "GET", void 0, signal);
+      let capabilities;
+      try {
+        capabilities = parseCapabilities(response);
+      } catch {
+        throw new LocalRuntimeHandlerError("invalid_response", "Cloud gateway returned incompatible model capabilities", false, {
+          failure_stage: "response_decode"
+        });
+      }
+      this.capabilities = capabilities;
+      this.reportModels("models_completed", {
+        duration_ms: Math.round(performance.now() - startedAt)
+      });
+      return capabilities;
+    } catch (cause) {
+      this.reportModels("models_failed", {
+        duration_ms: Math.round(performance.now() - startedAt),
+        ...inferenceFailureDiagnostic(cause)
+      });
+      throw cause;
+    }
+  }
+  reportModels(event, detail) {
+    try {
+      this.options.onGatewayDiagnostic?.(event, detail);
+    } catch {
+    }
+  }
+  async startInference(payload, signal) {
+    this.assertOpen();
+    if (Object.hasOwn(payload, "max_output_tokens") && (typeof payload["max_output_tokens"] !== "number" || !Number.isSafeInteger(payload["max_output_tokens"]) || payload["max_output_tokens"] < 0)) {
+      throw new LocalRuntimeHandlerError("invalid_request", "Inference output reference must be a non-negative safe integer");
+    }
+    const requestId = requiredIdentifier(payload["request_id"], "request_id");
+    const capabilitiesCached = Boolean(this.capabilities);
+    this.reportInference("start_received", requestId, {
+      capabilitiesCached
+    });
+    if (signal.aborted) throw abortError();
+    if (this.active.has(requestId) || this.retired.has(requestId)) {
+      throw new LocalRuntimeHandlerError("duplicate_request", "Inference request identity was already used", false);
+    }
+    if (!this.capabilities) {
+      try {
+        await this.getModels(signal);
+      } catch (cause) {
+        this.reportInference("start_rejected", requestId, {
+          ...inferenceFailureDiagnostic(cause)
+        });
+        throw cause;
+      }
+    }
+    this.reportInference("models_ready", requestId, {
+      capabilitiesCached
+    });
+    this.assertOpen();
+    if (signal.aborted) throw abortError();
+    const scope = inferenceScope(payload);
+    if (this.active.has(requestId) || this.retired.has(requestId) || [
+      ...this.active.values()
+    ].some((active2) => active2.scopeKey === scope.scopeKey)) {
+      throw new LocalRuntimeHandlerError("duplicate_request", "Inference identity is already active or retired");
+    }
+    const providerRequest = {
+      ...payload
+    };
+    delete providerRequest["lifecycle_owner"];
+    const requestBody = JSON.stringify(providerRequest);
+    const requestBytes = Buffer.byteLength(requestBody, "utf8");
+    const limits2 = asRecord$1(this.capabilities["limits"]);
+    const models = this.capabilities["models"];

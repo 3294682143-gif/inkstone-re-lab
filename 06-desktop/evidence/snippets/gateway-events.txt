@@ -1,0 +1,107 @@
+let GatewayEventSequence = class GatewayEventSequence2 {
+  started = false;
+  usage = false;
+  terminal = false;
+  count = 0;
+  accept(event) {
+    this.count += 1;
+    if (this.count > MAX_EVENTS || this.terminal) {
+      throw new Error("Inference event sequence is invalid");
+    }
+    if (!this.started && event.type !== "message_start") {
+      throw new Error("Inference stream did not start with message_start");
+    }
+    if (event.type === "message_start") {
+      if (this.started) throw new Error("Duplicate message_start");
+      this.started = true;
+      return;
+    }
+    if (event.type === "usage") {
+      if (this.usage) throw new Error("Duplicate usage event");
+      this.usage = true;
+      return;
+    }
+    if (this.usage && event.type !== "message_end") {
+      throw new Error("Unexpected event after usage");
+    }
+    if (event.type === "message_end") {
+      if (!this.usage) throw new Error("message_end preceded usage");
+      this.terminal = true;
+    } else if (event.type === "error") {
+      this.terminal = true;
+    }
+  }
+  finish() {
+    if (!this.started || !this.terminal) {
+      throw new Error("Inference stream ended without a terminal event");
+    }
+  }
+};
+function parseGatewayEvent(source) {
+  if (Buffer.byteLength(source, "utf8") > MAX_EVENT_BYTES$1) {
+    throw new Error("Inference event is too large");
+  }
+  const parsed = parseStrictJson$1(source);
+  const event = asRecord$1(parsed);
+  const type = event["type"];
+  if (typeof type !== "string") throw new Error("Inference event has no type");
+  switch (type) {
+    case "message_start":
+      exactKeys$3(event, [
+        "type",
+        "response_id",
+        "model"
+      ]);
+      boundedText$5(event["response_id"], 200);
+      boundedText$5(event["model"], 200);
+      break;
+    case "thinking_delta":
+    case "content_delta":
+      exactKeys$3(event, [
+        "type",
+        "text"
+      ]);
+      boundedText$5(event["text"], MAX_EVENT_BYTES$1, true);
+      break;
+    case "tool_use_start":
+      exactKeys$3(event, [
+        "type",
+        "id",
+        "name"
+      ]);
+      boundedText$5(event["id"], 200);
+      boundedText$5(event["name"], 120);
+      break;
+    case "tool_input_delta":
+      exactKeys$3(event, [
+        "type",
+        "id",
+        "partial_json"
+      ]);
+      boundedText$5(event["id"], 200);
+      boundedText$5(event["partial_json"], MAX_EVENT_BYTES$1, true);
+      break;
+    case "tool_use_end":
+      exactKeys$3(event, [
+        "type",
+        "id",
+        "input"
+      ], [
+        "input"
+      ]);
+      boundedText$5(event["id"], 200);
+      if (event["input"] !== void 0) asRecord$1(event["input"]);
+      break;
+    case "usage": {
+      exactKeys$3(event, [
+        "type",
+        "usage"
+      ]);
+      const usage = asRecord$1(event["usage"]);
+      exactKeys$3(usage, [
+        "input_tokens",
+        "output_tokens",
+        "cache_read_tokens",
+        "cache_write_tokens"
+      ], [
+        "cache_read_tokens",

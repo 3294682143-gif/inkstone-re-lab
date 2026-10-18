@@ -1,0 +1,81 @@
+        },
+        signal: requestSignal,
+        redirect: "error",
+        cache: "no-store",
+        credentials: "omit"
+      });
+    } catch (cause) {
+      if (url === this.url("/local-agent/models")) {
+        this.reportModels("models_dispatch_failed", {
+          timeoutMs,
+          timeoutExpired: timeout.aborted,
+          callerAborted: signal?.aborted ?? false,
+          networkCode: modelsNetworkErrorCode(cause)
+        });
+      }
+      throw new LocalRuntimeHandlerError("gateway_unavailable", "\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u68C0\u67E5\u7F51\u7EDC\u540E\u91CD\u8BD5\u3002", true, {
+        failure_stage: "dispatch",
+        disposition: "transient"
+      });
+    }
+    if (url === this.url("/local-agent/models")) {
+      this.reportModels("models_response", {
+        httpStatus: response.status
+      });
+    }
+    const text2 = await readBoundedText$1(response, MAX_JSON_BYTES$1, requestSignal);
+    let payload;
+    try {
+      payload = parseStrictJson$1(text2);
+    } catch {
+      const contentType = response.headers.get("content-type")?.toLowerCase();
+      const responseKind = contentType?.includes("application/json") ? "json" : "non-json";
+      throw new LocalRuntimeHandlerError("invalid_response", `Cloud gateway returned invalid JSON (HTTP ${response.status}, ${responseKind}, ${Buffer.byteLength(text2, "utf8")} bytes)`, false, {
+        failure_stage: "response_decode",
+        provider_code: response.status
+      });
+    }
+    if (response.status === 401 || authenticationExpired(payload)) {
+      await this.options.onAuthenticationFailure();
+      throw new LocalRuntimeHandlerError("authentication_required", "Authentication expired", false);
+    }
+    const envelope2 = asRecord$1(payload);
+    if (typeof envelope2["msg"] !== "string" || Buffer.byteLength(envelope2["msg"], "utf8") > 2e3 || typeof envelope2["trace_id"] !== "string" || Buffer.byteLength(envelope2["trace_id"], "utf8") > 256) {
+      throw new LocalRuntimeHandlerError("invalid_response", "Cloud gateway response envelope is invalid", false, {
+        failure_stage: "response_decode"
+      });
+    }
+    if (notFoundIsSuccess && response.status === 404 && envelope2["code"] === 404) {
+      return void 0;
+    }
+    if (!response.ok || envelope2["code"] !== 0 && envelope2["code"] !== 200) {
+      const envelopeCode = Number(envelope2["code"]);
+      const providerCode = Number.isSafeInteger(envelopeCode) && envelopeCode >= -2147483648 && envelopeCode <= 2147483647 ? envelopeCode : response.status;
+      throw new LocalRuntimeHandlerError("remote_rejected", "Cloud gateway rejected the request", false, {
+        disposition: "remote_rejected",
+        provider_code: !response.ok && (providerCode === 0 || providerCode === 200) ? response.status : providerCode
+      });
+    }
+    if (!("data" in envelope2)) {
+      throw new LocalRuntimeHandlerError("invalid_response", "Cloud gateway response is missing data", false, {
+        failure_stage: "response_decode"
+      });
+    }
+    return envelope2["data"];
+  }
+  headers(extra) {
+    return {
+      Authorization: `Bearer ${this.options.authority.token}`,
+      id: this.options.authority.ssoUid,
+      "Accept-Language": this.options.authority.locale,
+      ...extra
+    };
+  }
+  url(path2) {
+    return `${this.baseUrl}${path2}`;
+  }
+  assertOpen() {
+    if (this.closed) throw new Error("Core Cloud Gateway is closed");
+  }
+}
+function validateCoreApiBaseUrl(value) {

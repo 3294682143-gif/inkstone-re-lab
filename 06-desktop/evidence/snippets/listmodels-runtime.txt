@@ -1,0 +1,61 @@
+    try {
+      await ready.supervisor.removeProjectResources(projectId, targetIds);
+      this.assertCurrent(ready);
+      this.previewRegistry.clearProjectVersions(projectId);
+    } catch (cause) {
+      this.failRuntime(cause);
+      throw cause;
+    } finally {
+      releaseProjectAdmission();
+    }
+  }
+  resolveOutputReferences(projectId, targetIds) {
+    return this.projection.resolveOutputReferences(projectId, targetIds);
+  }
+  async listModels() {
+    const startedAt = performance.now();
+    const ready = await this.requireReady();
+    const models = await this.readModels(ready, true);
+    this.runtimeLogger?.info("Core Runtime model list loaded", {
+      runtimeGeneration: ready.runtimeGeneration,
+      modelCount: models.length,
+      durationMs: Math.round(performance.now() - startedAt)
+    });
+    return projectCoreModels(models);
+  }
+  async getAvailability(input) {
+    let ready;
+    try {
+      ready = await this.requireReady();
+    } catch {
+      const hasAuthority = Boolean(this.options.auth.getRuntimeAuthority());
+      const runtimeError = this.runtimeError;
+      return {
+        state: "unavailable",
+        reasonCode: "runtime_unavailable",
+        ...hasAuthority ? runtimeError ? {
+          message: runtimeErrorMessageForRenderer(runtimeError)
+        } : {} : {
+          message: "\u8BF7\u5148\u767B\u5F55"
+        },
+        retryable: hasAuthority && runtimeError !== void 0 && !this.authorityBlocked
+      };
+    }
+    const model = await this.resolveModel(ready, input.modelRef);
+    if (!model) {
+      return {
+        state: "unavailable",
+        reasonCode: "model_unavailable",
+        message: "\u6240\u9009\u6A21\u578B\u4E0D\u53EF\u7528",
+        retryable: false
+      };
+    }
+    const result = await ready.supervisor.callRuntime("runtime.availability", {
+      model: model.id,
+      mode: input.workMode === "research" ? "deep" : "instant"
+    });
+    if (result["available"] === true) {
+      return {
+        state: "ready",
+        retryable: false
+      };

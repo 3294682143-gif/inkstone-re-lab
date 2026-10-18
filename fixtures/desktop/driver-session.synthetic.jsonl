@@ -1,0 +1,5 @@
+{"method": "driver.ready", "params": {"protocol_version": "inkstone-headless-chat/v1"}}
+{"id": "models-1", "ok": true, "result": {"protocol_version": "2.0"}}
+{"id": "turn-1", "ok": true, "result": {"accepted": true, "session_ref": "sess_synth", "request_id": "req_synth_1"}}
+{"method": "turn.completed", "params": {"session_ref": "sess_synth", "request_id": "req_synth_1", "status": "completed"}}
+{"id": "shutdown-1", "ok": true, "result": {"bye": true}}

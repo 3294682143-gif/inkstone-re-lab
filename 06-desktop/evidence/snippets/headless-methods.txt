@@ -1,0 +1,211 @@
+        };
+      default:
+        throw headlessError("HEADLESS_METHOD_NOT_FOUND", `Unknown Headless method: ${request2.method}`);
+    }
+  }
+  async createSession(params, reopen = false) {
+    exactKeys(params, [
+      "project",
+      "model",
+      "work_mode",
+      "permission_mode",
+      "remote_host_id",
+      ...reopen ? [
+        "chat_id"
+      ] : [
+        "cleanup"
+      ]
+    ]);
+    if (this.sessions.size >= MAX_SESSIONS) {
+      throw headlessError("HEADLESS_SESSION_LIMIT", "Headless session limit reached");
+    }
+    const options = {
+      project: optionalString(params["project"], "project"),
+      model: optionalString(params["model"], "model"),
+      workMode: workMode(params["work_mode"]),
+      permissionMode: permissionMode(params["permission_mode"]),
+      cleanup: optionalBoolean(params["cleanup"], "cleanup") ?? true,
+      remoteHostId: optionalString(params["remote_host_id"], "remote_host_id"),
+      ...reopen ? {
+        chatId: requiredChatId(params["chat_id"])
+      } : {}
+    };
+    const resolved = await createHeadlessSession(this.host, options);
+    const ref = this.host.createId();
+    this.sessions.set(ref, {
+      ref,
+      resolved
+    });
+    return publicSession(this.sessions.get(ref));
+  }
+  async inspectSession(params) {
+    exactKeys(params, [
+      "session_ref"
+    ]);
+    const session2 = this.requireSession(requiredString(params["session_ref"], "session_ref"));
+    const background = await this.backgroundTurn(session2);
+    return {
+      ...publicSession(session2),
+      ...background ? {
+        background_turn: background
+      } : {}
+    };
+  }
+  async backgroundTurn(session2) {
+    const history = await this.host.history(session2.resolved.conversation.chatId);
+    const requestId = history.activeRequestId;
+    if (!requestId || requestId === session2.active?.requestId) return void 0;
+    const turnId = history.messages.find((message) => message.requestId === requestId && message.turnId)?.turnId;
+    return {
+      request_id: requestId,
+      ...turnId ? {
+        turn_id: turnId
+      } : {}
+    };
+  }
+  async closeSession(params) {
+    exactKeys(params, [
+      "session_ref"
+    ]);
+    const session2 = this.requireSession(requiredString(params["session_ref"], "session_ref"));
+    await this.closeSessionRecord(session2, false);
+    return {
+      closed: true,
+      session_ref: session2.ref
+    };
+  }
+  async sendTurn(params) {
+    exactKeys(params, [
+      "session_ref",
+      "query",
+      "timeout_ms",
+      "automatic_reviewer",
+      "artifact_provenance"
+    ]);
+    const session2 = this.requireSession(requiredString(params["session_ref"], "session_ref"));
+    if (session2.active) {
+      throw headlessError("HEADLESS_TURN_ACTIVE", "Session already has an active turn");
+    }
+    const query = requiredString(params["query"], "query");
+    const timeoutMs = optionalInteger(params["timeout_ms"], "timeout_ms") ?? DEFAULT_TURN_TIMEOUT_MS;
+    const activeHolder = {};
+    let observedTurnId;
+    const monitor = await startHeadlessTurn(this.host, session2.resolved, query, timeoutMs, (event) => {
+      observedTurnId = event.params.turn_id;
+      if (activeHolder.current) {
+        activeHolder.current.turnId = observedTurnId;
+      }
+      this.emit(event);
+    }, {
+      automaticReviewerEnabled: optionalBoolean(params["automatic_reviewer"], "automatic_reviewer") ?? false,
+      artifactProvenanceEnabled: optionalBoolean(params["artifact_provenance"], "artifact_provenance") ?? false
+    });
+    const active = {
+      requestId: monitor.requestId,
+      completion: monitor.completion,
+      ...observedTurnId ? {
+        turnId: observedTurnId
+      } : {}
+    };
+    activeHolder.current = active;
+    session2.active = active;
+    let mayReleaseActive = true;
+    void active.completion.then((result) => {
+      this.emit({
+        method: "turn.completed",
+        params: publicTurnResult(session2.ref, result)
+      });
+    }).catch(async (cause) => {
+      const error = safeHeadlessError(cause);
+      if (error.code === "HEADLESS_TURN_TIMEOUT") {
+        try {
+          mayReleaseActive = await stopAndDrainHeadlessTurn(this.host, session2.resolved.conversation.chatId, active.requestId);
+          if (!mayReleaseActive) {
+            this.emit({
+              method: "cleanup.warning",
+              params: {
+                session_ref: session2.ref,
+                operation: "turn.drain",
+                code: "HEADLESS_TURN_DRAIN_TIMEOUT",
+                message: "Turn did not reach a terminal state after timeout stop"
+              }
+            });
+          }
+        } catch (stopCause) {
+          mayReleaseActive = false;
+          this.emit({
+            method: "cleanup.warning",
+            params: {
+              session_ref: session2.ref,
+              operation: "turn.stop",
+              ...safeHeadlessError(stopCause)
+            }
+          });
+        }
+      }
+      this.emit({
+        method: "turn.failed",
+        params: {
+          session_ref: session2.ref,
+          request_id: active.requestId,
+          ...error
+        }
+      });
+    }).finally(() => {
+      if (mayReleaseActive && session2.active === active) {
+        session2.active = void 0;
+      }
+    });
+    return {
+      accepted: true,
+      session_ref: session2.ref,
+      request_id: monitor.requestId
+    };
+  }
+  async stopTurn(params) {
+    exactKeys(params, [
+      "session_ref",
+      "request_id"
+    ]);
+    const session2 = this.requireSession(requiredString(params["session_ref"], "session_ref"));
+    const requestId = requiredString(params["request_id"], "request_id");
+    if (!session2.active || session2.active.requestId !== requestId) {
+      throw headlessError("HEADLESS_TURN_NOT_ACTIVE", "The requested turn is not active");
+    }
+    const drained = await stopAndDrainHeadlessTurn(this.host, session2.resolved.conversation.chatId, requestId);
+    if (!drained) {
+      throw headlessError("HEADLESS_TURN_DRAIN_TIMEOUT", "Turn did not reach a terminal state after stop");
+    }
+    await session2.active.completion.catch(() => void 0);
+    return {
+      stopped: true,
+      request_id: requestId
+    };
+  }
+  async getHistory(params) {
+    exactKeys(params, [
+      "session_ref"
+    ]);
+    const session2 = this.requireSession(requiredString(params["session_ref"], "session_ref"));
+    const history = await this.host.history(session2.resolved.conversation.chatId);
+    return {
+      session_ref: session2.ref,
+      active_request_id: history.activeRequestId,
+      messages: history.messages.map((message) => ({
+        id: message.id,
+        role: message.role,
+        ...message.origin ? {
+          origin: message.origin
+        } : {},
+        content: message.content,
+        status: message.status,
+        created_at: message.createdAt,
+        ...message.requestId ? {
+          request_id: message.requestId
+        } : {},
+        ...message.turnId ? {
+          turn_id: message.turnId
+        } : {},
+        ...message.modelRef ? {
+          model_ref: message.modelRef
+        } : {}

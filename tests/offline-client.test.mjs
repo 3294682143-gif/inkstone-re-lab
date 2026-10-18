@@ -131,3 +131,16 @@ test('fixture 离线：完整样本成功，不完整样本失败', async () => 
   assert.notEqual(await run(['--dry-run', '--fixture', tmp], { env: NULL_ENV, stdout: c2.out, stderr: c2.err }), 0);
   unlinkSync(tmp);
 });
+
+test('P6.1-A fixture 尾帧：样本末尾无空行时仍解析最后一个事件（单一 parser push+flush）', async () => {
+  const { writeFileSync, unlinkSync } = await import('node:fs');
+  const tmp = 'tests/tmp-tail.sse.txt';
+  // 去掉尾部的分隔空行，迫使最后一个事件只能由同一个 parser 的 flush 取出
+  writeFileSync(tmp, sseFromEvents(completeEvents({ cid: 42, mid: 9, answer: 'OK' })).replace(/\n\n$/, ''));
+  const c = cap();
+  const code = await run(['--dry-run', '--fixture', tmp], { env: NULL_ENV, stdout: c.out, stderr: c.err });
+  unlinkSync(tmp);
+  assert.equal(code, 0, '应成功（否则说明尾帧丢失）');
+  assert.match(c.lines.join('\n'), /"finished": true/);
+  assert.match(c.lines.join('\n'), /"answer": "OK"/);
+});

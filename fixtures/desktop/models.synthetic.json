@@ -1,0 +1,36 @@
+{
+  "protocol_version": "2.0",
+  "models": [
+    {
+      "id": "synth-a",
+      "canonical_id": "synth-a",
+      "display_name": "Synthetic A",
+      "context_window": 100000,
+      "max_output_tokens": 8000,
+      "supports_thinking": true,
+      "supports_tools": true,
+      "supports_attachments": false,
+      "answer_transport": "strict_eof",
+      "tags": [
+        "synth"
+      ],
+      "pro": false
+    }
+  ],
+  "limits": {
+    "max_request_bytes": 1000000,
+    "max_messages": 100,
+    "max_tools": 50,
+    "max_tool_name_bytes": 64,
+    "max_tool_description_bytes": 4096,
+    "max_tool_input_schema_bytes": 262144,
+    "max_start_prompt_bytes": 100000,
+    "max_checkpoint_bytes": 500000,
+    "max_prompt_bytes": 500000,
+    "max_thinking_bytes": 400000,
+    "max_answer_bytes": 400000,
+    "max_agent_events": 1000,
+    "max_agent_event_bytes": 100000,
+    "max_agent_events_bytes": 1000000
+  }
+}

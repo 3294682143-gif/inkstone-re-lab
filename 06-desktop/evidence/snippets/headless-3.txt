@@ -1,0 +1,46 @@
+      await runHeadlessChatDriver(lines, host, (output) => writeJsonLine(io.stdout, output));
+    } finally {
+      lines.close();
+    }
+    return 0;
+  } catch (cause) {
+    writeJsonLine(io.stderr, {
+      type: "error",
+      ...safeHeadlessError(cause)
+    });
+    return 1;
+  }
+}
+function createHeadlessChatHost(features) {
+  const assertAuthenticated = () => {
+    const state2 = features.auth.getState();
+    if (state2.status !== "authenticated") {
+      throw Object.assign(new Error("Inkstone is not authenticated in this environment; sign in once with the desktop app before running Headless Chat"), {
+        code: "SSO_REQUIRED"
+      });
+    }
+  };
+  return {
+    listProjects: async () => {
+      assertAuthenticated();
+      return (await features.project.list()).map((project) => ({
+        id: project.id,
+        name: project.name,
+        description: project.description
+      }));
+    },
+    listSshHosts: async () => {
+      assertAuthenticated();
+      const state2 = await features.sshHosts.getState();
+      if (!state2.available) return [];
+      return state2.hosts.map(headlessSshHost);
+    },
+    inspectSshHost: async (hostId2) => {
+      assertAuthenticated();
+      const state2 = await features.sshHosts.getState();
+      if (!state2.available) throw Object.assign(new Error("SSH hosts are unavailable"), {
+        code: "SSH_UNAVAILABLE"
+      });
+      return headlessSshHost(await features.sshHosts.ipc.router.inspect({
+        scopeRevision: state2.scopeRevision,
+        hostId: hostId2

@@ -1,0 +1,27 @@
+{
+  "sample": "inkstone-desktop-0.2.7-setup.exe",
+  "sample_size": 285650528,
+  "sample_sha256": "eb8ef2da7c67df4fd2728a686cf84c1699fa410746af2d5b08f6e9b89d6dfcd8",
+  "chain": [
+    { "step": "installer", "sha256": "eb8ef2da7c67df4fd2728a686cf84c1699fa410746af2d5b08f6e9b89d6dfcd8" },
+    { "step": "$PLUGINSDIR/inkstone-app.7z", "size": 283595444, "sha256": "244208333603a4c0bc2c677c2e7e4abf1cc975b1c970a3fdb15d4018437a4040" },
+    { "step": "resources/app.asar", "size": 70672437, "sha256": "10c286f32211bcf2dc05f9ea4bbcf3e982627be2b92f2bc656503eec7535ad77", "asar_entries": 6035, "extracted_app_files": 181 },
+    { "step": "out/main/index.js", "sha256": "219b395b37bd6faf7a56dbe65453f746644596c294ddb376a90532dd06df4866" },
+    { "step": "out/main/index-CYl10ENn.js", "sha256": "f4b8148db01e9a196c28dd68d94761d715b834ee2fec3af861fe8ddec665acab" },
+    { "step": "out/preload/index.cjs", "sha256": "4303ea1ad183de0791a216970adbe941068420adf8729c0d65c0668e7ed39d4a" }
+  ],
+  "runtime_manifest": {
+    "bundle_build_id": "0.2.7-8dabffa00633",
+    "backend": "go",
+    "platform": "windows",
+    "arch": "x64",
+    "artifacts": [
+      { "role": "agent_runtime", "file": "orbit-agentd.exe", "size": 57364184, "sha256": "bb56db4a67df1da0f810624872322de399b76f016e508ad7b63f514b03ab1409" },
+      { "role": "broker", "file": "orbit-brokerd.exe", "size": 29981920, "sha256": "827a58d163eb5dfd69aeef32098f0578a614d7d19902d36efdc16e352678e377" },
+      { "role": "executor", "file": "orbit-executor.exe", "size": 22546136, "sha256": "2414747197eb7190ef9b21d149ac3a2037d3dbba0c1cc272c2adc9f2cb00b624" }
+    ]
+  },
+  "full_asar_manifest": "06-desktop/evidence/asar-manifest.json",
+  "executed_application_code": false,
+  "notes": "本轮只读文件/解包/字符串；未运行安装器、应用或原生程序；未做 Authenticode 验签。"
+}

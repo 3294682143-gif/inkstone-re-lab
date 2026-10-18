@@ -1,0 +1,81 @@
+  const driver = new HeadlessChatDriver(host, write);
+  driver.ready();
+  try {
+    for await (const line of lines) {
+      if (driver.isShutdownRequested) break;
+      if (!line.trim()) continue;
+      await driver.handleLine(line);
+      if (driver.isShutdownRequested) break;
+    }
+  } finally {
+    await driver.shutdown();
+  }
+}
+function parseRequest(value) {
+  if (!isRecord(value)) {
+    throw headlessError("HEADLESS_INVALID_REQUEST", "Headless request must be an object");
+  }
+  exactKeys(value, [
+    "id",
+    "method",
+    "params"
+  ]);
+  const id2 = requiredString(value["id"], "id");
+  const method = requiredString(value["method"], "method");
+  if (id2.length > 128 || method.length > 128) {
+    throw headlessError("HEADLESS_INVALID_REQUEST", "Headless request identifier is too long");
+  }
+  const params = value["params"] ?? {};
+  if (!isRecord(params)) {
+    throw headlessError("HEADLESS_INVALID_PARAMS", "params must be an object");
+  }
+  return {
+    id: id2,
+    method,
+    params
+  };
+}
+function publicSession(session2) {
+  return {
+    session_ref: session2.ref,
+    project_id: session2.resolved.project.id,
+    project_name: session2.resolved.project.name,
+    model_ref: session2.resolved.model.ref,
+    work_mode: session2.resolved.workMode,
+    permission_mode: session2.resolved.permissionMode,
+    cleanup: session2.resolved.cleanup,
+    ...session2.resolved.remoteHost ? {
+      remote_host_id: session2.resolved.remoteHost.hostId,
+      remote_host_name: session2.resolved.remoteHost.name
+    } : {},
+    ...session2.active ? {
+      active_turn: {
+        request_id: session2.active.requestId,
+        ...session2.active.turnId ? {
+          turn_id: session2.active.turnId
+        } : {}
+      }
+    } : {}
+  };
+}
+function publicTurnResult(sessionRef, result) {
+  return {
+    session_ref: sessionRef,
+    request_id: result.requestId,
+    turn_id: result.turnId,
+    status: result.status,
+    answer: result.answer,
+    model_ref: result.modelRef
+  };
+}
+function projectApproval(value) {
+  return {
+    request_id: value.requestId,
+    turn_id: value.turnId,
+    phase: value.phase,
+    ...value.submittedDecision ? {
+      submitted_decision: value.submittedDecision
+    } : {},
+    approval: {
+      id: value.approval.approvalId,
+      tool: value.approval.toolName,

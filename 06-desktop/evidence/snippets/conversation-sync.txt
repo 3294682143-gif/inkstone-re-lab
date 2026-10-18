@@ -1,0 +1,81 @@
+        eventCount,
+        forwardedEventCount,
+        ...terminalDiagnostic ?? {},
+        ...toolStreamDiagnostic(),
+        ...batcher?.statistics() ?? {}
+      });
+    }
+  }
+  reportInference(stage, requestId, detail = {}) {
+    this.options.onInferenceDiagnostic?.(stage, {
+      requestId,
+      ...detail
+    });
+  }
+  async conversationStart(payload, signal) {
+    const chatId = positiveInteger$5(payload["chatId"], "chatId");
+    const body = asRecord$1(payload["body"]);
+    const data = asRecord$1(await this.requestJson(`/chat/${chatId}/local-turns`, "POST", body, signal));
+    return {
+      turnId: requiredIdentifier(data["turn_id"], "turn_id"),
+      messageId: positiveInteger$5(data["message_id"], "message_id"),
+      status: turnStatus(data["status"]),
+      checkpointSeq: nonNegativeInteger$3(data["checkpoint_seq"], "checkpoint_seq")
+    };
+  }
+  async conversationCheckpoint(payload, signal) {
+    const chatId = positiveInteger$5(payload["chatId"], "chatId");
+    const turnId = requiredIdentifier(payload["turnId"], "turnId");
+    const body = asRecord$1(payload["body"]);
+    const data = asRecord$1(await this.requestJson(`/chat/${chatId}/local-turns/${encodeURIComponent(turnId)}/checkpoint`, "POST", body, signal));
+    if (typeof data["applied"] !== "boolean") {
+      throw new Error("Conversation checkpoint result is invalid");
+    }
+    return {
+      applied: data["applied"],
+      status: turnStatus(data["status"]),
+      checkpointSeq: nonNegativeInteger$3(data["checkpoint_seq"], "checkpoint_seq")
+    };
+  }
+  async conversationComplete(payload, signal) {
+    const chatId = positiveInteger$5(payload["chatId"], "chatId");
+    const turnId = requiredIdentifier(payload["turnId"], "turnId");
+    const body = asRecord$1(payload["body"]);
+    const data = asRecord$1(await this.requestJson(`/chat/${chatId}/local-turns/${encodeURIComponent(turnId)}/complete`, "POST", body, signal));
+    const usage = asRecord$1(data["usage"]);
+    return {
+      turnId: requiredIdentifier(data["turn_id"], "turn_id"),
+      messageId: positiveInteger$5(data["message_id"], "message_id"),
+      status: turnStatus(data["status"]),
+      checkpointSeq: nonNegativeInteger$3(data["checkpoint_seq"], "checkpoint_seq"),
+      usage: {
+        inputTokens: nonNegativeInteger$3(usage["input_tokens"], "usage.input_tokens"),
+        outputTokens: nonNegativeInteger$3(usage["output_tokens"], "usage.output_tokens"),
+        cacheReadTokens: optionalNonNegativeInteger$2(usage["cache_read_tokens"]),
+        cacheWriteTokens: optionalNonNegativeInteger$2(usage["cache_write_tokens"])
+      }
+    };
+  }
+  async requestJson(path2, method, body, signal, notFoundIsSuccess = false, timeoutMs = 3e4) {
+    return this.requestJsonURL(this.url(path2), method, body, signal, notFoundIsSuccess, timeoutMs);
+  }
+  async requestJsonURL(url, method, body, signal, notFoundIsSuccess = false, timeoutMs = 3e4) {
+    this.assertOpen();
+    const timeout = AbortSignal.timeout(timeoutMs);
+    const requestSignal = signal ? AbortSignal.any([
+      signal,
+      timeout
+    ]) : timeout;
+    let response;
+    try {
+      response = await this.options.fetch(url, {
+        method,
+        headers: this.headers({
+          Accept: "application/json",
+          ...body === void 0 ? {} : {
+            "Content-Type": "application/json"
+          }
+        }),
+        ...body === void 0 ? {} : {
+          body: JSON.stringify(body)
+        },

@@ -1,0 +1,70 @@
+const HEADLESS_CHAT_PROTOCOL_VERSION = "inkstone-headless-chat/v1";
+const MAX_REQUEST_BYTES = 256 * 1024;
+const MAX_OUTPUT_BYTES$1 = 4 * 1024 * 1024;
+const MAX_SESSIONS = 16;
+const DEFAULT_TURN_TIMEOUT_MS = 5 * 6e4;
+class HeadlessChatDriver {
+  host;
+  write;
+  sessions = /* @__PURE__ */ new Map();
+  shutdownTask;
+  accepting = true;
+  constructor(host, write) {
+    this.host = host;
+    this.write = write;
+  }
+  get isShutdownRequested() {
+    return !this.accepting;
+  }
+  ready() {
+    this.emit({
+      method: "driver.ready",
+      params: {
+        protocol_version: HEADLESS_CHAT_PROTOCOL_VERSION
+      }
+    });
+  }
+  async handleLine(line) {
+    if (Buffer.byteLength(line, "utf8") > MAX_REQUEST_BYTES) {
+      this.emitResponse(errorResponse("unknown", "HEADLESS_REQUEST_TOO_LARGE", "Headless request exceeds 256 KiB"));
+      return;
+    }
+    let value;
+    try {
+      value = JSON.parse(line);
+    } catch {
+      this.emitResponse(errorResponse("unknown", "HEADLESS_INVALID_JSON", "Headless request is not valid JSON"));
+      return;
+    }
+    await this.handleRequest(value);
+  }
+  async handleRequest(value) {
+    let request2;
+    try {
+      request2 = parseRequest(value);
+    } catch (cause) {
+      const id2 = requestIdFromUnknown(value);
+      const error = safeHeadlessError(cause);
+      this.emitResponse(errorResponse(id2, error.code, error.message));
+      return;
+    }
+    if (!this.accepting && request2.method !== "system.shutdown") {
+      this.emitResponse(errorResponse(request2.id, "HEADLESS_DRIVER_SHUTTING_DOWN", "Headless driver is shutting down"));
+      return;
+    }
+    try {
+      const result = await this.dispatch(request2);
+      this.emitResponse({
+        id: request2.id,
+        ok: true,
+        result
+      });
+    } catch (cause) {
+      const error = safeHeadlessError(cause);
+      this.emitResponse(errorResponse(request2.id, error.code, error.message));
+    }
+  }
+  shutdown() {
+    this.accepting = false;
+    this.shutdownTask ??= this.performShutdown();
+    return this.shutdownTask;

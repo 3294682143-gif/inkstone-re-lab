@@ -1,0 +1,4 @@
+data: {"type": "message_start", "response_id": "resp_synth_1", "model": "synth-model"}
+
+data: {"type": "error", "code": "E_SYNTH", "message": "synthetic failure", "retryable": false}
+

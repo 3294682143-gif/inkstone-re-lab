@@ -107,14 +107,18 @@ export async function run(argv, deps = {}) {
   };
   const payload = { tool: 'regress', generatedAt: new Date().toISOString(), mark, summary, results };
 
+  let evidenceWritten = false;
   try {
     mkdirSync(dirname(outPath), { recursive: true });
     (deps.writeFile ?? writeFileSync)(outPath, JSON.stringify(payload, null, 2));
+    evidenceWritten = true;
     out(`[regress] 结果写入 ${outPath}`);
   } catch (e) { err('[error] 写入结果失败: ' + e.message); }
 
-  out(JSON.stringify(summary, null, 2));
-  return allOk ? 0 : 1;
+  // 请求成功与证据成功落盘分别记录；任一未达成均不得返回 0
+  const summaryOut = { ...summary, evidenceWritten, outputPath: outPath };
+  out(JSON.stringify(summaryOut, null, 2));
+  return (allOk && evidenceWritten) ? 0 : 1;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

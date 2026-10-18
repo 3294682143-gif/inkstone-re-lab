@@ -77,3 +77,34 @@
 
 ### 下一项最小动作
 - 如需 A5/A6：登录态下对页面操作「停止」/切换模型并采集。
+
+---
+
+## 桌面端接续轮（2026-10-18，Linux 静态）
+
+- 基线提交：`126f58dc330e8e0d1ac4f7cd8b3d5a943da5da6e`
+- 样本：`inkstone-desktop-0.2.7-setup.exe`，SHA256 `eb8ef2da…`（与文档一致）
+- 环境：Linux；未运行 Windows 程序、未用 Xvfb/桌面、未改平台检查、未用 Wine
+
+### Web 未完成项（保持未完成）
+- Web A5 停止生成、A6 模型/选项切换：未取证。
+- Web 在线验证有现成环境可继续；证据单独归 Web。
+
+### 桌面阶段状态
+| 阶段 | 状态 |
+| --- | --- |
+| P6.1 基线收尾 | PASS（fixture flush 用同一 parser；regress 写入失败非零退出） |
+| P7 桌面静态地图 | PASS（STATIC_CONFIRMED；哈希/行号见 06-desktop/evidence） |
+| P8 Linux 离线实现 | PASS（src/desktop/* + tests/desktop/*，32 项全绿） |
+| P10 原生静态补充 | PARTIAL（构建信息/字符串/职责；RPC 细节 UNKNOWN） |
+| P9 Windows 动态闭环 | BLOCKED / ENV_WINDOWS_REQUIRED |
+| 桌面 gateway 在线验证 | NOT_RUN / AUTH_REQUIRED |
+
+### 测试基线
+- `node --test` → 61/61 通过；`node --test tests/desktop/*.test.mjs` → 32/32。
+- 离线测试零网络；桌面模块不 import electron。
+
+### 证据/交付
+- 解包与哈希：`06-desktop/evidence/`；契约：`06-desktop/contracts/`；结果：`06-desktop/validation/2026-10-18-linux-static/results.json`；读我：`06-desktop/README.md`。
+- 实现：`src/desktop/{gateway-events,driver-jsonl,models-contract,cloud-adapter}.mjs`；样本：`fixtures/desktop/*.synthetic.*`。
+- 原始包/完整源码/工具在 `01-evidence/private/desktop-027/`（不入库）。

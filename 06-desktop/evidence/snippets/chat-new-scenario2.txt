@@ -1,0 +1,61 @@
+      const entry = this.externalSkills.get(key);
+      if (!entry) continue;
+      entry.owners.delete(requestId);
+      if (entry.owners.size > 0) continue;
+      this.externalSkills.delete(key);
+      this.externalSkillBytes -= entry.byteSize;
+      this.externalSkillContentBytes -= entry.contentBytes;
+    }
+  }
+  listInstalledSkills(options) {
+    return this.skillInstall?.listInstalled(options) ?? Promise.resolve([]);
+  }
+  async createConversation(signal) {
+    const data = asRecord$1(await this.requestJson("/chat/new", "POST", {
+      scenario: 2,
+      type: 0,
+      provider: 0,
+      agent: "local_agent"
+    }, signal));
+    if (!Number.isSafeInteger(data["id"]) || Number(data["id"]) <= 0) {
+      throw new Error("Conversation service returned an invalid chat ID");
+    }
+    return Number(data["id"]);
+  }
+  async generateConversationTitle(chatId, signal, references) {
+    positiveInteger$5(chatId, "chatId");
+    const data = asRecord$1(await this.requestJson(`/chat/${chatId}/title`, "POST", {}, signal));
+    if (data["name"] === void 0 || data["name"] === null) {
+      return void 0;
+    }
+    const generated = boundedText$5(data["name"], 2e3, true);
+    const title = normalizeConversationTitle(generated, references);
+    if (!title) return void 0;
+    if (title !== generated) {
+      await this.requestJson(`/chat/${chatId}`, "POST", {
+        name: title
+      }, signal);
+    }
+    return title;
+  }
+  async renameConversation(chatId, title) {
+    positiveInteger$5(chatId, "chatId");
+    boundedText$5(title, 100);
+    await this.requestJson(`/chat/${chatId}`, "POST", {
+      name: title
+    });
+  }
+  async removeConversation(chatId) {
+    positiveInteger$5(chatId, "chatId");
+    await this.requestJson(`/chat/${chatId}`, "DELETE", void 0, void 0, true);
+  }
+  async setConversationFeedback(chatId, messageId, reaction, signal) {
+    positiveInteger$5(chatId, "chatId");
+    positiveInteger$5(messageId, "messageId");
+    if (reaction !== "like" && reaction !== "dislike" && reaction !== null) {
+      throw new Error("Conversation feedback reaction is invalid");
+    }
+    const feedback = reaction === "like" ? 1 : reaction === "dislike" ? -1 : 0;
+    const data = asRecord$1(await this.requestJson("/chat/feedback", "POST", {
+      chat_id: chatId,
+      message_id: messageId,

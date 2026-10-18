@@ -1,0 +1,6 @@
+data: {"type": "message_start", "response_id": "resp_synth_1", "model": "synth-model"}
+
+data: {"type": "thinking_delta", "text": "思考中"}
+
+data: {"type": "message_end", "stop_reason": "end_turn"}
+

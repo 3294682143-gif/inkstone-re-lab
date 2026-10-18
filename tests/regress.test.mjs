@@ -97,3 +97,17 @@ test('--n 缺值时（--n 后接 --out）：按缺值报错，退出码 2', asyn
   assert.equal(code, 2);
   assert.equal(fetchImpl.count(), 0);
 });
+
+test('P6.1-B 证据写入失败：即使全部会话成功，也必须非零退出', async () => {
+  const fetchImpl = countingFetch(okHandler());
+  const c = cap();
+  const code = await run(['--n', '3', '--out', OUT()], {
+    env: NULL_ENV, stdout: c.out, stderr: c.err, fetchImpl, readAuth: readAuthFake, sleep: () => {},
+    writeFile: () => { throw new Error('EACCES: 无写入权限'); },
+  });
+  assert.notEqual(code, 0, '写入失败不得返回 0');
+  const joined = c.lines.join('\n');
+  assert.match(joined, /"allOk": true/);            // 请求层面确实全部成功
+  assert.match(joined, /"evidenceWritten": false/); // 但证据未落盘
+  assert.match(joined, /写入结果失败/);
+});

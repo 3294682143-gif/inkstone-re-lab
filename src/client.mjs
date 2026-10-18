@@ -87,7 +87,8 @@ export async function run(argv, deps = {}) {
   if (vals.fixture) {
     try {
       const text = readFixture(vals.fixture);
-      const merger = new ChatStreamMerger().applyAll([...new SSEFrameParser().push(text), ...new SSEFrameParser().flush()]);
+      const parser = new SSEFrameParser();               // 同一实例执行 push 与 flush（尾帧不丢）
+      const merger = new ChatStreamMerger().applyAll([...parser.push(text), ...parser.flush()]);
       const finished = merger.finished;
       out(JSON.stringify({ mode: 'fixture', finished, answer: merger.answer }, null, 2));
       return finished ? 0 : 1;               // 不完整样本也判失败

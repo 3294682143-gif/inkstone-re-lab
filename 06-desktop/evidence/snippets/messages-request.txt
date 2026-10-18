@@ -1,0 +1,91 @@
+    }
+  }
+  async openInferenceResponse(active, body, signal) {
+    for (let attempt = 0; ; attempt += 1) {
+      this.reportInference("fetch_started", active.requestId, {
+        streamId: active.streamId
+      });
+      const response = await abortable(this.options.fetch(this.url("/local-agent/messages"), {
+        method: "POST",
+        headers: this.headers({
+          Accept: "text/event-stream",
+          "Content-Type": "application/json"
+        }),
+        body: JSON.stringify(body),
+        signal,
+        redirect: "error",
+        cache: "no-store",
+        credentials: "omit"
+      }), signal);
+      const contentType = response.headers.get("content-type")?.toLowerCase();
+      this.reportInference("response_received", active.requestId, {
+        streamId: active.streamId,
+        status: response.status,
+        responseKind: contentType?.includes("text/event-stream") ? "event_stream" : contentType ? "other" : "missing"
+      });
+      if (response.ok && response.body && contentType?.includes("text/event-stream")) return response;
+      if (response.status === 401) {
+        void response.body?.cancel().catch(() => void 0);
+        await this.options.onAuthenticationFailure();
+        throw Object.assign(new Error("Authentication expired"), {
+          code: "AUTH_EXPIRED"
+        });
+      }
+      const errorBody = await readBoundedText$1(response, MAX_JSON_BYTES$1, signal).catch(() => "");
+      let envelope2;
+      try {
+        envelope2 = parseStrictJson$1(errorBody);
+      } catch {
+      }
+      if (isRecord$9(envelope2) && authenticationExpired(envelope2)) {
+        await this.options.onAuthenticationFailure();
+        throw Object.assign(new Error("Authentication expired"), {
+          code: "AUTH_EXPIRED"
+        });
+      }
+      const failure2 = new Error(`Inference service returned HTTP ${response.status}`);
+      const recoveryCode = response.status === 409 ? inferenceConflictCode(envelope2, active.inferenceKind) : void 0;
+      if (attempt !== 0 || !recoveryCode || !this.canRecoverInferenceConflict(active)) throw failure2;
+      this.reportInference("conflict_recovery", active.requestId, {
+        streamId: active.streamId,
+        code: recoveryCode
+      });
+      await waitForInferenceRetry(signal);
+      if (!this.canRecoverInferenceConflict(active)) throw failure2;
+    }
+  }
+  async pumpInference(active, body) {
+    const { requestId, streamId } = active;
+    const signal = active.controller.signal;
+    const streamStartedAt = performance.now();
+    let firstEventLatencyMs;
+    const deliverySignal = active.deliveryController.signal;
+    let eventCount = 0;
+    let forwardedEventCount = 0;
+    let terminalDiagnostic;
+    let toolUseStartCount = 0;
+    let toolUseEndCount = 0;
+    let toolInputDeltaCount = 0;
+    const openToolCalls = /* @__PURE__ */ new Set();
+    const toolStreamDiagnostic = () => ({
+      toolUseStartCount,
+      toolUseEndCount,
+      toolInputDeltaCount,
+      openToolCallCount: openToolCalls.size
+    });
+    let batcher;
+    let failureOrigin = "response_open";
+    const timeoutController = new AbortController();
+    const requestSignal = AbortSignal.any([
+      signal,
+      timeoutController.signal
+    ]);
+    let timeoutClass;
+    const abortForTimeout = (classification, message) => {
+      if (timeoutController.signal.aborted) return;
+      timeoutClass = classification;
+      timeoutController.abort(new Error(message));
+    };
+    const absoluteTimer = setTimeout(() => abortForTimeout("absolute", "Inference timed out"), INFERENCE_ABSOLUTE_TIMEOUT_MS);
+    absoluteTimer.unref?.();
+    let semanticTimer;
