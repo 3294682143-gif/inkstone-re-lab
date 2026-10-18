@@ -70,6 +70,21 @@ function requireChatId(v) { if (!isPositiveSafeInt(v)) throw invalid('chatId mus
 
 function abortError(message, kind) { return new CloudAdapterError(message, { kind }); }
 
+/**
+ * 有界清理：取消 reader 并 release；即使 cancel() 永不 resolve 也不会无限等待。
+ * 上限默认 1000ms；定时器 unref 且清理后 clearTimeout，不残留句柄。
+ */
+export async function safeCancel(reader, timeoutMs = 1000) {
+  if (!reader || typeof reader.cancel !== 'function') return;
+  let t;
+  try {
+    await Promise.race([
+      Promise.resolve(reader.cancel()).catch(() => {}),
+      new Promise((resolve) => { t = setTimeout(resolve, timeoutMs); t.unref?.(); }),
+    ]);
+  } catch { /* ignore */ } finally { if (t) clearTimeout(t); }
+}
+
 export function createCloudAdapter({ baseUrl, authority, fetchImpl = fetch, timeoutMs = 30000, dispatcher = undefined } = {}) {
   if (!baseUrl) throw new CloudAdapterError('baseUrl required', { kind: 'args' });
   const url = (path) => `${baseUrl}${path}`;
@@ -175,7 +190,7 @@ export function createCloudAdapter({ baseUrl, authority, fetchImpl = fetch, time
           }
           for (const raw of framer.flush()) consume(raw);
         } finally {
-          try { await reader.cancel(); } catch { /* ignore */ }             // 清理不无限等待
+          await safeCancel(reader);                                        // 有界清理，不无限等待
         }
         seq.finish();
         if (terminalError) throw new CloudAdapterError('inference ended with error event: ' + terminalError.code, { kind: 'remote_rejected', code: terminalError.code });

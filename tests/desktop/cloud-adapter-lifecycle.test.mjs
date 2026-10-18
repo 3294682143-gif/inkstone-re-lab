@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createCloudAdapter, CloudAdapterError } from '../../src/desktop/cloud-adapter.mjs';
+import { createCloudAdapter, CloudAdapterError, safeCancel } from '../../src/desktop/cloud-adapter.mjs';
 
 const BASE = 'https://example.invalid/api/orbit/v1';
 const AUTH = { token: 'T', ssoUid: 'U', locale: 'zh-CN' };
@@ -99,4 +99,17 @@ test('各公开 JSON 方法都传递 signal，且可被调用方取消', async (
 test('timeoutMs=0 → 不设超时（长延迟仍可完成）', async () => {
   const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 0, fetchImpl: (url, { signal }) => Promise.resolve(bodyResponse({ contentType: 'application/json', body: JSON.stringify(env({ id: 7 })), delayMs: 80, signal })) });
   assert.equal(await a.createConversation(), 7);
+});
+
+test('有界清理：reader.cancel 永不 resolve 时，safeCancel 仍在限定时间内返回', async () => {
+  const t0 = Date.now();
+  await safeCancel({ cancel: () => new Promise(() => {}) }, 200);
+  const dt = Date.now() - t0;
+  assert.ok(dt < 800, `应在限定时间返回（实际 ${dt}ms）`);
+});
+
+test('正常 SSE 完成后仍正常返回（清理不阻塞成功）', async () => {
+  const a = createCloudAdapter({ baseUrl: BASE, authority: AUTH, timeoutMs: 1000, fetchImpl: (url, { signal }) => Promise.resolve(bodyResponse({ contentType: 'text/event-stream', body: 'data: {"type":"message_start","response_id":"r","model":"m"}\n\ndata: {"type":"usage","usage":{"input_tokens":1,"output_tokens":1}}\n\ndata: {"type":"message_end","stop_reason":"end_turn"}\n\n', delayMs: 5, signal })) });
+  const r = await a.startInference({ request_id: 'r1' });
+  assert.equal(r.stopReason, 'end_turn');
 });

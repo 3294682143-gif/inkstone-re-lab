@@ -55,3 +55,10 @@
 - 标识符：JSONL 请求 `id`（响应关联）与回合 `request_id`（终态关联）**不同**；accepted 响应中的 `session_ref` 用于交叉校验，避免跨会话串扰。
 - 关联器行为：未知/重复响应不落库；跨会话通知忽略；终态不被迟到事件覆盖；**终态通知先于 accepted 时**有限缓存并在登记后重放（有上限）。
 - `accepted:true` 只代表受理，不代表生成成功。
+
+## 8. 终态通知与 accepted 的到达顺序（核实结论）
+
+- 静态证据（`startHeadlessTurn`，M:117992 起）：先 `await host.startTurn(...)`（其响应即 accepted），随后在 `active.completion` 完成后才 `emit({method:"turn.completed",...})`。
+  → 正常运行序为 **accepted 先于终态通知**。
+- 但 stdout 为单一 JSONL 流，交错/重排在实现上不可排除；因此关联器对**终态先于 accepted** 的情况做**有界缓存并在登记后重放**（上限默认 64，超出按先入先出淘汰），不丢弃合法竞态事件，也不污染未登记回合。
+- 未被 accepted 登记的终态通知始终不会影响任何回合（见 `turn.completed` 无 `request_id` → 仅记 unmatched）。

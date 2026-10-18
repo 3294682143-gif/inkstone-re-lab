@@ -7,15 +7,42 @@
   "note": "reviewed_baseline_commit 是审查基线；本轮修复尚未提交，源码版本为工作区改动。",
   "scope": "五个缺陷的复现、修复、离线测试与文档同步；不涉及登录/真实 API/Windows",
   "commands": [
-    { "cmd": "npm ci --ignore-scripts --no-audit --no-fund", "exit": 0 },
-    { "cmd": "node --test tests/desktop/*.test.mjs", "exit": 0, "tests": 62, "pass": 62, "fail": 0 },
-    { "cmd": "npm test", "exit": 0, "tests": 91, "pass": 91, "fail": 0 },
-    { "cmd": "git diff --check", "exit": 0 }
+    {
+      "cmd": "npm ci --ignore-scripts --no-audit --no-fund",
+      "exit": 0
+    },
+    {
+      "cmd": "node --test tests/desktop/*.test.mjs",
+      "exit": 0,
+      "tests": 64,
+      "pass": 64,
+      "fail": 0
+    },
+    {
+      "cmd": "npm test",
+      "exit": 0,
+      "tests": 93,
+      "pass": 93,
+      "fail": 0
+    },
+    {
+      "cmd": "git diff --check",
+      "exit": 0
+    }
   ],
   "before_after": {
     "method": "临时 stash 三个 src 文件回退到基线，运行新测试，再恢复工作区",
-    "before": { "tests": 57, "pass": 34, "fail": 22, "highlight": "cloud-adapter-lifecycle 用例在基线代码下挂起（读取阶段无超时/取消）" },
-    "after": { "tests": 62, "pass": 62, "fail": 0 }
+    "before": {
+      "tests": 57,
+      "pass": 34,
+      "fail": 22,
+      "highlight": "cloud-adapter-lifecycle 用例在基线代码下挂起（读取阶段无超时/取消）"
+    },
+    "after": {
+      "tests": 64,
+      "pass": 64,
+      "fail": 0
+    }
   },
   "fixes": [
     {
@@ -30,8 +57,8 @@
       "id": "P2-cloud-lifecycle",
       "file": "src/desktop/cloud-adapter.mjs",
       "root_cause": "定时器在响应头返回后即清除，body/SSE 读取无超时；requestJson 未传 signal；预取消仍进入 fetch",
-      "fix": "以 withDeadline 让单一 AbortController 覆盖 请求头+body消费+解析/校验；所有公开方法透传 signal；预取消在发起前失败；区分 timeout/aborted/http/json/invalid_response/remote_rejected；不吞 AbortError；finally 清理 timer 与 abort 监听；失败/取消时 cancel reader 且不无限等待；保留 timeoutMs 语义（0=不超时）",
-      "tests": "tests/desktop/cloud-adapter-lifecycle.test.mjs（8 项）",
+      "fix": "以 withDeadline 让单一 AbortController 覆盖 请求头+body消费+解析/校验；所有公开方法透传 signal；预取消在发起前失败；区分 timeout/aborted/http/json/invalid_response/remote_rejected；不吞 AbortError；finally 清理 timer 与 abort 监听；失败/取消时 cancel reader 且不无限等待；保留 timeoutMs 语义（0=不超时）；新增导出 safeCancel 使 reader 清理有界（cancel 永不 resolve 也不无限等待）",
+      "tests": "tests/desktop/cloud-adapter-lifecycle.test.mjs（10 项）",
       "status": "PASS"
     },
     {
@@ -52,7 +79,11 @@
     },
     {
       "id": "P2-asar-doc",
-      "files": ["06-desktop/README.md", "tools/compare_asar_manifest.py", "tests/desktop/asar-tools.test.mjs"],
+      "files": [
+        "06-desktop/README.md",
+        "tools/compare_asar_manifest.py",
+        "tests/desktop/asar-tools.test.mjs"
+      ],
       "root_cause": "README 示例把清单指向已存在的 06-desktop/evidence/asar-manifest.json，脚本拒绝覆盖，文档不可直接复跑",
       "fix": "README 改用唯一新运行目录（out 与 manifest 均为新路径，放私有目录）；新增 compare_asar_manifest.py（比较归档 SHA/计数与按路径排序的 size/sha256/integrity，忽略无关元数据，不一致非零退出）；保留脚本防覆盖保护",
       "tests": "tests/desktop/asar-tools.test.mjs（4 项，合成最小 ASAR + 临时目录）",
@@ -61,10 +92,26 @@
     }
   ],
   "not_run_or_blocked": [
-    { "id": "P9-windows-dynamic", "status": "BLOCKED", "reason": "ENV_WINDOWS_REQUIRED" },
-    { "id": "desktop-cloud-live", "status": "NOT_RUN", "reason": "AUTH_REQUIRED（需要适用于桌面 gateway 的授权；未使用）" },
-    { "id": "real-installer-reextract", "status": "NOT_RUN", "reason": "本轮范围仅缺陷修复；脚本逻辑以合成 fixture 验证" },
-    { "id": "web-A5-A6", "status": "NOT_RUN" }
+    {
+      "id": "P9-windows-dynamic",
+      "status": "BLOCKED",
+      "reason": "ENV_WINDOWS_REQUIRED"
+    },
+    {
+      "id": "desktop-cloud-live",
+      "status": "NOT_RUN",
+      "reason": "AUTH_REQUIRED（需要适用于桌面 gateway 的授权；未使用）"
+    },
+    {
+      "id": "real-installer-reextract",
+      "status": "NOT_RUN",
+      "reason": "本轮范围仅缺陷修复；脚本逻辑以合成 fixture 验证"
+    },
+    {
+      "id": "web-A5-A6",
+      "status": "NOT_RUN"
+    }
   ],
-  "network_requests_during_offline_tests": 0
+  "network_requests_during_offline_tests": 0,
+  "notes": "终态与 accepted 的到达顺序已在 06-desktop/contracts/driver-jsonl.md §8 核实（正常 accepted 在先；乱序仅做有界缓存重放）。"
 }
