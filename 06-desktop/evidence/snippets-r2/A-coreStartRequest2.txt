@@ -1,0 +1,59 @@
+        ],
+        model: model.id,
+        reviewerModel: "Auto",
+        automaticReviewerEnabled: reviewerEnabledForTurn(input.automaticReviewerEnabled, input.remoteHostId),
+        learnedSkillsEnabled: false,
+        artifactProvenanceEnabled: input.artifactProvenanceEnabled === true,
+        mode: effectiveWorkMode === "research" ? "deep" : "instant",
+        permissionMode: input.permissionMode === "request" ? "request_approval" : "risk_based",
+        enabledSubagentIds: turnCapabilities.enabledSubagentIds,
+        executionIntent: "execute",
+        languageContract: {
+          version: "orbit-language-contract/v1",
+          interactionLocale: language,
+          targetLanguage: language,
+          targetLanguageSource: "inferred"
+        },
+        files: [],
+        builtInSkillNames: [
+          ...builtInSkillNames
+        ],
+        externalSkills: externalSkills.map((skill) => ({
+          id: skill.id,
+          source: skill.source,
+          sourceId: skill.sourceId,
+          sourceGeneration: skill.sourceGeneration,
+          sourceDigest: skill.sourceDigest,
+          name: skill.name,
+          description: skill.description,
+          digest: skill.digest,
+          bundleDigest: skill.bundleDigest
+        })),
+        ...turnCapabilities.projectMcpCatalogReference ? {
+          projectMcpCatalogReference: turnCapabilities.projectMcpCatalogReference
+        } : {},
+        ...turnCapabilities.scientificScpCatalogReference ? {
+          scientificScpCatalogReference: turnCapabilities.scientificScpCatalogReference
+        } : {},
+        ...turnCapabilities.projectMcpRoute ? {
+          projectMcpRoute: turnCapabilities.projectMcpRoute
+        } : {},
+        ...effectiveWorkMode === "research" && turnCapabilities.scientificRoute ? {
+          scientificRoute: turnCapabilities.scientificRoute
+        } : {}
+      };
+      const execution = this.executionBindings.get(input.requestId);
+      if (!execution) throw new Error("SSH_SCOPE_CLOSED");
+      execution.controller.signal.throwIfAborted();
+      this.assertCurrent(ready);
+      this.observeAdmittedAttempt(input.requestId, {
+        projectId,
+        chatId: input.chatId
+      });
+      const result = options.invoke ? await options.invoke(coreStartRequest) : await callCoreTurnStartWithProvenanceCompatibility(coreStartRequest, (payload) => ready.supervisor.callRuntime("turn.start", payload, 6e4));
+      if (result["started"] !== true || !validId(result["turnId"])) {
+        throw new Error("Core Runtime returned an invalid turn identity");
+      }
+      if (pending.turnId !== void 0 && pending.turnId !== result["turnId"]) {
+        throw new Error("Core Runtime start result changed Turn identity");
+      }

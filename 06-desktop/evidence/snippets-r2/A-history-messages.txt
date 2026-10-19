@@ -1,0 +1,36 @@
+    if (this.supervisor !== ready.supervisor || this.gateway !== ready.gateway || this.scpHub !== ready.scpHub || this.projection !== ready.projection || this.runtimeGeneration !== ready.runtimeGeneration) {
+      throw new Error("Core Runtime authority changed during the operation");
+    }
+  }
+  projectReactions(chatId, history) {
+    const reactions = this.reactionsByChat.get(chatId);
+    if (!reactions?.size) return history;
+    return {
+      ...history,
+      messages: history.messages.map((message) => {
+        if (message.role !== "assistant" || !message.turnId || !reactions.has(message.turnId)) {
+          return message;
+        }
+        return {
+          ...message,
+          reaction: reactions.get(message.turnId)
+        };
+      })
+    };
+  }
+  assertConversationCurrent(ready) {
+    if (this.conversationGateway !== ready.gateway || this.projection !== ready.projection || this.runtimeGeneration !== ready.runtimeGeneration) {
+      throw new Error("Conversation authority changed during the operation");
+    }
+  }
+  async readModels(ready, refresh = false) {
+    this.assertCurrent(ready);
+    if (!refresh && this.models) return this.models;
+    if (this.modelsRequest) return this.modelsRequest;
+    const revision2 = this.modelsRevision;
+    const request2 = ready.supervisor.callRuntime("runtime.models", {}).then((result) => {
+      const models = parseCoreModels(result);
+      this.assertCurrent(ready);
+      if (revision2 === this.modelsRevision) this.models = models;
+      return this.models ?? models;
+    });

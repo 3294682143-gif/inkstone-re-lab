@@ -1,0 +1,60 @@
+{
+  "round": "round4-20261019T043756Z",
+  "date_utc": "2026-10-19T04:37:56Z",
+  "environment": "linux-server",
+  "reviewed_baseline_commit": "76294a8bff8cbc40981dd66c0d444beebf9691d6",
+  "actual_head_at_start": "6d98bb7922970fed25108b85695b0c4939480ae0",
+  "source_under_test": "working tree changes on top of 6d98bb7",
+  "node": "v24.7.0",
+  "python": "3.10.6",
+  "note": "本轮为同题续跑：R1 三个缺陷在上轮已修复并推送（HEAD 6d98bb7，desktop 84/84）。本轮不重复改写 R1，改为核对 + 继续 R2 未闭环项 + 落实为模块/测试。",
+  "R1_verification": {
+    "status": "ALREADY_FIXED (verified)",
+    "evidence": [
+      "src/desktop/driver-jsonl.mjs 含 accepted-from-non-turn-send / session_ref 核对 / isAccepted correlated 要求",
+      "src/desktop/cloud-adapter.mjs 含 releaseLock 与非 SSE 不吞取消/超时",
+      "tests/desktop/driver-jsonl.test.mjs A1-A7 与 cloud-adapter-lifecycle B/C 用例通过"
+    ]
+  },
+  "commands": [
+    { "cmd": "npm ci --ignore-scripts --no-audit --no-fund", "exit": 0 },
+    { "cmd": "node --test tests/desktop/*.test.mjs", "exit": 0, "tests": 91, "pass": 91, "fail": 0 },
+    { "cmd": "npm test", "exit": 0, "tests": 120, "pass": 120, "fail": 0 },
+    { "cmd": "git diff --check", "exit": 0 }
+  ],
+  "R2_new_evidence": {
+    "boundary": {
+      "level": "STATIC_CONFIRMED",
+      "finding": "应用 JS 调用运行时 turn.start（coreStartRequest 含 query/model/mode/permissionMode/contextReferences，无 messages/tools）；messages/tools 由原生运行时→cloud gateway 生成",
+      "evidence": "M:56606-56722 (coreStartRequest 与 callRuntime('turn.start', ..., 60000))",
+      "snippet": "06-desktop/evidence/snippets-r2/A-coreStartRequest.txt, A-coreStartRequest2.txt"
+    },
+    "cancel": {
+      "level": "STATIC_CONFIRMED",
+      "finding": "gateway.inference.cancel 载荷 {requestId,streamId}；stream_not_found/stream_mismatch；排空超时 2500/30000；retired.semanticTerminal==='message_end' 时写 drainedInferences={requestId,drainedAt}（即 recoveryProof）",
+      "evidence": "M:37241-37298, M:36711/36712, M:37831/37857",
+      "snippet": "06-desktop/evidence/snippets-r2/C-cancelInference.txt"
+    },
+    "local_turn_body": {
+      "level": "UNKNOWN (strengthened)",
+      "finding": "检索全部 180 个应用文件，local-turns/conversation.* 仅出现在接收端处理器与允许清单，构造来源不在应用 JS"
+    }
+  },
+  "R3_added": {
+    "module": "src/desktop/cancel.mjs",
+    "tests": "tests/desktop/cancel.test.mjs",
+    "notes": "纯函数 cancelInferenceDecision + drain 常量；无网络、无 Electron"
+  },
+  "R4": {
+    "previous_round": "models + createConversation LIVE_VERIFIED；推理相关 NOT_RUN（载荷结构 UNKNOWN）",
+    "this_round": "NOT_RUN（无新增；推理载荷 messages/tools 仍 UNKNOWN，未构造猜测载荷）"
+  },
+  "counts": { "desktop_before_this_round": 84, "desktop_after": 91, "full_after": 120 },
+  "not_run_or_blocked": [
+    { "id": "P9-windows-dynamic", "status": "BLOCKED", "reason": "ENV_WINDOWS_REQUIRED" },
+    { "id": "r4-inference", "status": "NOT_RUN", "reason": "messages/tools 元素结构 UNKNOWN（归属原生/gateway）" },
+    { "id": "web-A5-A6", "status": "NOT_RUN" },
+    { "id": "native-rpc-internals", "status": "UNKNOWN" }
+  ],
+  "legend": "STATIC_CONFIRMED / MOCK_VERIFIED / LIVE_VERIFIED / INFERRED / UNKNOWN；NOT_RUN/BLOCKED 不计入通过。"
+}

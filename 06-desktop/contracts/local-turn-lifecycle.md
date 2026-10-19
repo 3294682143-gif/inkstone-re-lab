@@ -44,3 +44,11 @@
 - 端点/响应字段/状态枚举/标识符格式：**STATIC_CONFIRMED**。
 - `request_id` 生成端：INFERRED（`host.createId()` 与 `turn.send` 回传一致）。
 - 请求体字段：**UNKNOWN**（无构造来源证据，不猜测）。
+
+---
+
+## 6. 构造来源（本轮检索结论）
+
+- 已检索**全部 180 个应用文件**（`01-evidence/private/desktop-027/asar/out/**`）：字符串 `local-turns`、`conversation.start/checkpoint/complete` 仅出现在接收端处理器（M:36847-36849、M:38034-38063）与其 RPC 允许清单（M:41070-41072）。
+- 调用方通过动态方法名调用 RPC，**未在应用 JS 中找到 `body` 的构造代码** → 请求体元素结构 **UNKNOWN**（归属：调用方/原生运行时侧）。
+- 现有离线实现因此对 `body` **仅做对象透传**，不虚构字段（符合“不用猜测补成可运行假协议”）。

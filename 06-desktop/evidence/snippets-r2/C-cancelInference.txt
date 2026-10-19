@@ -1,0 +1,60 @@
+  async cancelInference(payload, signal) {
+    const requestId = requiredIdentifier(payload["requestId"], "requestId");
+    const streamId = requiredIdentifier(payload["streamId"], "streamId");
+    const active = this.active.get(requestId);
+    const retired = this.retired.get(requestId);
+    if (!active) {
+      if (retired?.streamId !== streamId) throw new LocalRuntimeHandlerError("stream_not_found", "Inference stream is unavailable", false);
+    } else if (active.streamId !== streamId) {
+      throw new LocalRuntimeHandlerError("stream_mismatch", "Inference stream identity does not match", false);
+    }
+    if (active) {
+      active.deliveryController.abort();
+      if (active.independent) {
+        if (!active.semanticTerminal) {
+          active.deliverySuppressed = true;
+        }
+      } else {
+        active.semanticTerminalDrain = active.semanticTerminal !== void 0;
+        active.controller.abort();
+      }
+      const joined = await joinInferenceTask(active.task, signal, active.independent ? INDEPENDENT_REVIEW_DRAIN_TIMEOUT_MS : INFERENCE_DRAIN_TIMEOUT_MS);
+      if (!joined || active.independent && !active.semanticTerminal) {
+        this.reportInference("drain_unconfirmed", requestId, {
+          streamId
+        });
+        return {
+          cancelled: false
+        };
+      }
+    }
+    if (signal.aborted || this.closed) return {
+      cancelled: false
+    };
+    const drained = this.retired.get(requestId);
+    if (!drained || drained.streamId !== streamId || drained.independent && !drained.semanticTerminal) {
+      return {
+        cancelled: false
+      };
+    }
+    if (drained.semanticTerminal === "message_end" && !drained.drainRecorded) {
+      drained.drainRecorded = true;
+      this.drainedInferences.set(drained.leaseKey, {
+        requestId,
+        drainedAt: Date.now()
+      });
+      while (this.drainedInferences.size > 256) {
+        const oldest = this.drainedInferences.keys().next().value;
+        if (oldest === void 0) break;
+        this.drainedInferences.delete(oldest);
+      }
+    }
+    return {
+      cancelled: true
+    };
+  }
+  hasInferenceSibling(leaseKey, requestId) {
+    return [
+      ...this.active.values()
+    ].some((active) => active.leaseKey === leaseKey && active.requestId !== requestId);
+  }

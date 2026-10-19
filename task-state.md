@@ -176,3 +176,25 @@
 
 ### 证据路径
 `06-desktop/validation/round3-20261018T134450Z/results.json`
+
+---
+
+## 桌面 R2 续跑轮（2026-10-19T04:37:56Z，Linux）
+
+- 起始 HEAD：`6d98bb7922970fed25108b85695b0c4939480ae0`（上轮 R1 已修复并推送）
+- 审查基线（题干）：`76294a8…`；R1 三缺陷在 HEAD 已验证修复，未重复改写。
+
+### 本轮新增（R2 扩展，STATIC_CONFIRMED）
+- 应用↔运行时边界：JS 调 `turn.start`（`coreStartRequest`：query/model/mode/permissionMode/contextReferences…，**无 messages/tools**）；`messages/tools` 由原生运行时/gateway 侧生成 → JS 侧元素结构 **UNKNOWN**（有检索证据）。
+- `gateway.inference.cancel`：载荷 `{requestId,streamId}`；`stream_not_found`/`stream_mismatch`；drain 超时 2500/30000；`semanticTerminal==='message_end'` → 写 `drainedInferences`（= recoveryProof）。
+- local-turn 请求体构造来源：检索全部 180 应用文件未找到 → **UNKNOWN**（仅接收端校验）。
+
+### 本轮新增实现/测试（MOCK_VERIFIED）
+- `src/desktop/cancel.mjs`、`tests/desktop/cancel.test.mjs`（取消判定纯函数 + drain 常量）。
+
+### 统计
+- desktop 84 → **91/91**；全量 **120/120**。
+
+### 保留未完成
+- Web A5/A6（NOT_RUN）、Windows 动态（BLOCKED/ENV_WINDOWS_REQUIRED）、真实 gateway 推理（NOT_RUN/载荷 UNKNOWN）、原生 RPC（UNKNOWN）。
+- 证据：`06-desktop/validation/round4-20261019T043756Z/results.json`。

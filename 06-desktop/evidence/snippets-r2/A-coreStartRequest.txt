@@ -1,0 +1,63 @@
+        } : {}
+      });
+      if (externalSkills.length > 0) {
+        ready.gateway.registerExternalSkills(input.requestId, externalSkills);
+      }
+      if (!this.backgroundStarts.has(input.requestId)) await this.remoteExecution?.rememberTurn(projectId, input);
+      const coreStartRequest = {
+        requestId: input.requestId,
+        chatId: input.chatId,
+        projectId,
+        projectContainer: {
+          version: "orbit-project-container-context/v1",
+          kind: "managed",
+          name: project.name,
+          description: project.description
+        },
+        query: this.backgroundStarts.has(input.requestId) ? "" : turnCapabilities.query,
+        ...this.backgroundStarts.has(input.requestId) ? {
+          cause: "background_notification",
+          backgroundNotifications: this.backgroundStarts.get(input.requestId).backgroundNotifications,
+          ...this.backgroundStarts.get(input.requestId).ownerChildId ? {
+            ownerChildId: this.backgroundStarts.get(input.requestId).ownerChildId
+          } : {}
+        } : {},
+        ...input.remoteHostId ? {
+          remoteHostId: input.remoteHostId,
+          remoteHost: this.executionBindings.get(input.requestId)?.remoteHost
+        } : this.executionBindings.get(input.requestId)?.knownRemoteHosts?.length ? {
+          knownRemoteHosts: this.executionBindings.get(input.requestId).knownRemoteHosts
+        } : {},
+        contextReferences: [
+          ...runtimeProjectContextReferences.map((reference) => ({
+            id: reference.id,
+            kind: reference.kind,
+            projectId,
+            relativePath: reference.relativePath,
+            rendererObservedIdentity: {
+              ...reference.rendererObservedIdentity
+            },
+            bindingEpoch: binding.epoch,
+            rootFingerprint: binding.rootFingerprint
+          })),
+          ...normalizedFiles.references.map((item2) => ({
+            id: item2.reference.id,
+            kind: item2.reference.kind,
+            projectId,
+            relativePath: `@resources/${item2.resourceId}${item2.relativePath ? `/${item2.relativePath}` : ""}`,
+            rendererObservedIdentity: item2.reference.identity,
+            bindingEpoch: binding.epoch,
+            rootFingerprint: binding.rootFingerprint
+          })),
+          ...runtimeArtifactReferences.map((reference) => ({
+            id: reference.id,
+            kind: "artifact_version",
+            projectId,
+            artifactId: reference.artifactId,
+            fileId: reference.fileId,
+            versionId: reference.versionId,
+            expectedSha256: reference.expectedSha256,
+            bindingEpoch: binding.epoch,
+            rootFingerprint: binding.rootFingerprint
+          }))
+        ],

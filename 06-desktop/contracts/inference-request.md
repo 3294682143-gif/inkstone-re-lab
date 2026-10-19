@@ -52,3 +52,13 @@
 ## 6. 证据等级
 - 字段与门禁、转换、身份：**STATIC_CONFIRMED**。
 - 运行时发送/接受行为：**UNKNOWN**（无 LIVE）。
+
+---
+
+## 7. 应用 JS 与运行时的边界（本轮新增证据，STATIC_CONFIRMED）
+
+- 应用（Electron 主进程）调用的是**运行时方法 `turn.start`**，而不是直接构造 gateway 推理体：
+  `coreStartRequest = { requestId, chatId, projectId, projectContainer{version:"orbit-project-container-context/v1",kind:"managed",name,description}, query, model, reviewerModel, automaticReviewerEnabled, learnedSkillsEnabled, artifactProvenanceEnabled, mode:"deep"|"instant", permissionMode:"request_approval"|"risk_based", enabledSubagentIds, executionIntent:"execute", languageContract{version:"orbit-language-contract/v1",interactionLocale,targetLanguage,targetLanguageSource}, files:[], builtInSkillNames[], externalSkills[], contextReferences[], [projectMcpCatalogReference|scientificScpCatalogReference|projectMcpRoute|scientificRoute], [cause/backgroundNotifications], [remoteHostId/remoteHost/knownRemoteHosts] }`（M:56606-56700）。
+- 调用：`callCoreTurnStartWithProvenanceCompatibility(coreStartRequest, payload => supervisor.callRuntime("turn.start", payload, 60000))`；返回要求 `{started:true, turnId}`，且 turnId 必须稳定（M:56714-56722）。
+- 结论：**`messages`/`tools` 不在应用 JS 侧构造**——JS 只传 `query` + 上下文/模型/模式；`messages/tools` 由**原生运行时 → cloud gateway** 生成。已检索全部 180 个应用文件：`messages/tools` 的元素结构在应用 JS 中**无**构造来源。
+- 因此 `messages/tools` 的元素 schema 仍为 **UNKNOWN**（归属：原生运行时/gateway 侧），JS 侧仅做“数组”与限额校验。
