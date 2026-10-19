@@ -46,3 +46,22 @@ test('mock-gateway：工具链路（tool_use_* 合并）', async () => {
     await new Promise((r) => server.close(r));
   }
 });
+
+test('mock-gateway：/health 与首页，以及带代理前缀的路径兼容', async () => {
+  const server = createMockGatewayServer();
+  const port = await listen(server);
+  const root = `http://127.0.0.1:${port}`;
+  try {
+    const h = await (await fetch(`${root}/health`)).json();
+    assert.equal(h.ok, true);
+    assert.equal(h.synthetic, true);
+    const home = await (await fetch(`${root}/`)).text();
+    assert.match(home, /inkstone-re-lab/);
+    assert.match(home, /SYNTHETIC/);
+    // 带代理前缀的路径（模拟 ModelArts /proxy/<port>/ 前缀）
+    const prefixed = await (await fetch(`${root}/520b33f3-e7d5-4f62-833a-c550ecf612d1/proxy/8787/api/orbit/v1/local-agent/models`)).json();
+    assert.equal(prefixed.data.protocol_version, '2.0');
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+});

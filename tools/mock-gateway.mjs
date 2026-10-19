@@ -1,8 +1,11 @@
 // tools/mock-gateway.mjs
 // 本地离线 mock gateway：实现 inkstone-re-lab 已确认的桌面协议子集，使用**合成数据**。
 // 仅用于本地/离线验收：不联网、无凭据、不启动 Electron/Windows。
-//   node tools/mock-gateway.mjs [--port 8787] [--host 127.0.0.1]
+//   node tools/mock-gateway.mjs [--port 8787] [--host 0.0.0.0]
 // 也可被测试 import：createMockGatewayServer({...}) 返回 http.Server。
+//
+// 首页 `/` 提供一个自包含 HTML，浏览器打开即可逐个调用端点做验收；
+// `/health` 返回 {ok, synthetic}。API 路由同时兼容带/不带代理前缀的路径。
 import http from 'node:http';
 
 const CAPABILITIES = (syntheticMarker) => ({
@@ -25,16 +28,40 @@ function readBody(req) {
   return new Promise((resolve) => {
     const chunks = [];
     req.on('data', (c) => chunks.push(c));
-    req.on('end', () => { const s = Buffer.concat(chunks).toString('utf8'); try { resolve(s ? JSON.parse(s) : {}); } catch { resolve({ __parseError: true }); } });
+    req.on('end', () => { const s = Buffer.concat(chunks).toString('utf8'); try { resolve(s ? JSON.parse(s) : {}); } catch { resolve({}); } });
   });
 }
 const envelope = (data) => JSON.stringify({ msg: 'ok', trace_id: 'synthetic-trace', code: 0, data });
 const gsse = (events) => events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join('');
 
-/**
- * @param {{syntheticMarker?:string, answerText?:string, withTool?:boolean, log?:Function}} opts
- * @returns {http.Server}
- */
+function indexHtml() {
+  return `<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>inkstone mock gateway</title>
+<style>body{font-family:system-ui,Segoe UI,Arial;margin:24px;max-width:900px}pre{background:#f4f4f4;padding:10px;overflow:auto;max-height:320px}button{margin:4px 6px 4px 0;padding:6px 10px}h1{font-size:20px}.tag{color:#b00}</style></head>
+<body><h1>inkstone-re-lab · 本地离线 mock gateway</h1>
+<p>合成数据；不联网；无凭据。<span class="tag">SYNTHETIC</span></p>
+<p>本页在 ModelArts 代理下也可用：点按钮即时调用并显示结果。</p>
+<div>
+<button data-m="POST" data-p="chat/new" data-b='{"scenario":2,"type":0,"provider":0,"agent":"local_agent"}'>POST /chat/new</button>
+<button data-m="GET" data-p="local-agent/models">GET /local-agent/models</button>
+<button data-m="POST" data-p="local-agent/messages" data-b='{"chat_id":1,"model":"synthetic-model-a","messages":[],"tools":[]}' data-sse="1">POST /local-agent/messages (SSE)</button>
+<button data-m="POST" data-p="chat/1/local-turns" data-b='{}'>POST /chat/1/local-turns</button>
+<button data-m="POST" data-p="chat/1/local-turns/turn_syn_1/complete" data-b='{}'>POST .../complete</button>
+<button data-m="GET" data-p="health">GET /health</button>
+</div>
+<pre id="out">(点击上面的按钮查看结果)</pre>
+<script>
+const BASE = location.pathname.replace(/\\/$/, '');
+const out = document.getElementById('out');
+document.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
+  const url = BASE + '/api/orbit/v1/' + b.dataset.p;
+  try {
+    const r = await fetch(url, { method: b.dataset.m, headers: { 'content-type': 'application/json', 'accept': b.dataset.sse ? 'text/event-stream' : 'application/json' }, body: b.dataset.b ?? undefined });
+    out.textContent = 'HTTP ' + r.status + ' ' + r.headers.get('content-type') + '\\n\\n' + (await r.text());
+  } catch (e) { out.textContent = 'ERR ' + e.message; }
+}));
+</script></body></html>`;
+}
+
 export function createMockGatewayServer(opts = {}) {
   const marker = opts.syntheticMarker ?? 'synthetic';
   const answerText = opts.answerText ?? 'OK';
@@ -46,14 +73,24 @@ export function createMockGatewayServer(opts = {}) {
   const server = http.createServer(async (req, res) => {
     requestCount.total += 1;
     const url = new URL(req.url, 'http://localhost');
-    const path = url.pathname;
+    // 兼容带代理前缀的路径：取 /api/orbit/v1 之后（或原样）
+    const raw = url.pathname;
+    const path = raw.includes('/api/orbit/v1') ? raw.slice(raw.indexOf('/api/orbit/v1')) : raw;
     const method = req.method;
     const send = (code, body, headers = {}) => { res.writeHead(code, { 'content-type': 'application/json; charset=utf-8', ...headers }); res.end(body); };
 
     try {
+      if (method === 'GET' && (path === '/' || path.endsWith('/index.html'))) {
+        log('GET / -> html');
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+        return res.end(indexHtml());
+      }
+      if (method === 'GET' && (path === '/health' || path.endsWith('/health'))) {
+        log('GET /health -> 200');
+        return send(200, JSON.stringify({ ok: true, synthetic: true, protocol: 'inkstone-desktop-mock', requests: requestCount.total }));
+      }
       if (method === 'POST' && path === '/api/orbit/v1/chat/new') {
-        const id = ++chatSeq;
-        log(`POST /chat/new -> id=${id}`);
+        const id = ++chatSeq; log(`POST /chat/new -> id=${id}`);
         return send(200, envelope({ id }));
       }
       if (method === 'GET' && path === '/api/orbit/v1/local-agent/models') {
@@ -62,7 +99,6 @@ export function createMockGatewayServer(opts = {}) {
       }
       if (method === 'POST' && path === '/api/orbit/v1/local-agent/messages') {
         const body = await readBody(req);
-        const chatId = body?.chat_id;
         const events = [
           { type: 'message_start', response_id: 'synthetic-resp-1', model: body?.model ?? 'synthetic-model-a' },
           ...(withTool ? [
@@ -75,7 +111,7 @@ export function createMockGatewayServer(opts = {}) {
           { type: 'usage', usage: { input_tokens: 5, output_tokens: answerText.length, cache_read_tokens: 0, cache_write_tokens: 0 } },
           { type: 'message_end', stop_reason: withTool ? 'tool_use' : 'end_turn' },
         ];
-        log(`POST /local-agent/messages chat_id=${chatId} -> SSE (${events.length} events)`);
+        log(`POST /local-agent/messages chat_id=${body?.chat_id} -> SSE (${events.length} events)`);
         res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store' });
         res.write(gsse(events));
         return res.end();
@@ -98,14 +134,13 @@ export function createMockGatewayServer(opts = {}) {
   return server;
 }
 
-// CLI
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
   const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 ? process.argv[i + 1] : d; };
-  const host = arg('host', '127.0.0.1');
+  const host = arg('host', '0.0.0.0');
   const port = Number(arg('port', 8787));
   const server = createMockGatewayServer({ log: (m) => console.log('[mock-gateway] ' + m) });
   server.listen(port, host, () => {
-    console.log(`[mock-gateway] listening on http://${host}:${port}/api/orbit/v1  (synthetic, offline)`);
-    console.log('[mock-gateway] endpoints: POST /chat/new, GET /local-agent/models, POST /local-agent/messages, POST /chat/{id}/local-turns[/{turnId}/checkpoint|/complete]');
+    console.log(`[mock-gateway] listening on http://${host}:${port}  (synthetic, offline)`);
+    console.log('[mock-gateway] 首页 /  ·  /health  ·  API 前缀 /api/orbit/v1');
   });
 }
