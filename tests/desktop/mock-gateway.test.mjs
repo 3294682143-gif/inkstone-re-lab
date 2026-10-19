@@ -56,8 +56,11 @@ test('mock-gateway：/health 与首页，以及带代理前缀的路径兼容', 
     assert.equal(h.ok, true);
     assert.equal(h.synthetic, true);
     const home = await (await fetch(`${root}/`)).text();
-    assert.match(home, /inkstone-re-lab/);
+    assert.match(home, /Intern InkStone/);
     assert.match(home, /SYNTHETIC/);
+    assert.match(home, /local-agent\/messages/);          // 演示页引用已确认端点
+    const dbg = await (await fetch(`${root}/debug`)).text();
+    assert.match(dbg, /SYNTHETIC/);
     // 带代理前缀的路径（模拟 ModelArts /proxy/<port>/ 前缀）
     const prefixed = await (await fetch(`${root}/520b33f3-e7d5-4f62-833a-c550ecf612d1/proxy/8787/api/orbit/v1/local-agent/models`)).json();
     assert.equal(prefixed.data.protocol_version, '2.0');
