@@ -79,3 +79,37 @@ node --test tests/desktop/*.test.mjs   # 仅桌面模块
 | P9 Windows 动态闭环 | **BLOCKED / ENV_WINDOWS_REQUIRED** |
 
 详见 `validation/2026-10-18-linux-static/results.json`。
+
+## 本地验收：离线 mock gateway
+
+无凭据、不联网、不启 Electron 的本地验收入口（实现已确认协议子集，合成数据）：
+
+```bash
+npm run mock:gateway                 # 默认 http://127.0.0.1:8787/api/orbit/v1
+# 或： node tools/mock-gateway.mjs --host 127.0.0.1 --port 8787
+```
+
+curl 验收：
+
+```bash
+B=http://127.0.0.1:8787/api/orbit/v1
+curl -sS -X POST "$B/chat/new" -H 'content-type: application/json' -d '{"scenario":2}'
+curl -sS "$B/local-agent/models"
+curl -sS -N -X POST "$B/local-agent/messages" -H 'content-type: application/json' -H 'accept: text/event-stream' \
+  -d '{"chat_id":1,"model":"synthetic-model-a","messages":[],"tools":[]}'
+curl -sS -X POST "$B/chat/1/local-turns" -H 'content-type: application/json' -d '{}'
+curl -sS -X POST "$B/chat/1/local-turns/turn_syn_1/complete" -H 'content-type: application/json' -d '{}'
+```
+
+用客户端指向它（任意占位凭据；本地 mock 不校验鉴权）：
+
+```bash
+node --input-type=module -e "
+import { createCloudAdapter } from './src/desktop/cloud-adapter.mjs';
+const a=createCloudAdapter({ baseUrl:'http://127.0.0.1:8787/api/orbit/v1', authority:{token:'x',ssoUid:'u',locale:'zh-CN'} });
+console.log(await a.createConversation());
+console.log((await a.startInference({chat_id:1,model:'synthetic-model-a',messages:[],tools:[]})).content);
+"
+```
+
+离线自动化测试：`tests/desktop/mock-gateway.test.mjs`（内嵌启动，端口 0）。
