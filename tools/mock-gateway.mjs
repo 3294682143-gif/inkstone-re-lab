@@ -370,6 +370,28 @@ async function showRoute(route, push){
     body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>未实现</b><span>路由已从前端包确认（' + v.path + '），但该模块的接口尚未定位；本轮逆向范围是对话协议。</span></div>';
     return;
   }
+  if (route === '/paper') {
+    const box = document.createElement('div');
+    box.className = 'row';
+    box.innerHTML = '<input id="paperQuery" placeholder="输入检索词，例如：protein / crystal / labs"> <button id="paperGo" class="primary">检索</button>';
+    view.insertBefore(box, body);
+    const runSearch = async function(){
+      const q = (document.querySelector('#paperQuery') || {}).value || '';
+      body.innerHTML = '<div class="card">检索中…</div>';
+      try {
+        const r = await fetch('/api/nova/v1/search/works', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: q.trim() }) });
+        const j = await r.json();
+        const d = (j && j.data) || {};
+        body.innerHTML = (d.list || []).map(function(p){ return '<div class="card"><b>' + p.title + '</b><span>' + (p.venue || '') + ' · ' + (p.year || '') + ' · 引用 ' + (p.citations || 0) + '</span></div>'; }).join('') || '<div class="card"><b>无结果</b><span>换个检索词试试</span></div>';
+      } catch (e) {
+        body.innerHTML = '<div class="card"><b>检索失败</b><span>' + e.message + '</span></div>';
+      }
+    };
+    const goBtn = document.querySelector('#paperGo');
+    if (goBtn) goBtn.addEventListener('click', runSearch);
+    const qInput = document.querySelector('#paperQuery');
+    if (qInput) qInput.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') runSearch(); });
+  }
   try {
     const r = await fetch(v.api, { headers: { accept: 'application/json' } });
     const j = await r.json();
@@ -463,6 +485,19 @@ export function createMockGatewayServer(opts = {}) {
       if (method === 'GET' && path === '/api/ml/v1/cloud-disk/quota') {
         log('GET /ml/v1/cloud-disk/quota -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: { used_gb: 12.5, total_gb: 100, file_count: 42 } }));
+      }
+      if (method === 'POST' && path === '/api/nova/v1/search/works') {
+        const body = await readBody(req);
+        const q = String(body?.query || '').trim() || '(空)';
+        log('POST /nova/v1/search/works query=' + q + ' -> 200 (synthetic)');
+        const all = [
+          { id: 'w1', title: 'Deep learning for protein structure prediction', venue: 'Nature', year: 2024, citations: 1280 },
+          { id: 'w2', title: 'Foundation models for scientific discovery', venue: 'Science', year: 2025, citations: 640 },
+          { id: 'w3', title: 'AI4S: from tools to autonomous labs', venue: 'Cell', year: 2025, citations: 315 },
+          { id: 'w4', title: 'Crystal graph networks for materials screening', venue: 'Nature Materials', year: 2024, citations: 428 },
+        ];
+        const hit = all.filter(function(x){ return (x.title + ' ' + x.venue).toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+        return send(200, JSON.stringify({ code: 0, data: { query: q, list: hit.length ? hit : all.slice(0, 2), total: hit.length || 2 } }));
       }
       if (method === 'GET' && path === '/api/nova/v1/search/hot-papers') {
         log('GET /nova/v1/search/hot-papers -> 200 (synthetic)');
