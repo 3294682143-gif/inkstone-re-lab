@@ -386,12 +386,18 @@ async function showRoute(route, push){
       if (!card) return;
       body.innerHTML = '<div class="card">加载课题详情…</div>';
       try {
-        const r = await fetch('/api/spacebe/v1/space/details');
+        const [r, fr] = await Promise.all([
+          fetch('/api/spacebe/v1/space/details'),
+          fetch('/api/spacebe/v1/space/assets/files'),
+        ]);
         const j = await r.json();
+        const fj = await fr.json();
         const d = (j && j.data) || {};
+        const files = (fj && fj.data && fj.data.list) || [];
         body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>' + (d.name || '') + '</b>' +
-          '<span>成员 ' + (d.members || 0) + ' · 文件 ' + (d.files || 0) + ' · 更新 ' + (d.updated_at || '') + '</span>' +
+          '<span>成员 ' + (d.members || 0) + ' · 文件 ' + (d.files || files.length) + ' · 更新 ' + (d.updated_at || '') + '</span>' +
           '<div style="margin-top:6px;font-size:13px">' + (d.description || '') + '</div>' +
+          '<div style="margin-top:8px;font-size:12px;color:#8a8f99">文件（' + files.length + '）：' + files.map(function(x){ return x.name; }).join(' · ') + '</div>' +
           '<div style="margin-top:10px"><button id="repoBack">← 返回课题列表</button></div></div>';
         const back = document.querySelector('#repoBack');
         if (back) back.addEventListener('click', function(){ showRoute('/repo'); });
@@ -399,6 +405,27 @@ async function showRoute(route, push){
         body.innerHTML = '<div class="card"><b>详情加载失败</b><span>' + e.message + '</span></div>';
       }
     });
+  }
+  if (route === '/app') {
+    body.dataset.skip = '1';
+    const loadApps = async function(){
+      body.innerHTML = '<div class="card">加载中…</div>';
+      try {
+        const [a, st] = await Promise.all([
+          fetch('/api/moce/v1/apps/list').then(function(r){ return r.json(); }),
+          fetch('/api/moce/v1/dry_wet_loop/apply/status/list').then(function(r){ return r.json(); }),
+        ]);
+        const apps = (a && a.data && a.data.list) || [];
+        const reqs = (st && st.data && st.data.list) || [];
+        body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>FEATURED · 干湿闭环平台</b><span>汇集前沿 AI4S 模型与端到端工作流 · 覆盖生命、物质、地球与通用四大领域</span></div>' +
+          apps.map(function(x){ return '<div class="card"><b>' + x.name + '</b><span>' + (x.domain || '') + ' · ' + (x.summary || '') + '</span></div>'; }).join('') +
+          '<div class="card" style="grid-column:1/-1"><b>我的干湿闭环申请 · ' + reqs.length + ' 个</b><span>' +
+            (reqs.length ? reqs.map(function(r){ return r.title + '（' + r.status + '）'; }).join(' · ') : '暂无申请') + '</span></div>';
+      } catch (e) {
+        body.innerHTML = '<div class="card"><b>加载失败</b><span>' + e.message + '</span></div>';
+      }
+    };
+    loadApps();
   }
   if (route === '/compute') {
     body.dataset.skip = '1';
@@ -622,12 +649,26 @@ export function createMockGatewayServer(opts = {}) {
           { name: 'DeepSeek-V4-Flash', context: '64K', pricing: '￥0.0005/1K', status: 'available' },
         ], total: 3 } }));
       }
+      if (method === 'GET' && path === '/api/spacebe/v1/space/assets/files') {
+        log('GET /spacebe/v1/space/assets/files -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'f1', name: 'train.py', size: 4210, type: 'file', updated_at: '2026-10-17T10:00:00Z' },
+          { id: 'f2', name: 'coco.yaml', size: 1204, type: 'file', updated_at: '2026-10-17T10:02:00Z' },
+          { id: 'f3', name: 'runs/', size: 0, type: 'dir', updated_at: '2026-10-18T09:12:00Z' },
+        ], total: 3 } }));
+      }
       if (method === 'GET' && path === '/api/spacebe/v1/space/details') {
         log('GET /spacebe/v1/space/details -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: {
           id: 3914, name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比',
           members: 3, files: 27, updated_at: '2026-10-18T09:12:00Z',
         } }));
+      }
+      if (method === 'GET' && path === '/api/moce/v1/dry_wet_loop/apply/status/list') {
+        log('GET /moce/v1/dry_wet_loop/apply/status/list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'dw1', title: '蛋白表达湿实验', status: 'reviewing', submitted_at: '2026-10-12', owner: '禾青' },
+        ], total: 1 } }));
       }
       if (method === 'GET' && path === '/api/moce/v1/apps/list') {
         log('GET /moce/v1/apps/list -> 200 (synthetic)');
