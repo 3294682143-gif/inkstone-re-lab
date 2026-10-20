@@ -39,6 +39,45 @@ const DATASET_CATEGORIES = { list: [
 ], total: 6 };
 const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const SCP_ITEMS = [
+  { id: 'scp1', name: '蛋白结构预测', tag: '生命科学', type: 'SCP', downloads: 1280 },
+  { id: 'scp2', name: '气候模式降尺度', tag: '地球科学', type: 'SCP', downloads: 860 },
+  { id: 'scp3', name: '晶体结构筛选', tag: '物质科学', type: 'Skills', downloads: 2140 },
+  { id: 'scp4', name: '单细胞聚类', tag: '生命科学', type: 'Skills', downloads: 530 },
+  { id: 'scp5', name: '光子能量计算', tag: '物理科学', type: 'SCP', downloads: 310 },
+];
+
+// 有状态存储：新建/启停/创建 Key/申请 会真正改变后续查询结果
+const store = {
+  spaces: [
+    { id: '3914', name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比', members: 3, files: 27, updated_at: '2026-10-18T09:12:00Z' },
+    { id: '3915', name: '离线回归项目', description: '桌面/网页协议回归验证用', members: 2, files: 9, updated_at: '2026-10-17T08:00:00Z' },
+  ],
+  files: {
+    '3914': [
+      { id: 'f1', name: 'train.py', size: 4210, type: 'file' },
+      { id: 'f2', name: 'coco.yaml', size: 1204, type: 'file' },
+      { id: 'f3', name: 'runs/', size: 0, type: 'dir' },
+    ],
+    '3915': [
+      { id: 'f4', name: 'regress.mjs', size: 9800, type: 'file' },
+    ],
+  },
+  machines: [
+    { id: 'dm-001', name: 'A100 开发机', status: 'running', gpu: 'A100 80G', quota: '1/1' },
+    { id: 'dm-002', name: 'CPU 调试机', status: 'stopped', gpu: '-', quota: '0/1' },
+  ],
+  keys: [
+    { id: 'key_1', name: '默认 Key', masked: 'sk-****3f2a', created_at: '2026-09-01', status: 'active' },
+    { id: 'key_2', name: 'CI Key', masked: 'sk-****88cd', created_at: '2026-10-02', status: 'active' },
+  ],
+  applies: [
+    { id: 'dw1', title: '蛋白表达湿实验', status: 'reviewing', submitted_at: '2026-10-12', owner: '禾青' },
+  ],
+  downloads: [],
+};
+let seq = 100;
+
 const CAPABILITIES = (marker) => ({
   protocol_version: '2.0',
   models: [{
@@ -627,15 +666,15 @@ export function createMockGatewayServer(opts = {}) {
         } }));
       }
       if (method === 'POST' && path === '/api/tokenplan/v1/keys/create') {
-        log('POST /tokenplan/v1/keys/create -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { id: 'key_new', name: '新建 Key', masked: 'sk-****' + Math.floor(Math.random() * 9000 + 1000), status: 'active', created_at: new Date().toISOString() } }));
+      const body = await readBody(req);
+      const item = { id: 'key_' + (++seq), name: String(body.name || '新建 Key'), masked: 'sk-****' + Math.floor(Math.random() * 9000 + 1000), status: 'active', created_at: new Date().toISOString() };
+      store.keys.push(item);
+      log('POST /tokenplan/v1/keys/create -> 200 (stateful, ' + store.keys.length + ')');
+      return send(200, JSON.stringify({ code: 0, data: item }));
       }
       if (method === 'GET' && path === '/api/tokenplan/v1/keys') {
-        log('GET /tokenplan/v1/keys -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { id: 'key_1', name: '默认 Key', masked: 'sk-****3f2a', created_at: '2026-09-01', status: 'active' },
-          { id: 'key_2', name: 'CI Key', masked: 'sk-****88cd', created_at: '2026-10-02', status: 'active' },
-        ], total: 2 } }));
+      log('GET /tokenplan/v1/keys -> 200 (stateful, ' + store.keys.length + ')');
+      return send(200, JSON.stringify({ code: 0, data: { list: store.keys, total: store.keys.length } }));
       }
       if (method === 'GET' && path === '/api/tokenplan/v1/usage/summary') {
         log('GET /tokenplan/v1/usage/summary -> 200 (synthetic)');
@@ -660,29 +699,28 @@ export function createMockGatewayServer(opts = {}) {
         ], total: 3 } }));
       }
       if (method === 'GET' && path === '/api/spacebe/v1/space/assets/files') {
-        log('GET /spacebe/v1/space/assets/files -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { id: 'f1', name: 'train.py', size: 4210, type: 'file', updated_at: '2026-10-17T10:00:00Z' },
-          { id: 'f2', name: 'coco.yaml', size: 1204, type: 'file', updated_at: '2026-10-17T10:02:00Z' },
-          { id: 'f3', name: 'runs/', size: 0, type: 'dir', updated_at: '2026-10-18T09:12:00Z' },
-        ], total: 3 } }));
+      const id = String((url.searchParams && url.searchParams.get('id')) || store.spaces[0].id);
+      const list = store.files[id] || [];
+      log('GET /spacebe/v1/space/assets/files id=' + id + ' -> 200 (' + list.length + ' files)');
+      return send(200, JSON.stringify({ code: 0, data: { list, total: list.length } }));
       }
       if (method === 'POST' && path === '/api/spacebe/v1/space/create') {
-        log('POST /spacebe/v1/space/create -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { id: 'sp' + Date.now(), name: '新建课题', members: 1, files: 0 } }));
+      const body = await readBody(req);
+      const item = { id: 'sp' + (++seq), name: String(body.name || '新建课题'), description: '本地合成课题', members: 1, files: 0, updated_at: new Date().toISOString() };
+      store.spaces.unshift(item);
+      store.files[item.id] = [];
+      log('POST /spacebe/v1/space/create -> 200 (stateful, now ' + store.spaces.length + ')');
+      return send(200, JSON.stringify({ code: 0, data: item }));
       }
       if (method === 'GET' && path === '/api/spacebe/v1/space/details') {
-        log('GET /spacebe/v1/space/details -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: {
-          id: 3914, name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比',
-          members: 3, files: 27, updated_at: '2026-10-18T09:12:00Z',
-        } }));
+      const id = String((url.searchParams && url.searchParams.get('id')) || store.spaces[0].id);
+      const item = store.spaces.filter((x) => String(x.id) === id)[0] || store.spaces[0];
+      log('GET /spacebe/v1/space/details id=' + id + ' -> 200 (stateful)');
+      return send(200, JSON.stringify({ code: 0, data: Object.assign({}, item, { files: (store.files[item.id] || []).length }) }));
       }
       if (method === 'GET' && path === '/api/moce/v1/dry_wet_loop/apply/status/list') {
-        log('GET /moce/v1/dry_wet_loop/apply/status/list -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { id: 'dw1', title: '蛋白表达湿实验', status: 'reviewing', submitted_at: '2026-10-12', owner: '禾青' },
-        ], total: 1 } }));
+      log('GET /moce/v1/dry_wet_loop/apply/status/list -> 200 (stateful, ' + store.applies.length + ')');
+      return send(200, JSON.stringify({ code: 0, data: { list: store.applies, total: store.applies.length } }));
       }
       if (method === 'GET' && path === '/api/moce/v1/apps/detail') {
         const id = String((url.searchParams && url.searchParams.get('id')) || 'app1');
@@ -690,8 +728,11 @@ export function createMockGatewayServer(opts = {}) {
         return send(200, JSON.stringify({ code: 0, data: { id: id, name: '干湿闭环平台', domain: '生命科学', summary: '从假设到湿实验的一体化编排（本地合成）', features: ['方案生成', '实验排期', '结果回流'], entry: '/app/dry-wet' } }));
       }
       if (method === 'POST' && path === '/api/moce/v1/dry_wet_loop/apply') {
-        log('POST /moce/v1/dry_wet_loop/apply -> 200 (synthetic accepted)');
-        return send(200, JSON.stringify({ code: 0, data: { apply_id: 'dw' + Date.now(), status: 'submitted' } }));
+      const body = await readBody(req);
+      const item = { id: 'dw' + (++seq), title: String(body.title || '干湿闭环申请'), status: 'submitted', submitted_at: new Date().toISOString(), owner: '本地用户' };
+      store.applies.unshift(item);
+      log('POST /moce/v1/dry_wet_loop/apply -> 200 (stateful, ' + store.applies.length + ')');
+      return send(200, JSON.stringify({ code: 0, data: item }));
       }
       if (method === 'GET' && path === '/api/moce/v1/apps/list') {
         log('GET /moce/v1/apps/list -> 200 (synthetic)');
@@ -714,8 +755,12 @@ export function createMockGatewayServer(opts = {}) {
         ], total: 2 } }));
       }
       if (method === 'POST' && (path === '/api/ml/v1/dev-machine/start' || path === '/api/ml/v1/dev-machine/stop')) {
-        log('POST ' + path + ' -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { ok: true, action: path.endsWith('start') ? 'start' : 'stop' } }));
+      const body = await readBody(req);
+      const want = path.endsWith('start') ? 'running' : 'stopped';
+      const m = store.machines.filter((x) => String(x.id) === String(body.id) || x.name === String(body.id))[0];
+      if (m) m.status = want;
+      log('POST ' + path + ' id=' + String(body.id) + ' -> 200 (now ' + (m ? m.status : 'not-found') + ')');
+      return send(200, JSON.stringify({ code: 0, data: { ok: !!m, id: body.id, status: m ? m.status : undefined } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/cloud-disk/list') {
         log('GET /ml/v1/cloud-disk/list -> 200 (synthetic)');
@@ -726,11 +771,8 @@ export function createMockGatewayServer(opts = {}) {
         ], total: 3 } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/dev-machine/list') {
-        log('GET /ml/v1/dev-machine/list -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { id: 'dm-001', name: 'A100 开发机', status: 'running', gpu: 'A100 80G', quota: '1/1' },
-          { id: 'dm-002', name: 'CPU 调试机', status: 'stopped', gpu: '-', quota: '0/1' },
-        ], total: 2 } }));
+      log('GET /ml/v1/dev-machine/list -> 200 (stateful)');
+      return send(200, JSON.stringify({ code: 0, data: { list: store.machines, total: store.machines.length } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/cloud-disk/quota') {
         log('GET /ml/v1/cloud-disk/quota -> 200 (synthetic)');
@@ -790,15 +832,31 @@ export function createMockGatewayServer(opts = {}) {
         ], total: 3 } }));
       }
       if (method === 'GET' && path === '/api/spacebe/v1/space/list') {
-        log('GET /spacebe/v1/space/list -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { id: 3914, name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比', space_type: 1 },
-          { id: 3915, name: '离线回归项目', description: '桌面/网页协议回归验证用', space_type: 1 },
-        ], total: 2 } }));
+      log('GET /spacebe/v1/space/list -> 200 (stateful, ' + store.spaces.length + ' spaces)');
+      return send(200, JSON.stringify({ code: 0, data: { list: store.spaces, total: store.spaces.length } }));
+      }
+      if (method === 'POST' && path === '/api/scphub/v1/scp/use') {
+        const body = await readBody(req);
+        const item = SCP_ITEMS.filter((x) => x.id === String(body.id))[0];
+        if (item) item.downloads = Number(item.downloads || 0) + 1;
+        log('POST /scphub/v1/scp/use id=' + String(body.id) + ' -> 200 (stateful, downloads=' + (item ? item.downloads : '-') + ')');
+        return send(200, JSON.stringify({ code: 0, data: { ok: !!item, id: body.id, downloads: item ? item.downloads : undefined } }));
+      }
+      if (method === 'POST' && path === '/api/datasets/v1/dataset/download-request') {
+        const body = await readBody(req);
+        const item = { id: 'dl' + (++seq), dataset_id: String(body.id || ''), name: String(body.name || '数据集'), requested_at: new Date().toISOString() };
+        store.downloads.unshift(item);
+        log('POST /datasets/v1/dataset/download-request -> 200 (stateful, ' + store.downloads.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: item }));
+      }
+      if (method === 'GET' && path === '/api/datasets/v1/dataset/downloads') {
+        log('GET /datasets/v1/dataset/downloads -> 200 (' + store.downloads.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: { list: store.downloads, total: store.downloads.length } }));
       }
       if (method === 'GET' && path === '/api/scphub/v1/scp/list') {
         const tag = String((url.searchParams && url.searchParams.get('tag')) || '');
-        const all = [
+        const all = SCP_ITEMS;
+        const _unused = [
           { id: 'scp1', name: '蛋白结构预测', tag: '生命科学', type: 'SCP', downloads: 1280 },
           { id: 'scp2', name: '气候模式降尺度', tag: '地球科学', type: 'SCP', downloads: 860 },
           { id: 'scp3', name: '晶体结构筛选', tag: '物质科学', type: 'Skills', downloads: 2140 },

@@ -192,6 +192,10 @@ input.search{flex:1;min-width:220px}
   }
   async function send() {
     var el = $('#q'); var text = (el && el.value || '').trim(); if (!text) return;
+    return sendText(text);
+  }
+  async function sendText(text) {
+    if (!text) return;
     view.innerHTML = '<div class="thread" id="thread"></div>';
     var thread = $('#thread');
     addMsg(thread, 'me', text);
@@ -222,8 +226,9 @@ input.search{flex:1;min-width:220px}
             if (e.answer) bot.querySelector('.bubble').textContent += e.answer;
           }
           if (e.event === 'followup') {
-            var list = (e.followup || []).map(function (f) { return '<button class="chip">' + esc(f.text || f) + '</button>'; }).join(' ');
+            var list = (e.followup || []).map(function (f) { return '<button class="chip" data-f="' + esc(f.text || f) + '">' + esc(f.text || f) + '</button>'; }).join(' ');
             meta.innerHTML = 'cid=' + esc(chatState.chatId) + ' · 追问：' + list;
+            $$('.chip[data-f]', meta).forEach(function (b) { b.addEventListener('click', async function () { await sendText(b.getAttribute('data-f')); }); });
           }
           if (e.event === 'error') { bot.querySelector('.bubble').textContent += '\n[错误] ' + esc(e.error || '未知'); }
         }
@@ -296,7 +301,8 @@ input.search{flex:1;min-width:220px}
     });
     $$('.card[data-id]', box).forEach(function (c) {
       c.addEventListener('click', async function () {
-        var both = await Promise.all([api('/api/spacebe/v1/space/details'), api('/api/spacebe/v1/space/assets/files')]);
+        var sid = c.getAttribute('data-id');
+        var both = await Promise.all([api('/api/spacebe/v1/space/details?id=' + encodeURIComponent(sid)), api('/api/spacebe/v1/space/assets/files?id=' + encodeURIComponent(sid))]);
         var dd = (both[0] && both[0].data) || {};
         var files = (both[1] && both[1].data && both[1].data.list) || [];
         box.innerHTML = '<div class="detail"><h3>' + esc(dd.name) + '</h3>'
@@ -329,8 +335,9 @@ input.search{flex:1;min-width:220px}
           + '<div class="kv">能力：' + esc((d.features || []).join(' · ')) + '</div>'
           + '<button class="btn primary" id="apply">申请干湿闭环</button></div>';
         $('#apply', box).addEventListener('click', async function () {
-          await post('/api/moce/v1/dry_wet_loop/apply', { app_id: id });
+          await post('/api/moce/v1/dry_wet_loop/apply', { app_id: id, title: String(d.name || '干湿闭环申请') });
           toast('已提交申请（本地合成）');
+          appPage();
         });
         backBtn(box, appPage, '← 返回应用列表');
       });
@@ -358,7 +365,11 @@ input.search{flex:1;min-width:220px}
           var item = list.filter(function (x) { return x.id === id; })[0] || {};
           box.innerHTML = '<div class="detail"><h3>' + esc(item.name) + '</h3><div class="kv">' + esc(item.type) + ' · ' + esc(item.tag) + ' · 下载 ' + esc(item.downloads) + '</div>'
             + '<p>用于科研 Agent 的原子能力（本地合成描述）。</p><button class="btn primary" id="useIt">▶ 立即使用</button></div>';
-          $('#useIt', box).addEventListener('click', function () { toast('已加入工作流（本地合成）'); });
+          $('#useIt', box).addEventListener('click', async function () {
+            var r = await post('/api/scphub/v1/scp/use', { id: id });
+            toast('已加入工作流，下载量 ' + ((r && r.data && r.data.downloads) || '-'));
+            scpPage();
+          });
           backBtn(box, scpPage, '← 返回工具列表');
         });
       });
@@ -386,8 +397,10 @@ input.search{flex:1;min-width:220px}
           var d = (dj && dj.data) || {};
           box.innerHTML = '<div class="detail"><h3>' + esc(d.name || id) + '</h3>'
             + '<div class="kv">' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + ' · 文件 ' + esc(d.files) + '</div>'
-            + '<p>' + esc(d.description || '') + '</p><button class="btn primary" id="dl">⬇ 申请下载</button></div>';
-          $('#dl', box).addEventListener('click', function () { toast('下载申请已提交（本地合成）'); });
+            + '<p>' + esc(d.description || '') + '</p><button class="btn primary" id="dl">⬇ 申请下载</button></div><div id="dlList" class="section" style="margin-top:12px"></div>';
+          var showDl = function () { api('/api/datasets/v1/dataset/downloads').then(function (j) { var l = (j && j.data && j.data.list) || []; var el = $('#dlList', box); if (el) el.innerHTML = '我的下载申请 · ' + l.length + ' 个' + (l.length ? '：' + l.map(function (x) { return esc(x.name); }).join(' · ') : ''); }); };
+          showDl();
+          $('#dl', box).addEventListener('click', async function () { await post('/api/datasets/v1/dataset/download-request', { id: id, name: d.name || id }); toast('下载申请已提交'); showDl(); });
           backBtn(box, datasetPage, '← 返回数据集');
         });
       });
@@ -421,8 +434,9 @@ input.search{flex:1;min-width:220px}
       b.addEventListener('click', async function (ev) {
         ev.stopPropagation();
         var act = b.getAttribute('data-act');
-        await post('/api/ml/v1/dev-machine/' + act, { id: b.getAttribute('data-id') });
-        toast(act === 'start' ? '已启动（合成）' : '已停止（合成）');
+        var r = await post('/api/ml/v1/dev-machine/' + act, { id: b.getAttribute('data-id') });
+        toast((act === 'start' ? '已启动' : '已停止') + '：' + ((r && r.data && r.data.status) || ''));
+        computePage();
       });
     });
   }
