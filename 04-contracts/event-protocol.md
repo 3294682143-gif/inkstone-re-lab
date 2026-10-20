@@ -65,3 +65,12 @@ workflow_finished   ← 结束
   `message_end` / `done` / `close` / `error` / `workflow_finished`
 - 影响：客户端判定"本轮结束"时不能只等 `workflow_finished`；收到任一终态即应收尾。
 - 提交体与停止语义另有源码证据（S1/S3），见 `04-contracts/api-contract.md` 的 R3 章节。
+
+
+## R4：事件名集合（源码存在性，2026-10-20）
+
+网页端 bundle 中出现的事件名：`workflow_started` / `workflow_finished` / `message` / `message_end` / `done` / `close` / `error` / `thinking` / `subagent`。
+
+终态集合（代码级，见 R3）：`message_end` / `done` / `close` / `error` / `workflow_finished`。
+
+仍 UNKNOWN：`followup` 在 wire 上的确切字段名（渲染层有 `followupActions`，wire 未确认）、`stop` 响应体字段。

@@ -1,0 +1,129 @@
+{
+  "schema_version": "inkstone-wire-canonical/1",
+  "captured_at": "2026-10-20T06:20:00Z",
+  "source": {
+    "desktop_agent_state": "C:/Users/y/AppData/Roaming/inkstone-desktop/data/profiles/<profile>/core-runtime/<scope>/agent-state/<hash>/chat-*.jsonl",
+    "note": "桌面应用本地 canonical 记录（JSONL，逐轮追加）；不含凭证"
+  },
+  "local_turn_start_body": {
+    "turn_id": "<uuid>",
+    "protocol_version": "2.0",
+    "execution_mode": "instant",
+    "model": "书生-S2",
+    "thinking_enabled": true,
+    "user_prompt": "<本轮用户文本>"
+  },
+  "canonical_messages": {
+    "user": {
+      "id": "turn-user-<hex>",
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "<text>"
+        }
+      ],
+      "createdAt": "<iso>"
+    },
+    "assistant": {
+      "id": "resp_<hex>",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "<thinking text>"
+        },
+        {
+          "type": "text",
+          "text": "<answer>"
+        }
+      ],
+      "createdAt": "<iso>"
+    },
+    "conclusions": [
+      "role 取值观测到 user / assistant 两种",
+      "content 是内容块数组，不是字符串",
+      "已观测的块类型：text、thinking；thinking 块字段名为 thinking（非 text）",
+      "assistant 的 id 前缀是 resp_，user 的前缀是 turn-user-"
+    ],
+    "still_unknown": [
+      "tool_use / tool_result 块结构（本轮无工具调用）",
+      "附件块结构",
+      "system 角色是否存在"
+    ]
+  },
+  "agent_events": {
+    "shape": {
+      "event_id": "event_<hex>",
+      "seq": 1,
+      "type": "workflow",
+      "step": 0,
+      "status": "RUNNING|SUCCESS",
+      "occurred_at": "<iso>",
+      "agent_id": "agent_<hex>",
+      "hint": "<本地 Agent 已开始执行>"
+    },
+    "per_turn_count_observed": 2
+  },
+  "usage": {
+    "inputTokens": 11609,
+    "outputTokens": 14,
+    "cacheReadTokens_optional": 8192
+  },
+  "inference_observation": {
+    "observation_id": "<uuid>",
+    "round": 1,
+    "attempt": 1,
+    "model": "书生-S2",
+    "purpose": "primary",
+    "state": "complete",
+    "started_at": "<iso>",
+    "first_output_at": "<iso>",
+    "first_output_kind": "thinking",
+    "completed_at": "<iso>",
+    "usage": {
+      "inputTokens": 11609,
+      "outputTokens": 14
+    },
+    "stop_reason": "end_turn"
+  },
+  "local_turn_lifecycle_observed": {
+    "running_turn": {
+      "checkpointSeq": 0,
+      "status": "starting"
+    },
+    "running_turn_cleared": {
+      "status": "complete"
+    },
+    "note": "本轮未观测到 checkpoint / complete 的 HTTP body（只有本地状态），仍为 UNKNOWN"
+  },
+  "web_side": {
+    "scenario_value": {
+      "value": 1,
+      "evidence": "A5/A6 实测抓包 POST /api/orbit/v1/chat body {\"scenario\":1,...}；桌面端为 2",
+      "closes_unknown": "scenario 数值（网页=1，桌面=2）"
+    },
+    "event_names_in_bundle": [
+      "workflow_started",
+      "workflow_finished",
+      "message",
+      "message_end",
+      "done",
+      "close",
+      "error",
+      "thinking",
+      "subagent"
+    ],
+    "terminal_set": [
+      "message_end",
+      "done",
+      "close",
+      "error",
+      "workflow_finished"
+    ],
+    "still_unknown": [
+      "stop 响应体字段",
+      "followup 的 wire 字段名（渲染层有 followupActions，wire 未确认）"
+    ]
+  }
+}

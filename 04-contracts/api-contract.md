@@ -173,3 +173,35 @@
 | 附件形状 | @509319 | `files[].{type,file_type,url,file_hash,name,size}`，url 与 file_hash 必填 |
 
 剩余 UNKNOWN：scenario 数值、SSE 完整 type 集合、stop 响应体字段。
+
+
+## 补充 R4：桌面 canonical 结构（W4，2026-10-20）
+
+- 证据：`01-evidence/sanitized/wire-canonical-20261020.json`（来源：桌面应用本地 agent-state JSONL）
+- 说明：这是**本地 canonical 层**观测，不等同于 agentd 发往 gateway 的 wire body（后者仍 UNKNOWN）。
+
+### local-turn startBody（实测）
+
+```json
+{"turn_id":"<uuid>","protocol_version":"2.0","execution_mode":"instant","model":"书生-S2","thinking_enabled":true,"user_prompt":"<text>"}
+```
+
+### canonical messages（实测）
+
+| role | 结构 |
+| --- | --- |
+| user | `{id:"turn-user-<hex>", role:"user", content:[{type:"text",text}], createdAt}` |
+| assistant | `{id:"resp_<hex>", role:"assistant", content:[{type:"thinking",thinking},{type:"text",text}], createdAt}` |
+
+结论：`content` 是内容块数组；thinking 块字段名是 `thinking`（不是 text）；未观测到 tool_use/tool_result（本轮无工具调用）。
+
+### usage / stop_reason（实测）
+
+```json
+{"inputTokens":11609,"outputTokens":14,"cacheReadTokens":8192}
+{"observation_id":"...","round":1,"attempt":1,"purpose":"primary","state":"complete","first_output_kind":"thinking","stop_reason":"end_turn"}
+```
+
+### 网页端 scenario 取值（UNKNOWN 关闭）
+
+网页 `POST /api/orbit/v1/chat` 实测 body 中 `scenario=1`；桌面端为 `2`。此前"scenario 数值未知"关闭。
