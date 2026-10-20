@@ -35,7 +35,7 @@ const USAGE = `InkStone headless driver 冒烟工具（runner）
   --mock                Linux 离线：spawn tests/fixtures/mock-headless-driver.mjs（MOCK，不联网）
   --mock-mode <mode>    normal|terminal-first|no-terminal|error|hang|crash（配合 --mock）
   --timeout-ms <ms>     回合/请求超时（默认 120000）
-说明: 正式模式启动的是桌面应用主 exe（参数 --headless-chat-driver），不是 agentd/brokerd/executor。`;
+说明: 正式模式启动的是桌面应用主 exe（环境变量 INKSTONE_HEADLESS_CHAT_DRIVER=1），不是 agentd/brokerd/executor。`;
 
 function nowRun() { return new Date().toISOString().replace(/[:.]/g, '-'); }
 function ensureOut(dir) { if (!existsSync(dir)) mkdirSync(dir, { recursive: true }); return dir; }
@@ -45,7 +45,9 @@ function makeTarget() {
   if (MOCK) return { exe: process.execPath, args: [MOCK_DRIVER, '--mode', MOCK_MODE], mock: true };
   if (!EXE) throw new DriverProcessError('--exe required (or use --mock)', { code: 'ARGS' });
   if (!existsSync(EXE)) throw new DriverProcessError('exe not found: ' + EXE, { code: 'ARGS' });
-  return { exe: EXE, args: ['--headless-chat-driver'], mock: false };
+  // 实测：inkstone.exe 把 --headless-chat-driver 当 unknown switch 拒绝（bad option, exit 9）。
+  // 契约 06-desktop/contracts/driver-jsonl.md 记录了两条入口，改用文档化的环境变量入口。
+  return { exe: EXE, args: [], env: { ...process.env, INKSTONE_HEADLESS_CHAT_DRIVER: '1' }, mock: false };
 }
 
 function marker() { return 'INKSTONE-W-' + Date.now().toString(36).toUpperCase(); }
@@ -67,7 +69,7 @@ async function preflight() {
 
 async function runDriver(scenario, opts) {
   const target = makeTarget();
-  const driver = createDriverProcess({ exe: target.exe, args: target.args, timeouts: { turn: TIMEOUT, request: TIMEOUT }, log: () => {} });
+  const driver = createDriverProcess({ exe: target.exe, args: target.args, env: target.env ?? process.env, timeouts: { turn: TIMEOUT, request: TIMEOUT }, log: () => {} });
   const result = { scenario, mode: target.mock ? 'MOCK' : 'WINDOWS_TARGET', ok: false, steps: [] };
   try {
     driver.start();

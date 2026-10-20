@@ -1,0 +1,81 @@
+{
+  "schema_version": "inkstone-windows-validation/1",
+  "stage": "W0-offline-and-w1-preflight",
+  "handoff_branch": "re/linux-windows-handoff",
+  "handoff_sha": "e5d97bb401dcbb685d2bacbd2bc4855938e1b3c8",
+  "handoff_tag": "handoff-desktop-027-20261020T011616Z-e5d97bb401dc",
+  "tag_resolves_to_handoff_sha": true,
+  "validated_source_commit_from_manifest": "3f949e797fa72acd041da2b490df507a06e0799f",
+  "host": {
+    "os": "windows",
+    "node": "v24.17.0",
+    "npm": "11.13.0",
+    "git": "2.54.0.windows.1",
+    "python": "C:\\Python314\\python.exe (3.14.6)",
+    "session_locked_during_run": true
+  },
+  "install_sample": {
+    "installer": "inkstone-desktop-0.2.7-setup.exe",
+    "installer_sha256": "eb8ef2da7c67df4fd2728a686cf84c1699fa410746af2d5b08f6e9b89d6dfcd8",
+    "installer_matches_manifest": true,
+    "install_dir": "C:\\Program Files\\inkstone",
+    "main_exe": "C:\\Program Files\\inkstone\\inkstone.exe",
+    "app_asar_sha256": "10c286f32211bcf2dc05f9ea4bbcf3e982627be2b92f2bc656503eec7535ad77",
+    "app_asar_matches_manifest": true
+  },
+  "offline_acceptance": {
+    "command": "npm ci --ignore-scripts --no-audit --no-fund ; node --test",
+    "tests": 140,
+    "pass": 140,
+    "fail": 0,
+    "duration_s": 7,
+    "runner_help_exit": 0,
+    "status": "WINDOWS_OFFLINE_PASS"
+  },
+  "mock_runner": {
+    "scenarios": ["discovery", "chat", "cancel"],
+    "result": "all ok:true, mode=MOCK",
+    "note": "MOCK 只证明 runner 协调逻辑，不证明 Windows 应用行为"
+  },
+  "w1_real_driver_attempts": [
+    {
+      "attempt": "cli-arg",
+      "invocation": "inkstone.exe --headless-chat-driver",
+      "outcome": "rejected by launcher",
+      "stderr": "C:\\Program Files\\inkstone\\inkstone.exe: bad option: --headless-chat-driver",
+      "exit_code": 9,
+      "runner_error": "driver.ready timed out"
+    },
+    {
+      "attempt": "env-var",
+      "invocation": "INKSTONE_HEADLESS_CHAT_DRIVER=1 inkstone.exe",
+      "outcome": "process starts but emits no driver.ready; no stdout/stderr within 75s",
+      "exit_code": null,
+      "signal": "SIGTERM (killed by runner after timeout)"
+    },
+    {
+      "attempt": "gui-start",
+      "invocation": "inkstone.exe (no env)",
+      "outcome": "process exits silently; no window; no Event Log entry; no crash dump",
+      "note": "workstation was at lock screen during all attempts"
+    }
+  ],
+  "app_entry_evidence_from_asar": {
+    "mode_resolution": "const driver = environment[\"INKSTONE_HEADLESS_CHAT_DRIVER\"] === \"1\" || argv.includes(\"--headless-chat-driver\")",
+    "driver_ready_emitted_by": "runHeadlessChatDriver() -> driver.ready() -> protocol_version inkstone-headless-chat/v1",
+    "conclusion": "两条入口都存在于 0.2.7 构建；CLI 参数被启动器当 unknown switch 拒绝，env 入口未被拒但进程未进入 driver 循环"
+  },
+  "changes_made_on_windows_branch": [
+    "scripts/windows-driver-smoke.mjs: 正式模式改用环境变量入口 INKSTONE_HEADLESS_CHAT_DRIVER=1，并把 env 传入 createDriverProcess",
+    "07-handoff/windows-todo.md: 交接缺失文件，按 handoff unknown_items 与手册 §4.3 补齐"
+  ],
+  "blocking_condition": "桌面应用需要交互式会话：解锁工作站 -> 启动应用 -> 完成登录 -> 完全退出，然后再跑 driver",
+  "status_map": {
+    "WINDOWS_OFFLINE_PASS": "PASS",
+    "WINDOWS_DRIVER_PASS": "NOT_RUN",
+    "WINDOWS_CANCEL_PASS": "NOT_RUN",
+    "WIRE_SCHEMA_CONFIRMED": "NOT_RUN",
+    "ADAPTER_LIVE_PASS": "NOT_RUN"
+  },
+  "next_minimal_action": "解锁并登录桌面应用后，运行 node scripts/windows-driver-smoke.mjs --exe \"C:\\Program Files\\inkstone\\inkstone.exe\" --scenario discovery --out <dir>"
+}
