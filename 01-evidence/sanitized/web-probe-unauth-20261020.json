@@ -1,0 +1,117 @@
+{
+  "schema_version": "inkstone-web-unauth-probe/1",
+  "captured_at": "2026-10-20T05:45:00Z",
+  "origin": "https://discovery.intern-ai.org.cn",
+  "method": "panel browser (logged-out profile) page-context fetch, GET, accept: application/json",
+  "note": "未登录态；不含任何凭证；401 判定为\"需要鉴权\"，404 才是\"路径不存在\"",
+  "results": [
+    {
+      "path": "/api/orbit/v1/models",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/orbit/v1/chat/list?page=1&size=20&scenario=1",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/orbit/v1/chat/1/detail",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/spacebe/v1/space/list?page=1&page_size=10",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/spacebe/v1/space/details",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/spacebe/v1/space/assets/files",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/user-center/v1/users/getUserInfo",
+      "status": 405,
+      "code": null,
+      "message": "GET 不被允许（契约记载为 POST {jwt}）"
+    },
+    {
+      "path": "/api/user-center/v1/messages/unreadlist",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/user-center/v1/team/my_team_list",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/tokenplan/v1/users/free-grant-status",
+      "status": 401,
+      "code": -10002,
+      "message": "参数错误，请求未认证"
+    },
+    {
+      "path": "/api/scphub/v1/scp/tags",
+      "status": 200,
+      "code": 0,
+      "message": "success",
+      "public": true
+    },
+    {
+      "path": "/api/datasets/v1/category/list",
+      "status": 200,
+      "code": 0,
+      "message": "success",
+      "public": true
+    }
+  ],
+  "public_endpoint_shapes": {
+    "/api/scphub/v1/scp/tags": {
+      "data_keys": [
+        "list"
+      ],
+      "count": 17,
+      "item_keys": [
+        "id",
+        "name",
+        "name_en",
+        "icon",
+        "type"
+      ]
+    },
+    "/api/datasets/v1/category/list": {
+      "data_keys": [
+        "list",
+        "total"
+      ],
+      "count": 6,
+      "item_keys": [
+        "id",
+        "name",
+        "icon_url",
+        "sort",
+        "background_color"
+      ]
+    }
+  },
+  "conclusions": [
+    "上述 9 个 401 说明路径存在且受鉴权保护（与 404 区分开）。",
+    "getUserInfo 仅接受 POST（GET 返回 405），与既有契约一致。",
+    "scp/tags 与 datasets/category/list 为公开接口，可直接用于本地重建页的标签/分类展示。"
+  ]
+}

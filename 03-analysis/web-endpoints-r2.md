@@ -69,3 +69,24 @@
 3. `user-center/v1/users/feedback/upload_url` 的上传凭证获取方式（附件链路的第一跳）。
 4. camelCase → snake_case 的转换函数位置与规则。
 5. 历史列表分页参数（`/chat/list` 的 page/size 与返回结构，目前仅 GET 形态确认）。
+
+
+## 5. 未登录态探针（2026-10-20，运行时观察）
+
+- 环境：面板浏览器（未登录 profile），在目标 origin 上以页面上下文 GET 各端点
+- 证据：`01-evidence/sanitized/web-probe-unauth-20261020.json`
+
+| 端点 | 结果 | 含义 |
+| --- | --- | --- |
+| `/api/orbit/v1/models` | 401 / -10002 | 存在，需鉴权 |
+| `/api/orbit/v1/chat/list` | 401 / -10002 | 存在，需鉴权 |
+| `/api/orbit/v1/chat/{id}/detail` | 401 / -10002 | 存在，需鉴权 |
+| `/api/spacebe/v1/space/{list,details,assets/files}` | 401 / -10002 | 存在，需鉴权 |
+| `/api/user-center/v1/users/getUserInfo` | **405** | **GET 不允许**（契约记载为 POST `{jwt}`） |
+| `/api/user-center/v1/messages/unreadlist` | 401 / -10002 | 存在，需鉴权 |
+| `/api/user-center/v1/team/my_team_list` | 401 / -10002 | 存在，需鉴权 |
+| `/api/tokenplan/v1/users/free-grant-status` | 401 / -10002 | 存在，需鉴权 |
+| `/api/scphub/v1/scp/tags` | **200 / code=0** | **公开**：`data.list[17]`，项含 `id/name/name_en/icon/type` |
+| `/api/datasets/v1/category/list` | **200 / code=0** | **公开**：`data.list[6]` + `total`，项含 `id/name/icon_url/sort/background_color` |
+
+> 判定规则：401 只说明"需要鉴权"，不能据此认为路径不存在；本次没有出现 404，说明清单里的路径全部真实存在。
