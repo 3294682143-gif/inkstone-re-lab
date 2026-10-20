@@ -62,3 +62,15 @@
 - 调用：`callCoreTurnStartWithProvenanceCompatibility(coreStartRequest, payload => supervisor.callRuntime("turn.start", payload, 60000))`；返回要求 `{started:true, turnId}`，且 turnId 必须稳定（M:56714-56722）。
 - 结论：**`messages`/`tools` 不在应用 JS 侧构造**——JS 只传 `query` + 上下文/模型/模式；`messages/tools` 由**原生运行时 → cloud gateway** 生成。已检索全部 180 个应用文件：`messages/tools` 的元素结构在应用 JS 中**无**构造来源。
 - 因此 `messages/tools` 的元素 schema 仍为 **UNKNOWN**（归属：原生运行时/gateway 侧），JS 侧仅做“数组”与限额校验。
+
+
+## 补充 R7：agentd 二进制字段清单（2026-10-20）
+
+- 证据：`01-evidence/sanitized/desktop-agentd-strings-20261020.json`
+- 方法：对 `orbit-agentd.exe`（SHA256 `bb56db4a…`，与 runtime manifest 一致）做 ASCII 串提取与 `json:"..."` 偏移聚类
+- 引擎状态：IG5（缺 bundled Ghidra runtime）、ghidra-bridge（未装 Ghidra/pyghidra）均不可用，因此**未做反汇编**
+- 结论分级：**字段名可证**；**请求体组合不可证**
+
+已确认存在的 wire 候选字段（节选）：`answer_transport`、`input_delta`、`checkpoint_seq`、`tool_call_id`、`protocol_version`、`thinking_enabled`、`execution_mode`、`user_prompt`、`turn_id`、`chat_id`、`model`、`userMessage`、`submissions`、`max_output_tokens`、`token_usage`、`json_schema`、`tools`、`tool_choice`、`workspace_path`、`schema_version`、`client_version`、`binary_version`。
+
+RPC 层类型名（字符串可见）：`agentrpc.ConversationCheckpointRequest`、`agentrpc.GatewayInferenceCancelRequest`、`agentrpc.GatewayDocumentRequest`。
