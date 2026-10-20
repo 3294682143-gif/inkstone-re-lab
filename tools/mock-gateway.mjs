@@ -118,6 +118,9 @@ header b{font-size:15px}.tag{background:#fff4e6;color:#b26a00;border:1px solid #
 .viewTitle{font-size:15px;font-weight:600;margin:6px 0 2px}
 .viewHint{color:#8a8f99;font-size:12px}
 .nav a.active{background:#eef3ff;color:#2f6fed}
+.modes{display:inline-flex;gap:6px;margin-left:8px}
+.pill{border:1px solid var(--line);background:#fff;color:#4a5058;border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer}
+.pill.on{background:#eef3ff;border-color:#bcd2ff;color:#2f6fed;font-weight:600}
 .dev summary{cursor:pointer}
 .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 input,select,button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
@@ -165,6 +168,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <input id="model" value="synthetic-model-a" style="max-width:200px;display:none">
     <button id="new">＋ 新建对话</button>
     <button id="stop" disabled>停止</button>
+    <span class="modes"><button id="mQuick" class="pill">快速</button><button id="mDeep" class="pill on">深度</button></span>
   </div>
   <details class="dev"><summary>调试 / 协议</summary>
     <div class="row">
@@ -175,7 +179,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="chat" id="chat"><div class="msg assistant">已就绪。点击「新建会话」，然后输入消息发送。协议：<code>/chat/new</code> → <code>/local-agent/messages</code>(SSE, type 事件) → 本地轮次同步。</div></div>
   <div class="row">
     <input id="text" placeholder="输入消息，例如：请只回复 OK" autocomplete="off">
-    <button class="primary" id="send">发送</button>
+    <button class="primary" id="send">开始探索</button>
   </div>
   <div class="row" id="tagsRow" style="flex-wrap:wrap;gap:6px"></div>
   <div class="meta" id="status"></div>
@@ -190,6 +194,7 @@ const $=(s)=>document.querySelector(s);
 function apiBase(){ let p=location.pathname.replace(/\\/+$/,'').replace(/\\/(ui|debug)$/,''); return p+'/api/orbit/v1'; }
 $('#base').value = apiBase();
 let chatId=null, ac=null;
+let thinkMode=true; // true=深度（thinking_mode:true），false=快速
 const chat=$('#chat'), status=$('#status');
 const setStatus=(s)=>status.textContent=s;
 function bubble(cls){const d=document.createElement('div');d.className='msg '+cls;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
@@ -241,7 +246,7 @@ async function send(){
     }
   }catch(e){ if(e.name!=='AbortError') err='网络/读取错误: '+e.message; else err='已取消（本地）'; }
   finally{
-    $('#send').disabled=false; $('#stop').disabled=true;
+    $('#send').disabled=false; $('#stop').disabled=true; $('#send').textContent='开始探索';
     const parts=[]; if(usage)parts.push('usage in='+usage.input_tokens+' out='+usage.output_tokens); if(stopReason)parts.push('stop_reason='+stopReason);
     if(err){const d=document.createElement('div');d.className='err';d.textContent=err;box.appendChild(d);}
     if(parts.length)meta.textContent+=(meta.textContent?' · ':'')+parts.join(' · ');
@@ -280,11 +285,11 @@ async function webSend(){
   const content=document.createElement('div');box.appendChild(content);
   const meta=document.createElement('div');meta.className='meta';box.appendChild(meta);
   const model=$('#wmodel').value||'Default';
-  ac=new AbortController(); $('#send').disabled=true; $('#stop').disabled=false;
+  ac=new AbortController(); $('#send').disabled=true; $('#stop').disabled=false; $('#send').textContent='中止对话';
   setStatus('网页协议：推理中（流式）…');
   let err=null, finished=false;
   try{
-    const r=await fetch($('#base').value+'/chat',{method:'POST',signal:ac.signal,headers:{'content-type':'application/json','accept':'text/event-stream'},body:JSON.stringify({scenario:1,thinking_mode:true,planning_mode:false,model,query:text,chat_id:chatId})});
+    const r=await fetch($('#base').value+'/chat',{method:'POST',signal:ac.signal,headers:{'content-type':'application/json','accept':'text/event-stream'},body:JSON.stringify({scenario:1,thinking_mode:thinkMode,planning_mode:false,model,query:text,chat_id:chatId})});
     if(!r.ok||!(r.headers.get('content-type')||'').includes('text/event-stream')){err='响应不是 SSE（HTTP '+r.status+'）';}
     else{
       const reader=r.body.getReader(),dec=new TextDecoder();let buf='';
@@ -302,7 +307,7 @@ async function webSend(){
     }
   }catch(e){ if(e.name!=='AbortError') err='网络/读取错误: '+e.message; else err='已停止（本地 abort）'; }
   finally{
-    $('#send').disabled=false; $('#stop').disabled=true;
+    $('#send').disabled=false; $('#stop').disabled=true; $('#send').textContent='开始探索';
     if(err){const d=document.createElement('div');d.className='err';d.textContent=err;box.appendChild(d);}
     setStatus(finished?'完成 · workflow_finished':(err?('结束：'+err):'结束（未见 workflow_finished）'));
   }
@@ -343,6 +348,11 @@ $('#pmode').addEventListener('change',()=>{
 });
 $('#new').addEventListener('click',()=>newConv());
 $('#send').addEventListener('click',()=>send());
+function syncModes(){ const q=$('#mQuick'), d=$('#mDeep'); if(!q||!d) return; q.classList.toggle('on', !thinkMode); d.classList.toggle('on', thinkMode);
+  $('#send').textContent = (ac ? '中止对话' : '开始探索'); }
+if($('#mQuick')) $('#mQuick').addEventListener('click',()=>{ thinkMode=false; syncModes(); setStatus('模式：快速（thinking_mode=false）'); });
+if($('#mDeep')) $('#mDeep').addEventListener('click',()=>{ thinkMode=true; syncModes(); setStatus('模式：深度（thinking_mode=true）'); });
+syncModes();
 $('#stop').addEventListener('click',()=>{ if($('#pmode').value==='web'){ stopWeb(); } else if(ac)ac.abort(); });
 $('#text').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
 // 路由：路径取自 bundle 侧栏配置（/chat /paper /repo /app /scp /dataset /compute /token-plan/home）
@@ -601,7 +611,7 @@ export function createMockGatewayServer(opts = {}) {
         const emit = (o) => { if (!res.writableEnded) res.write('data: ' + JSON.stringify(o) + '\n\n'); };
         emit({ event: 'workflow_started', cid, mid });
         await sleepMs(120);
-        if (!st.cancelled) emit({ event: 'message', thinking: '这是合成的思考增量（网页协议 message.thinking）。', cid, mid });
+        if (!st.cancelled && body?.thinking_mode) emit({ event: 'message', thinking: '这是合成的思考增量（网页协议 message.thinking）。', cid, mid });
         for (const ch of answerText.split('')) {
           await sleepMs(60);
           if (st.cancelled) break;

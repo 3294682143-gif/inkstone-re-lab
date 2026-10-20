@@ -92,3 +92,24 @@ test('论文检索按 query 过滤（GET + params，源码语义）', async () =
     }
   } finally { child.kill(); }
 });
+
+test('thinking_mode 控制思维增量（A6 语义）', async () => {
+  const { child, base } = await startGateway();
+  try {
+    const run = async (thinking) => {
+      const r = await fetch(base + '/api/orbit/v1/chat', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ scenario: 1, thinking_mode: thinking, model: 'Default', query: 'x', chat_id: 1 }),
+      });
+      const text = await r.text();
+      const events = text.split('\n\n').map(b => b.trim()).filter(x => x.startsWith('data:')).map(x => JSON.parse(x.slice(5)));
+      return events;
+    };
+    const deep = await run(true);
+    assert.ok(deep.some(e => e.event === 'message' && typeof e.thinking === 'string'), '深度模式应出现 thinking 增量');
+    assert.ok(deep.some(e => e.event === 'workflow_finished'), '应有 workflow_finished');
+    const quick = await run(false);
+    assert.ok(!quick.some(e => e.event === 'message' && typeof e.thinking === 'string'), '快速模式不应出现 thinking 增量');
+    assert.ok(quick.some(e => e.event === 'message' && typeof e.answer === 'string'), '快速模式仍应有答案增量');
+  } finally { child.kill(); }
+});
