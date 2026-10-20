@@ -1,0 +1,218 @@
+[
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_remoteEntry-var.js",
+    "status": 200,
+    "bytes": 635,
+    "sha256": "471104b1d632bd4be4df29772daa1271421d35fc197f2e941252c59873e85d50",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/remoteEntry.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_remoteEntry.js",
+    "status": 200,
+    "bytes": 76451,
+    "sha256": "ac7463d6323d662419d27fd4337177805456bc0600ca1bba47d8d70864263fde",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/preload-helper.DfZQVC28.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_preload-helper.DfZQVC28.js",
+    "status": 200,
+    "bytes": 1165,
+    "sha256": "52b6944f9779c065663db53a35b2c9210150538ffc8634ba2485f659c70b7f21",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/localSharedImportMap.BcrR9-i5.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_localSharedImportMap.BcrR9-i5.js",
+    "status": 200,
+    "bytes": 2279,
+    "sha256": "611fc7494e0fbc6fa69bf2782a76298fa29055e646739c14d9f75a5541a3ad80",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/virtualExposes.CoS9ZdNV.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_virtualExposes.CoS9ZdNV.js",
+    "status": 200,
+    "bytes": 1349,
+    "sha256": "215b7c67c2a59d807805be7c802fe03fd761d1313fca6bc3d57cd7e1133068e5",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/RemoteApp.ByMkn_Wn.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_RemoteApp.ByMkn_Wn.js",
+    "status": 200,
+    "bytes": 80189,
+    "sha256": "e1609b1859c251793a3bb5f02eea8a9fdc34734122ad3624b1c0f8c1f56ddb78",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadShare__react__loadShare__.js.DrUfBoPl.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadShare_react_loadShare_.js.DrUfBoPl.js",
+    "status": 200,
+    "bytes": 2212,
+    "sha256": "161a59c4b1191d4db6193e8e01f5d992001946f86e409179f8d45d549b19abd2",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/style.caqVNX-S.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_style.caqVNX-S.js",
+    "status": 200,
+    "bytes": 220534,
+    "sha256": "24a6520e8e3c1f99597c70ab906c3b3be814f71f2b06b3e0af0b980533cbc909",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadShare__react_mf_2_router_mf_2_dom__loadShare__.js.BZSgL8GB.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadShare_react_mf_2_router_mf_2_dom_loadShare_.js.BZSgL8GB.js",
+    "status": 200,
+    "bytes": 2013,
+    "sha256": "bc6aa94faefef3271a523a4ff0bb6944a1a7edf45dfd2c25b86985fb9fd7dc35",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadShare__react__loadShare__.js_commonjs-proxy.D9-4WhAz.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadShare_react_loadShare_.js_commonjs-proxy.D9-4WhAz.js",
+    "status": 200,
+    "bytes": 811,
+    "sha256": "c71dcb832e9f4967103ee35f0dd45a0b9ace050abc32c5e0dade5dbd172bee79",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadShare__react_mf_2_dom__loadShare__.js_commonjs-proxy.Cfz_Ae-u.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadShare_react_mf_2_dom_loadShare_.js_commonjs-proxy.Cfz_Ae-u.js",
+    "status": 200,
+    "bytes": 253,
+    "sha256": "6907621bed658ef7bffdcc2238be29df9763ed5111066942bd0db255084d2e25",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.CFfTqdQQ.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.CFfTqdQQ.js",
+    "status": 200,
+    "bytes": 449,
+    "sha256": "a566127e344a816158fa5b55e0e6fdf3416a5374beb4f0c4473dc671a035ca95",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadShare__antd__loadShare__.js.DIDvp9MR.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadShare_antd_loadShare_.js.DIDvp9MR.js",
+    "status": 200,
+    "bytes": 1581,
+    "sha256": "4b939795528de6c04dd0b62d9f7c115754b2f4415606d6644f19da53d0e6aab7",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadShare__react_mf_2_dom__loadShare__.js.Cwu1HyDy.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadShare_react_mf_2_dom_loadShare_.js.Cwu1HyDy.js",
+    "status": 200,
+    "bytes": 1504,
+    "sha256": "5dfd59ec485161dbeb06a46b9f3abd7aa36cddc6401c0dd21a772daa415a25a2",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/__mfe_internal__discovery_plaza__loadRemote__discovery_host_mf_1_PlatformSDK__loadRemote__.BtjiQAfm.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_mfe_internal_discovery_plaza_loadRemote_discovery_host_mf_1_PlatformSDK_loadRemote_.BtjiQAfm.js",
+    "status": 200,
+    "bytes": 893,
+    "sha256": "068d98937ff1869004a58ca53f5e56515d7f7c76a09d66c2aa493a38ab9723fb",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/dataset-square.Dw-0h9ee.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_dataset-square.Dw-0h9ee.js",
+    "status": 200,
+    "bytes": 8272,
+    "sha256": "2658a9d51fc375bb3c452e2a9c80a7359d62fb3fdc398eb6a39e45b9feb364d2",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/subject-domain-filter.DE5rZ-tK.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_subject-domain-filter.DE5rZ-tK.js",
+    "status": 200,
+    "bytes": 25221,
+    "sha256": "565e42fed4082e4b7131e0e078b260074d1ea20ffd191132f9c42c7496a4a413",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.BYmaOQTr.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.BYmaOQTr.js",
+    "status": 200,
+    "bytes": 2026,
+    "sha256": "cd8b57e6ca55a2eedbedb7c1a675cf7046baa2fb09c8ca861462d5237fa58f07",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/detail.CXEKEiYb.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_detail.CXEKEiYb.js",
+    "status": 200,
+    "bytes": 4191,
+    "sha256": "514ea7ab3ec37520520d51f16dedcf07196386a5cf963b280209432af4f98c9a",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/dataset.Re2rZIUw.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_dataset.Re2rZIUw.js",
+    "status": 200,
+    "bytes": 2883,
+    "sha256": "96c16d4befdbefa66176e006e9b3b495163deccdb6d2eff6f53c3b737522cd51",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/createdataset.BQVjStMG.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_createdataset.BQVjStMG.js",
+    "status": 200,
+    "bytes": 3471,
+    "sha256": "8ab34ddffd77a72519155cbee1b3f8dbdb932fa1f1899dd786f88a448b14877d",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.DrqjF9_G.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.DrqjF9_G.js",
+    "status": 200,
+    "bytes": 852,
+    "sha256": "fe1cd4e6abd81d0b61e3c76e20ed6b64bf986af3ffeb5b17e0b935e38a709ddd",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.BEBBz8gI.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.BEBBz8gI.js",
+    "status": 200,
+    "bytes": 49041,
+    "sha256": "592fde3d7ffd39366cdf88f651312f5988d04c76c5ceefd3d5277c2427076341",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.FJSb_QS6.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.FJSb_QS6.js",
+    "status": 200,
+    "bytes": 26608,
+    "sha256": "0351dbdc09009570f83047e81917d6704deeb792ffcc2274d5e36ff27ab7f200",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/setPrototypeOf.Dz_SKxim.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_setPrototypeOf.Dz_SKxim.js",
+    "status": 200,
+    "bytes": 638,
+    "sha256": "646f0ab8198804d980ee063f99ab8f41d8135aa7f606afa73df7d68446ef5841",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.CDJWrE6j.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.CDJWrE6j.js",
+    "status": 200,
+    "bytes": 1981,
+    "sha256": "70a4375b5076fb30b41d2848734b858b629c54dd5b7a9fae8e940bf4afcd1a1e",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/dataset-static/assets/index.BAoeJOU2.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_dataset-static_assets_index.BAoeJOU2.js",
+    "status": 200,
+    "bytes": 2922,
+    "sha256": "9fdbfde530bc876e47e7ad375142c0b330741dbb845e1fdf6d671c59ea8d13bc",
+    "contentType": "application/javascript"
+  }
+]

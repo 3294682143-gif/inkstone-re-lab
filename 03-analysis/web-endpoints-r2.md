@@ -142,3 +142,17 @@
 2. `const doFetch = ufetch || fetch` 中 `ufetch` 未定义 → ReferenceError；改为 `const doFetch = fetch`。
 
 修复后该脚本可对任意 `a0-network.json` 工作，本轮据此采集了 paper / compute / app 三个子应用。
+
+
+### 子应用接口面（续，2026-10-20）
+
+| 子应用 | 包位置 | API 前缀 | 端点 |
+| --- | --- | --- | --- |
+| 科学数据 | `/dataset-static/`（27 个运行时文件） | `datasets` | `/dataset/{square_list,recommend_list,detail,public_detail,create,del}`、`/dataset/collect/{add,cancel}`、`/dataset/cover/upload_url`、`/dataset/file/download/apply`、`/category/list`、`/license/list`、`/official-label/list`、`/custom-label/list`、`/report/add`、`/dataset/check/warehouse_name` |
+| 科研模型 | `/token-plan-static/`（含 937 KB remote-app） | `tokenplan` | `/keys`、`/models`、`/credits/{balance,packages,transactions,income-expense-types}`、`/usage/summary`、`/users/{free-grant,validate}`、`/credit-increase-applications` |
+
+### 更正：课题空间 / 科学工具不是独立子应用
+
+实测 `/repo-static/remoteEntry-var.js`、`/scp-static/remoteEntry-var.js` 返回的是 **SPA 兜底 HTML**（不是 JS），说明这两个路由没有独立远程件；它们由 MOCE 远程应用承载（MOCE bundle 内含 `/api/spacebe/v1` 与 `/api/scphub/v1`）。
+
+真正验证存在远程件的：`paper`、`app`、`compute`、`dataset`、`token-plan`、`chat(MOCE)`。

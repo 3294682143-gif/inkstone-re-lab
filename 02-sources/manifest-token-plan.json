@@ -1,0 +1,50 @@
+[
+  {
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_remoteEntry-var.js",
+    "status": 200,
+    "bytes": 624,
+    "sha256": "d8e6b85900b8a79ed9e732b6a08fd47c108c388b893ae9042b850cd8123ba99f",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/remoteEntry.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_remoteEntry.js",
+    "status": 200,
+    "bytes": 17430,
+    "sha256": "e0981a759797515a52eb229b9dec36d0a92722ebd9ac6597a1bcbd3812cbfad9",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/vite-preload-helper-BvM_VThW.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_vite-preload-helper-BvM_VThW.js",
+    "status": 200,
+    "bytes": 1023,
+    "sha256": "0c704d72cca4e69a610965c338183b77cb2e76d6090330d26509b7111af5cc04",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/index-D4JaerwA.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_index-D4JaerwA.js",
+    "status": 200,
+    "bytes": 61887,
+    "sha256": "0408aeeb6af91f0e33995928f7b1b13fd0c70fd2bcd3e8243c2c144a8cfb096a",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/virtualExposes-BmjXKsQ_.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_virtualExposes-BmjXKsQ_.js",
+    "status": 200,
+    "bytes": 1486,
+    "sha256": "b8b884d1d80441d04e601a0f30ba897bafc6b3c95566103f3a23ca99a9e66081",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/remote-app-DTskUtVo.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_remote-app-DTskUtVo.js",
+    "status": 200,
+    "bytes": 937531,
+    "sha256": "36e23f3828ca11464c10539bfe788f0534c55696687bf3452dac70c2311729b7",
+    "contentType": "application/javascript"
+  }
+]

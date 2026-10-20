@@ -1,74 +1,50 @@
 [
   {
-    "url": "https://discovery.intern-ai.org.cn/app-static/remoteEntry-var.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_app-static_remoteEntry-var.js",
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_remoteEntry-var.js",
     "status": 200,
-    "bytes": 686,
-    "sha256": "17ae2be9429a620ff8f3274df9b3223128d2826e274244deb5c19f7ef9b20198",
+    "bytes": 624,
+    "sha256": "d8e6b85900b8a79ed9e732b6a08fd47c108c388b893ae9042b850cd8123ba99f",
     "contentType": "application/javascript"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/remoteEntry.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_remoteEntry.js",
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/remoteEntry.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_remoteEntry.js",
     "status": 200,
-    "bytes": 3331,
-    "sha256": "fd57798a12b95474ddf410ce7301133c9ec42418dafa519ae6669b78b75daa19",
-    "contentType": "application/javascript; charset=utf-8"
+    "bytes": 17430,
+    "sha256": "e0981a759797515a52eb229b9dec36d0a92722ebd9ac6597a1bcbd3812cbfad9",
+    "contentType": "application/javascript"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/index.cjs-DZUU_bua.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_index.cjs-DZUU_bua.js",
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/vite-preload-helper-BvM_VThW.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_vite-preload-helper-BvM_VThW.js",
     "status": 200,
-    "bytes": 57027,
-    "sha256": "1aa79bcd43d2bb286d513de5e3d40fa624cf1b7237c91fbee9e35217ed961c7e",
-    "contentType": "application/javascript; charset=utf-8"
+    "bytes": 1023,
+    "sha256": "0c704d72cca4e69a610965c338183b77cb2e76d6090330d26509b7111af5cc04",
+    "contentType": "application/javascript"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/virtualExposes-Dt7IsUQe.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_virtualExposes-Dt7IsUQe.js",
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/index-D4JaerwA.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_index-D4JaerwA.js",
     "status": 200,
-    "bytes": 1029,
-    "sha256": "94f710d38ce303468d2371c8088ff64107ea8f2b6b2aaa52e73adf331757eb25",
-    "contentType": "application/javascript; charset=utf-8"
+    "bytes": 61887,
+    "sha256": "0408aeeb6af91f0e33995928f7b1b13fd0c70fd2bcd3e8243c2c144a8cfb096a",
+    "contentType": "application/javascript"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/preload-helper-BJp2Yy4Q.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_preload-helper-BJp2Yy4Q.js",
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/virtualExposes-BmjXKsQ_.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_virtualExposes-BmjXKsQ_.js",
     "status": 200,
-    "bytes": 1018,
-    "sha256": "cb032cf2df9b77305576eafa90839291771ec12a4a4b8827cb42b800e2d28bfb",
-    "contentType": "application/javascript; charset=utf-8"
+    "bytes": 1486,
+    "sha256": "b8b884d1d80441d04e601a0f30ba897bafc6b3c95566103f3a23ca99a9e66081",
+    "contentType": "application/javascript"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/runtimeInit-DI3bYXXk.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_runtimeInit-DI3bYXXk.js",
+    "url": "https://discovery.intern-ai.org.cn/token-plan-static/assets/remote-app-DTskUtVo.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_token-plan-static_assets_remote-app-DTskUtVo.js",
     "status": 200,
-    "bytes": 419,
-    "sha256": "62937f1134e15a8c1757a9d73150fce927f0ea2f119be9a868d0d98aa8b4d3bd",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/remote-app-CubehDmM.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_remote-app-CubehDmM.js",
-    "status": 200,
-    "bytes": 563661,
-    "sha256": "969b5706038f1f1f6c3d9fce05187c839ee24cb2f435a88f7cd4e777de182c31",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/discovery_app__loadShare__react__loadShare__.mjs-CzpHvsVN.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_discovery_app_loadShare_react_loadShare_.mjs-CzpHvsVN.js",
-    "status": 200,
-    "bytes": 1848,
-    "sha256": "c0b30c1762aea5e12570c8832ebf20e56dfe07bdc20632c37e622589d11a2706",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/discovery_app__loadShare__react_mf_2_dom__loadShare__.mjs-DiUchHb_.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_discovery_app_loadShare_react_mf_2_dom_loadShare_.mjs-DiUchHb_.js",
-    "status": 200,
-    "bytes": 1147,
-    "sha256": "6a1995de7aa6d23c783e933026bd469e2bd3e16ac2d56abaf22db819dfafc159",
-    "contentType": "application/javascript; charset=utf-8"
+    "bytes": 937531,
+    "sha256": "36e23f3828ca11464c10539bfe788f0534c55696687bf3452dac70c2311729b7",
+    "contentType": "application/javascript"
   }
 ]

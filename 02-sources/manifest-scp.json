@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://discovery.intern-ai.org.cn/scp-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_scp-static_remoteEntry-var.js",
+    "status": 200,
+    "bytes": 978,
+    "sha256": "62ed1ae207086bddbc38d81d6c4340a7f93c6b66b774197fd98dcb44180c5065",
+    "contentType": "text/html"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/scp-static/remoteEntry.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_scp-static_remoteEntry.js",
+    "status": 200,
+    "bytes": 978,
+    "sha256": "62ed1ae207086bddbc38d81d6c4340a7f93c6b66b774197fd98dcb44180c5065",
+    "contentType": "text/html"
+  }
+]

@@ -349,8 +349,8 @@ $('#text').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.
 const VIEWS = {
   '/repo': { title: '课题空间', path: '/repo', api: '/api/spacebe/v1/space/list?page=1&page_size=10', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + (x.name||('课题 '+x.id)) + '</b><span>' + (x.description||'') + '</span></div>'; }).join(''); } },
   '/scp': { title: '科学工具', path: '/scp', api: '/api/scphub/v1/scp/tags', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + x.name + '</b><span>' + (x.name_en||'') + '</span></div>'; }).join(''); } },
-  '/dataset': { title: '科学数据', path: '/dataset', api: '/api/datasets/v1/category/list', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + x.name + '</b><span>共 ' + (d.total||0) + ' 类</span></div>'; }).join(''); } },
-  '/token-plan/home': { title: '科研模型', path: '/token-plan/home', api: '/api/orbit/v1/models', render: function(d){ return (d.models||[]).map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + ((m.tags||[]).join(' · ')) + '</span></div>'; }).join(''); } },
+  '/dataset': { title: '科学数据', path: '/dataset', api: '/api/datasets/v1/dataset/square_list', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + x.name + '</b><span>' + (x.domain||'') + ' · ' + (x.size||'') + ' · 下载 ' + (x.downloads||0) + '</span></div>'; }).join(''); } },
+  '/token-plan/home': { title: '科研模型', path: '/token-plan/home', api: '/api/tokenplan/v1/models', render: function(d){ return (d.list||[]).map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + (m.context||'') + ' · ' + (m.pricing||'') + '</span></div>'; }).join(''); } },
   '/paper': { title: '论文工具', path: '/paper', api: '/api/nova/v1/search/hot-papers', render: function(d){ return (d.list||[]).map(function(p){ return '<div class="card"><b>' + p.title + '</b><span>' + (p.venue||'') + ' · ' + (p.year||'') + ' · 引用 ' + (p.citations||0) + '</span></div>'; }).join(''); } },
   '/app': { title: '科研应用', path: '/app', api: '/api/moce/v1/apps/list', render: function(d){ return (d.list||[]).map(function(a){ return '<div class="card"><b>' + a.name + '</b><span>' + (a.domain||'') + ' · ' + (a.summary||'') + '</span></div>'; }).join(''); } },
   '/compute': { title: '科学计算', path: '/compute', api: '/api/ml/v1/dev-machine/list', render: function(d){ return (d.list||[]).map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + (m.status||'') + ' · ' + (m.gpu||'') + ' · 配额 ' + (m.quota||'') + '</span></div>'; }).join(''); } },
@@ -428,6 +428,22 @@ export function createMockGatewayServer(opts = {}) {
       }
       // ===== 网页协议（依据 04-contracts/api-contract.md + web-a5/web-a6）=====
       // 公开接口（未登录态实测 200，形状见 03-analysis/web-endpoints-r2.md §5）
+      if (method === 'GET' && path === '/api/datasets/v1/dataset/square_list') {
+        log('GET /datasets/v1/dataset/square_list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 101, name: '蛋白质结构数据集', domain: '生命科学', size: '12.4 GB', downloads: 3821, description: 'PDB 衍生结构集合' },
+          { id: 102, name: '全球气象再分析', domain: '地球科学', size: '88.1 GB', downloads: 1290, description: 'ERA5 子集' },
+          { id: 103, name: '材料晶体结构库', domain: '物质科学', size: '5.7 GB', downloads: 964, description: 'Materials Project 子集' },
+        ], total: 3 } }));
+      }
+      if (method === 'GET' && path === '/api/tokenplan/v1/models') {
+        log('GET /tokenplan/v1/models -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { name: '书生-S2', context: '128K', pricing: '￥0.002/1K', status: 'available' },
+          { name: 'Qwen3.8-Max', context: '256K', pricing: '￥0.004/1K', status: 'available' },
+          { name: 'DeepSeek-V4-Flash', context: '64K', pricing: '￥0.0005/1K', status: 'available' },
+        ], total: 3 } }));
+      }
       if (method === 'GET' && path === '/api/moce/v1/apps/list') {
         log('GET /moce/v1/apps/list -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: { list: [

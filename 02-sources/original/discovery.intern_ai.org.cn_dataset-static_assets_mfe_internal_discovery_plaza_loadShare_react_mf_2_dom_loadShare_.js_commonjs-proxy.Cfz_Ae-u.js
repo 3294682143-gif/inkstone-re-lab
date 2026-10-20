@@ -1,0 +1,1 @@
+import{g as e}from"./__mfe_internal__discovery_plaza__loadShare__react__loadShare__.js_commonjs-proxy.D9-4WhAz.js";import{R as r}from"./__mfe_internal__discovery_plaza__loadShare__react_mf_2_dom__loadShare__.js.Cwu1HyDy.js";const m=e(r);export{m as r};
