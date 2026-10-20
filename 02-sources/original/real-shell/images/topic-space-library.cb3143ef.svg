@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-library" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 6H22V42H32V6Z" />
+    <path d="M42 6H32V42H42V6Z" />
+    <path d="M10 6L18 7L14.5 42L6 41L10 6Z" />
+    <path d="M37 18V15" />
+    <path d="M27 18V15" />
+  </symbol>
+</svg>

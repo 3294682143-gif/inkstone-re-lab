@@ -795,9 +795,20 @@ export function createMockGatewayServer(opts = {}) {
         log(`POST /chat/${mStop[1]}/stop message_id=${body?.message_id} -> 200 (cancelled=${!!st})`);
         return send(200, JSON.stringify({ code: 0, data: { stopped: !!st, chat_id: Number(mStop[1]), message_id: body?.message_id ?? null } }));
       }
+      const mDetail = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)(\/detail)?$/);
+      if (method === 'GET' && mDetail) {
+        const id = Number(mDetail[1]);
+        const mid = id * 10 + 1;
+        log('GET /chat/' + id + (mDetail[2] ? '/detail' : '') + ' -> 200 (web, synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: {
+          id: id, chat_id: id, title: '合成会话（离线）', scenario: 1,
+          messages: [{ id: String(mid), chat_id: id, message_id: mid, request: '本地 mock：请只回复 OK', response: 'OK', status: 1, model: 'Default', created_at: new Date().toISOString(), thinking: false }],
+          turns: [], total: 1,
+        } }));
+      }
       if (method === 'GET' && path === '/api/orbit/v1/chat/list') {
         log('GET /chat/list -> 200 (web)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [{ id: chatSeq, title: '合成会话（离线）', scenario: 1 }], total: 1, page: 1 } }));
+        return send(200, JSON.stringify({ code: 0, data: { list: [{ id: chatSeq, chat_id: chatSeq, title: '合成会话（离线）', name: '合成会话（离线）', scenario: 1, updated_at: new Date().toISOString(), created_at: new Date().toISOString() }], total: 1, page: 1, size: 20 } }));
       }
       if (method === 'GET' && path === '/api/orbit/v1/local-agent/models') {
         log('GET /local-agent/models -> 200');

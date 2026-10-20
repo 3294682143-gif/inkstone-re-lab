@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkdiscovery_host_fe=self.webpackChunkdiscovery_host_fe||[]).push([[857],{2857(t,e,o){o.r(e),o.d(e,{HistoryContext:()=>r.HistoryContext,HistoryProvider:()=>r.HistoryProvider,HostStateContext:()=>i,historyHostApi:()=>r.historyHostApi,useHistoryContext:()=>r.useHistoryContext,useHostState:()=>n});var s=o(94120),r=o(84331);const i=(0,s.createContext)({}),n=()=>(0,s.useContext)(i)}}]);
+//# sourceMappingURL=857.1e44dfb7.chunk.js.map
