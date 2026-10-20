@@ -125,5 +125,124 @@
       "stop 响应体字段",
       "followup 的 wire 字段名（渲染层有 followupActions，wire 未确认）"
     ]
-  }
+  },
+  "tool_calling": {
+    "captured": true,
+    "how": "headless session.create(permission_mode=\"auto\") + turn.send 让模型真实调用工具",
+    "tool_use_block": {
+      "shape": {
+        "type": "tool_use",
+        "id": "chatcmpl-tool-<id>",
+        "executionId": "exec_<sha256>",
+        "name": "Bash",
+        "input": {
+          "command": "dir",
+          "cwd": "."
+        },
+        "reconciliationVersion": "broker-reconcile.v1"
+      },
+      "note": "canonical name 是 Bash / ListTree；agent 事件里的 tool 名是 run_command / list_tree（两层命名不同）"
+    },
+    "tool_result_block": {
+      "shape": {
+        "type": "tool_result",
+        "executionId": "exec_<sha256>",
+        "toolUseId": "chatcmpl-tool-<id>",
+        "content": "<JSON string>",
+        "isError": false
+      },
+      "note": "content 是 JSON 字符串（非对象）；该块所在消息的 role 是 user"
+    },
+    "tool_result_content_examples": {
+      "bash": {
+        "status": "completed",
+        "summary": "Local command execution completed.",
+        "data": {
+          "durationMs": 1352,
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": "<redacted path>..."
+        },
+        "artifacts": [],
+        "truncation": {
+          "truncated": false
+        }
+      },
+      "list_tree": {
+        "status": "completed",
+        "summary": "Project tree enumeration completed.",
+        "data": {
+          "relativePath": "",
+          "entries": [],
+          "partial": false,
+          "limitations": [],
+          "scannedCount": 0,
+          "candidateCount": 0,
+          "includedCount": 0,
+          "omittedBytes": 0
+        },
+        "artifacts": [],
+        "truncation": {
+          "truncated": false
+        }
+      }
+    },
+    "agent_event_types": {
+      "workflow": {
+        "event_id": "event_<hex>",
+        "seq": 1,
+        "type": "workflow",
+        "step": 0,
+        "status": "RUNNING|SUCCESS",
+        "occurred_at": "<iso>",
+        "agent_id": "agent_<hex>",
+        "hint": "本地 Agent 已开始执行"
+      },
+      "tool_call": {
+        "type": "tool_call",
+        "step": 1,
+        "round": 1,
+        "status": "RUNNING",
+        "occurred_at": "<iso>",
+        "activity_id": "call_<hex>",
+        "agent_id": "agent_<hex>",
+        "tool": "run_command",
+        "hint": "本地工具正在执行",
+        "call_id": "call_<hex>..."
+      },
+      "tool_result": {
+        "type": "tool_result",
+        "step": 1,
+        "round": 1,
+        "status": "SUCCESS",
+        "occurred_at": "<iso>",
+        "activity_id": "call_<hex>",
+        "agent_id": "agent_<hex>",
+        "tool": "run_command",
+        "hint": "本地命令执行完成",
+        "call_id": "call_<hex>..."
+      }
+    },
+    "execution_summary": {
+      "toolCalls": 2,
+      "toolFailures": 0,
+      "approvalsRequested": 0,
+      "filesChanged": [],
+      "commandsRun": 1
+    },
+    "approvals": {
+      "observed": false,
+      "note": "permission_mode=auto 未触发审批；approval.list 需要 turn_id 参数（错误信息确认）",
+      "valid_permission_mode": [
+        "auto",
+        "request"
+      ]
+    }
+  },
+  "still_unknown": [
+    "local-turn checkpoint / complete 的 HTTP body（只观测到 running_turn/cleared 本地状态）",
+    "approval 记录结构（需 permission_mode=request 且有工具需审批的轮次）",
+    "agentd → gateway 的真实 wire body（本地 canonical 与 wire 之间还有一层）",
+    "stop 响应体字段（网页端）"
+  ]
 }
