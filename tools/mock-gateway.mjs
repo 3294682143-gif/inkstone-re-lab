@@ -50,8 +50,8 @@ const SCP_ITEMS = [
 // 有状态存储：新建/启停/创建 Key/申请 会真正改变后续查询结果
 const store = {
   spaces: [
-    { id: '3914', name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比', members: 3, files: 27, updated_at: '2026-10-18T09:12:00Z' },
-    { id: '3915', name: '离线回归项目', description: '桌面/网页协议回归验证用', members: 2, files: 9, updated_at: '2026-10-17T08:00:00Z' },
+    { id: '3914', name: 'COCO 与 YOLOv8 复现', field: '通用', description: '目标检测基线复现与方法对比', members: 3, files: 27, updated_at: '2026-10-18T09:12:00Z' },
+    { id: '3915', name: '离线回归项目', field: '通用', description: '桌面/网页协议回归验证用', members: 2, files: 9, updated_at: '2026-10-17T08:00:00Z' },
   ],
   files: {
     '3914': [
@@ -706,7 +706,7 @@ export function createMockGatewayServer(opts = {}) {
       }
       if (method === 'POST' && path === '/api/spacebe/v1/space/create') {
       const body = await readBody(req);
-      const item = { id: 'sp' + (++seq), name: String(body.name || '新建课题'), description: '本地合成课题', members: 1, files: 0, updated_at: new Date().toISOString() };
+      const item = { id: 'sp' + (++seq), name: String(body.name || '新建课题'), field: String(body.field || '通用'), description: String(body.description || ''), members: 1, files: 0, updated_at: new Date().toISOString() };
       store.spaces.unshift(item);
       store.files[item.id] = [];
       log('POST /spacebe/v1/space/create -> 200 (stateful, now ' + store.spaces.length + ')');

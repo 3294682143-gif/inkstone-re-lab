@@ -81,6 +81,24 @@ input.search{flex:1;min-width:220px}
 .tag.on{background:var(--brand-weak);color:var(--brand);border:1px solid var(--brand-line)}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.on{opacity:.92}
+.mask{position:fixed;inset:0;background:rgba(20,26,38,.35);display:none;align-items:center;justify-content:center;z-index:20}
+.mask.on{display:flex}
+.modal{width:520px;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(15,25,45,.18);padding:18px 20px}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mhead b{font-size:16px}
+.mx{border:0;background:transparent;font-size:18px;color:#8a9099;line-height:1}
+.mlabel{display:flex;align-items:center;gap:6px;font-size:13px;color:#1b1f24;margin:10px 0 6px}
+.mlabel .req{color:#e0332c}
+.mlabel .opt{color:#8a9099;font-size:12px}
+.mlabel .cnt{margin-left:auto;color:#a3a9b3;font-size:12px}
+.modal input,.modal textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:0;background:#fff}
+.modal input:focus,.modal textarea:focus{border-color:var(--brand)}
+.modal textarea{min-height:84px;resize:none}
+.fields{display:flex;flex-wrap:wrap;gap:8px}
+.fd{align-items:center;gap:4px;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#4a5058;font-size:12px}
+.fd.on{background:#eef3ff;border-color:#bcd2ff;color:#2f6fed;font-weight:600}
+.mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+
 </style>
 </head>
 <body>
@@ -113,6 +131,16 @@ input.search{flex:1;min-width:220px}
     <div class="scroll" id="view"></div>
   </main>
 </div>
+<div class="mask" id="mask"><div class="modal">
+  <div class="mhead"><b id="mTitle">创建课题</b><button class="mx" id="mClose">×</button></div>
+  <div class="mlabel">课题名称<span class="req">*</span><span class="cnt" id="cName">0 / 50</span></div>
+  <input id="mName" maxlength="50" placeholder="例：阶段性研究计划"/>
+  <div class="mlabel" style="margin-top:14px">领域</div>
+  <div class="fields" id="mFields"></div>
+  <div class="mlabel" style="margin-top:14px">课题描述<span class="opt">选填</span><span class="cnt" id="cDesc">0 / 200</span></div>
+  <textarea id="mDesc" maxlength="200" placeholder="目标、关键问题或方法"></textarea>
+  <div class="mfoot"><button class="btn" id="mCancel">取消</button><button class="btn primary" id="mCreate" disabled>创建</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
 <script>
 (function () {
@@ -238,6 +266,49 @@ input.search{flex:1;min-width:220px}
     } finally { if (bar && bar.parentNode) bar.remove(); loadHist(); }
   }
 
+  var FIELDS = ['通用', '生命科学', '地球科学', '神经科学', '材料科学', '化学', '物理', '数学', '量子计算', '算子开发', '其他'];
+  var modalState = { field: '通用' };
+  function openCreateModal(onCreated) {
+    var mask = $('#mask');
+    $('#mName').value = '';
+    $('#mDesc').value = '';
+    $('#cName').textContent = '0 / 50';
+    $('#cDesc').textContent = '0 / 200';
+    $('#mCreate').disabled = true;
+    modalState.field = '通用';
+    $('#mFields').innerHTML = FIELDS.map(function (x, i) {
+      return '<button class="fd' + (i === 0 ? ' on' : '') + '" data-f="' + esc(x) + '">✚ ' + esc(x) + '</button>';
+    }).join('');
+    $$('#mFields .fd').forEach(function (b) {
+      b.addEventListener('click', function () {
+        $$('#mFields .fd').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        modalState.field = b.getAttribute('data-f');
+      });
+    });
+    mask.classList.add('on');
+    setTimeout(function () { $('#mName').focus(); }, 40);
+    var close = function () { mask.classList.remove('on'); };
+    $('#mClose').onclick = close;
+    $('#mCancel').onclick = close;
+    $('#mName').oninput = function () {
+      $('#cName').textContent = $('#mName').value.length + ' / 50';
+      $('#mCreate').disabled = $('#mName').value.trim() === '';
+    };
+    $('#mDesc').oninput = function () {
+      $('#cDesc').textContent = $('#mDesc').value.length + ' / 200';
+    };
+    var submit = async function () {
+      var name = $('#mName').value.trim();
+      if (!name) return;
+      var r = await post('/api/spacebe/v1/space/create', { name: name, field: modalState.field, description: $('#mDesc').value.trim() });
+      close();
+      toast('已创建课题 ' + ((r && r.data && r.data.id) || ''));
+      if (typeof onCreated === 'function') onCreated();
+    };
+    $('#mCreate').onclick = submit;
+  }
+
   function pageShell(title, sub) {
     view.innerHTML = '<div class="page"><h2>' + esc(title) + '</h2><div class="sub">' + esc(sub) + '</div><div id="pc"></div></div>';
     return $('#pc');
@@ -293,12 +364,8 @@ input.search{flex:1;min-width:220px}
     var j = await api('/api/spacebe/v1/space/list?page=1&page_size=10');
     var list = (j && j.data && j.data.list) || [];
     box.innerHTML = '<div class="row"><button class="btn primary" id="createSpace">＋ 新建课题</button></div>'
-      + cards(list, function (s) { return '<div class="card" data-id="' + esc(s.id) + '"><b>' + esc(s.name) + '</b><span>成员 ' + esc(s.members) + ' · 文件 ' + esc(s.files) + '</span></div>'; });
-    $('#createSpace').addEventListener('click', async function () {
-      var r = await post('/api/spacebe/v1/space/create', { name: '新建课题' });
-      toast('已创建课题 ' + ((r && r.data && r.data.id) || ''));
-      repoPage();
-    });
+      + cards(list, function (s) { return '<div class="card" data-id="' + esc(s.id) + '"><b>' + esc(s.name) + '</b><span>' + esc(s.field || '通用') + ' · 成员 ' + esc(s.members) + ' · 文件 ' + esc(s.files) + '</span></div>'; });
+    $('#createSpace').addEventListener('click', function () { openCreateModal(repoPage); });
     $$('.card[data-id]', box).forEach(function (c) {
       c.addEventListener('click', async function () {
         var sid = c.getAttribute('data-id');
@@ -306,8 +373,8 @@ input.search{flex:1;min-width:220px}
         var dd = (both[0] && both[0].data) || {};
         var files = (both[1] && both[1].data && both[1].data.list) || [];
         box.innerHTML = '<div class="detail"><h3>' + esc(dd.name) + '</h3>'
-          + '<div class="kv">成员 ' + esc(dd.members) + ' · 文件 ' + esc(dd.files) + ' · 更新 ' + esc(dd.updated_at) + '</div>'
-          + '<p>' + esc(dd.description) + '</p></div>'
+          + '<div class="kv">领域 ' + esc(dd.field || '通用') + ' · 成员 ' + esc(dd.members) + ' · 文件 ' + esc(dd.files) + ' · 更新 ' + esc(dd.updated_at) + '</div>'
+          + '<p>' + esc(dd.description || '（无描述）') + '</p></div>'
           + '<div class="grid" style="margin-top:12px">' + files.map(function (x) {
             return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.type) + ' · ' + esc(x.size) + ' B</span></div>';
           }).join('') + '</div>';
