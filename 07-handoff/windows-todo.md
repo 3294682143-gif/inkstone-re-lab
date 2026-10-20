@@ -23,3 +23,21 @@
 - 不为「跑通」而关闭认证、证书校验或平台保护。
 - 每条动态结论必须绑定：应用样本哈希（`10c286f3…`）、交付 SHA、采集时间、触发动作。
 - `accepted`、本地流关闭、mock 输出都不能当作完成证据。
+
+---
+
+## W1–W4 实机进展（2026-10-20）
+
+| 任务 | 状态 | 证据 |
+| --- | --- | --- |
+| W1 driver 发现（driver.ready / projects / models） | **CONFIRMED** | 06-desktop/validation/windows-w1-20261020/results.json |
+| W2 首轮 + 追问 + history | **CONFIRMED** | 06-desktop/validation/windows-w2-w3-20261020/results.json |
+| W3 取消收敛（stop → 终态 stopped → history 收敛） | **CONFIRMED**（本地链路；远端计费 UNKNOWN） | 同上 |
+| W4 messages 元素结构 | **CONFIRMED** | 01-evidence/sanitized/wire-canonical-20261020.json（text/thinking/tool_use/tool_result） |
+| W4 tools 元素结构 | **CONFIRMED** | 同上（name/input/executionId/reconciliationVersion） |
+| W4 local-turn start body | **CONFIRMED** | 同上（turn_id/protocol_version/execution_mode/model/thinking_enabled/user_prompt） |
+| W4 checkpoint / complete body | **TODO** | 仅观测到 running_turn/cleared 本地状态 |
+| W4 审批结构 | **TODO** | 需 permission_mode=request 且工具需审批；approval.list 需要 turn_id |
+| W4 agentd → gateway 真实 wire body | **TODO** | 本地 canonical 与 wire 之间还有一层，未取得 |
+| 关键前置（环境） | **CONFIRMED** | Electron 应用启动必须剔除 ELECTRON_RUN_AS_NODE |
+| 关键前置（项目） | **CONFIRMED** | headless 无 projects.create；需先用 GUI 建本地项目 |
