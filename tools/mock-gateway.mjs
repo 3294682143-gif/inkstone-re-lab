@@ -639,7 +639,13 @@ export function createMockGatewayServer(opts = {}) {
       }
       if (method === 'GET' && path === '/api/tokenplan/v1/credits/balance') {
         log('GET /tokenplan/v1/credits/balance -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { balance: 386.5, currency: 'CNY', next_reset: '2026-11-01' } }));
+        return send(200, JSON.stringify({ code: 0, data: {
+          balance: 386.5, currency: 'CNY', next_reset: '2026-11-01',
+          usage_windows: {
+            '5h': { enabled: true, limit_credits: 100, remaining_credits: 62, next_recover_at: '2026-10-20T22:00:00Z', resets_at: '2026-10-20T22:00:00Z' },
+            '7d': { enabled: true, limit_credits: 800, remaining_credits: 410, next_recover_at: '2026-10-27T00:00:00Z', resets_at: '2026-10-27T00:00:00Z' },
+          },
+        } }));
       }
       if (method === 'GET' && path === '/api/tokenplan/v1/models') {
         log('GET /tokenplan/v1/models -> 200 (synthetic)');
@@ -842,6 +848,10 @@ export function createMockGatewayServer(opts = {}) {
       if (method === 'POST' && mCom) { log(`POST ${path} -> 200`); return send(200, envelope({ turn_id: decodeURIComponent(mCom[2]), message_id: 11, status: 'complete', checkpoint_seq: 2, usage: { input_tokens: 5, output_tokens: answerText.length, cache_read_tokens: 0, cache_write_tokens: 0 } })); }
 
       log(`${method} ${path} -> 404`);
+      if (path.startsWith('/api/')) {
+        log(method + ' ' + path + ' -> 200 (fallback empty)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [], total: 0 } }));
+      }
       return send(404, JSON.stringify({ msg: 'not found', trace_id: 'synthetic-trace', code: 404 }));
     } catch (e) {
       log(`${method} ${path} -> 500 ${String(e.message).slice(0, 80)}`);

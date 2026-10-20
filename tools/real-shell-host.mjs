@@ -70,6 +70,47 @@ function buildMap() {
 }
 const MAP = buildMap();
 
+// ---- 按需镜像：默认关闭（纯本地）。MIRROR_ONDEMAND=1 时才回源抓取 ----
+const MIRROR_ONDEMAND = process.env.MIRROR_ONDEMAND === '1';
+const REAL_ORIGIN = 'https://discovery.intern-ai.org.cn';
+const MIRROR_ROOT = path.join(SHELL, 'mirror');
+const SAME_ORIGIN_PREFIXES = ['/paper-static/', '/dataset-static/', '/compute-static/', '/token-plan-static/',
+  '/repository-static/', '/app-static/', '/app/protein-static/', '/deepresearch-static/', '/js/', '/css/', '/images/'];
+const CDN_BASES = {
+  '/mock-cdn/moce/': 'https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/',
+  '/mock-cdn/app-fe/': 'https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/',
+  '/mock-cdn/scphub/': 'https://discovery-scphub-fe.intern-ai.org.cn/',
+  '/mock-cdn/usercenter/': 'https://discovery-usercenter.intern-ai.org.cn/',
+};
+function mirrorPath(urlPath) {
+  return path.join(MIRROR_ROOT, urlPath.replace(/^\/+/, '').replace(/[?*:<>|"]/g, '_'));
+}
+function upstreamUrl(urlPath, search) {
+  if (urlPath.startsWith('/mock-cdn/')) {
+    for (const [prefix, base] of Object.entries(CDN_BASES)) {
+      if (urlPath.startsWith(prefix)) return base + urlPath.slice(prefix.length) + (search || '');
+    }
+    return null;
+  }
+  if (SAME_ORIGIN_PREFIXES.some((x) => urlPath.startsWith(x))) return REAL_ORIGIN + urlPath + (search || '');
+  return null;
+}
+async function fetchAndMirror(urlPath, search) {
+  const up = upstreamUrl(urlPath, search);
+  if (!up) return null;
+  try {
+    const r = await fetch(up, { headers: { 'user-agent': 'Mozilla/5.0 local-mirror' } });
+    if (!r.ok) return null;
+    const buf = Buffer.from(await r.arrayBuffer());
+    const dest = mirrorPath(urlPath);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, buf);
+    return { buf, ct: r.headers.get('content-type') || '' };
+  } catch (e) {
+    return null;
+  }
+}
+
 // 采集脚本会把连续下划线压成单个（safeName 的 /_+/g 替换），这里按压缩名建回退表
 const collapse = (x) => x.replace(/_+/g, '_');
 const COLLAPSED = new Map();
@@ -109,6 +150,11 @@ function synthAuthBody(urlPath) {
 }
 
 const CDN_REWRITES = [
+  // 先替换「带斜杠」形式，再替换裸域名（配置里有不带斜杠的写法）
+  ['https://discovery-scphub-fe.intern-ai.org.cn/', '/mock-cdn/scphub/'],
+  ['https://discovery-scphub-fe.intern-ai.org.cn', '/mock-cdn/scphub'],
+  ['https://discovery-usercenter.intern-ai.org.cn/', '/mock-cdn/usercenter/'],
+  ['https://discovery-usercenter.intern-ai.org.cn', '/mock-cdn/usercenter'],
   ['https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/', '/mock-cdn/moce/'],
   ['https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/', '/mock-cdn/app-fe/'],
   ['https://discovery.intern-ai.org.cn/', '/'],
@@ -127,6 +173,7 @@ function contentType(p) {
 }
 
 const server = http.createServer(async (req, res) => {
+  if (process.env.LOG_REQ === '1') console.log('[req] ' + req.method + ' ' + req.url);
   const url = new URL(req.url, 'http://' + HOST + ':' + PORT);
   const p = decodeURIComponent(url.pathname);
 
@@ -159,11 +206,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const file = MAP.get(p) || resolveWithCollapse(p);
+  let file = MAP.get(p) || resolveWithCollapse(p);
+  if (!file) { const mp = mirrorPath(p); if (fs.existsSync(mp)) file = mp; }
   if (file && fs.existsSync(file)) {
     const buf = fs.readFileSync(file);
     const ct = contentType(file);
-    if (/^(text\/javascript|text\/css)/.test(ct)) {
+    if (/^(text\/javascript|text\/css|application\/json|text\/plain)/.test(ct) || /\.(js|mjs|css|json|map)$/.test(file)) {
       res.writeHead(200, { 'content-type': ct });
       res.end(rewrite(buf.toString('utf8')));
     } else {
@@ -172,6 +220,19 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
+
+  // 按需镜像：静态前缀或 /mock-cdn 未命中时，从真站抓一次
+  if (MIRROR_ONDEMAND && upstreamUrl(p, url.search)) {
+    const got = await fetchAndMirror(p, url.search);
+    if (got) {
+      const isText = /javascript|css|json/.test(got.ct) || /\.(js|mjs|css|json)$/.test(p);
+      res.writeHead(200, { 'content-type': got.ct || contentType(p) });
+      res.end(isText ? rewrite(got.buf.toString('utf8')) : got.buf);
+      return;
+    }
+  }
+
+  if (!MIRROR_ONDEMAND && upstreamUrl(p, url.search)) { console.error('[miss] ' + p + ' (mirror off)'); }
 
   // SPA 兜底（顺带写入本地合成登录 cookie）
   res.writeHead(200, {
