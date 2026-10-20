@@ -47,7 +47,15 @@ function makeTarget() {
   if (!existsSync(EXE)) throw new DriverProcessError('exe not found: ' + EXE, { code: 'ARGS' });
   // 实测：inkstone.exe 把 --headless-chat-driver 当 unknown switch 拒绝（bad option, exit 9）。
   // 契约 06-desktop/contracts/driver-jsonl.md 记录了两条入口，改用文档化的环境变量入口。
-  return { exe: EXE, args: [], env: { ...process.env, INKSTONE_HEADLESS_CHAT_DRIVER: '1' }, mock: false };
+  return { exe: EXE, args: [], env: { ...appEnv(), INKSTONE_HEADLESS_CHAT_DRIVER: '1' }, mock: false };
+}
+
+// Electron 应用必须清掉 ELECTRON_RUN_AS_NODE，否则 inkstone.exe 会以纯 Node 模式启动（不加载 app）。
+function appEnv() {
+  const e = { ...process.env };
+  delete e.ELECTRON_RUN_AS_NODE;
+  delete e.ELECTRON_NO_ATTACH_CONSOLE;
+  return e;
 }
 
 function marker() { return 'INKSTONE-W-' + Date.now().toString(36).toUpperCase(); }

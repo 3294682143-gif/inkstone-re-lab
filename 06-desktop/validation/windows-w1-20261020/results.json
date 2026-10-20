@@ -1,0 +1,49 @@
+{
+  "schema_version": "inkstone-windows-validation/1",
+  "stage": "W1-driver-discovery",
+  "status": "WINDOWS_DRIVER_PASS(discovery)",
+  "handoff_sha": "e5d97bb401dcbb685d2bacbd2bc4855938e1b3c8",
+  "host": {
+    "os": "windows",
+    "node": "v24.17.0",
+    "app_asar_sha256": "10c286f32211bcf2dc05f9ea4bbcf3e982627be2b92f2bc656503eec7535ad77"
+  },
+  "root_cause_found": {
+    "problem": "inkstone.exe 启动后立即退出 / 报 bad option / driver.ready 永不到达",
+    "cause": "DSH 会话环境带有 ELECTRON_RUN_AS_NODE=1，Electron 二进制被当作纯 Node 运行，应用主进程从未加载",
+    "fix": "scripts/windows-driver-smoke.mjs 新增 appEnv()：spawn 前删除 ELECTRON_RUN_AS_NODE / ELECTRON_NO_ATTACH_CONSOLE",
+    "evidence": [
+      "arg 模式报 \"bad option: --headless-chat-driver\"",
+      "`-- --headless-chat-driver` 报 Node \"Cannot find module\" 证明跑在 Node 模式",
+      "清理后 driver.ready 立即到达"
+    ]
+  },
+  "discovery": {
+    "protocol_version": "inkstone-headless-chat/v1",
+    "projects_count": 0,
+    "models_count": 9,
+    "models": [
+      "Auto",
+      "书生-Agents-A1",
+      "书生-S2",
+      "书生-Atria-Dawn-Preview",
+      "Qwen3.7-Plus",
+      "Qwen3.8-Flash",
+      "Qwen3.8-Max",
+      "GLM-5.2",
+      "Kimi-K2.7-Code"
+    ],
+    "model_fields": [
+      "ref",
+      "canonical_ref",
+      "display_name",
+      "supports_thinking",
+      "supports_tools",
+      "supports_attachments",
+      "tags",
+      "pro"
+    ]
+  },
+  "note": "projects.list 为空：headless 视角下暂无可选项目；chat 场景需要项目 ref，下一步解决来源",
+  "next_minimal_action": "用 session.create 的 project 参数确认是否可省略；或从课题空间取实际 space id"
+}
