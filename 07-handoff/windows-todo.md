@@ -41,3 +41,25 @@
 | W4 agentd → gateway 真实 wire body | **TODO** | 本地 canonical 与 wire 之间还有一层，未取得 |
 | 关键前置（环境） | **CONFIRMED** | Electron 应用启动必须剔除 ELECTRON_RUN_AS_NODE |
 | 关键前置（项目） | **CONFIRMED** | headless 无 projects.create；需先用 GUI 建本地项目 |
+
+
+---
+
+## 网页侧重建立面状态（2026-10-20）
+
+本地可运行的重建页：`node tools/mock-gateway.mjs --port 8787`（面板内 `http://127.0.0.1:8787/`）。
+
+| 项 | 状态 |
+| --- | --- |
+| 协议模式 | 网页协议（默认）/ 桌面协议，可切换；网页协议已接 /models、/chat(SSE)、/stop、/chat/list |
+| 侧栏 7 入口 | 全部可点并出数据（路由取自 bundle `mt` 配置） |
+| 论文工具 | 可检索：`POST /api/nova/v1/search/works` + 检索框（实测 query=crystal 命中 1 条） |
+| 课题空间 | spacebe `space/list` |
+| 科研应用 | moce `apps/list` |
+| 科学工具 | scphub `scp/tags`（公开接口形状） |
+| 科学数据 | datasets `dataset/square_list`，卡片可点入详情（detail）并可返回 |
+| 科学计算 | ml `dev-machine/list` |
+| 科研模型 | tokenplan `models` |
+| 回归测试 | `tests/mock-gateway.test.mjs`：内联脚本语法 + 9 个接口 + 检索过滤 |
+
+已知边界：视图数据为**合成数据**（接口路径来自逆向，返回体为本地 mock），不是线上真实数据；子应用原版 UI 未做 1:1 挂载。

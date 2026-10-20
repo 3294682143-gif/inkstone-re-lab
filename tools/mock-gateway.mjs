@@ -370,6 +370,29 @@ async function showRoute(route, push){
     body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>未实现</b><span>路由已从前端包确认（' + v.path + '），但该模块的接口尚未定位；本轮逆向范围是对话协议。</span></div>';
     return;
   }
+  if (route === '/dataset') {
+    body.addEventListener('click', async function(ev){
+      const card = ev.target.closest ? ev.target.closest('.card') : null;
+      if (!card) return;
+      const nameEl = card.querySelector('b');
+      const name = nameEl ? nameEl.innerText : '';
+      body.innerHTML = '<div class="card">加载详情…</div>';
+      try {
+        const r = await fetch('/api/datasets/v1/dataset/detail');
+        const j = await r.json();
+        const d = (j && j.data) || {};
+        body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>' + (d.name || name) + '</b>' +
+          '<span>' + (d.domain || '') + ' · ' + (d.size || '') + ' · ' + (d.license || '') + ' · 文件 ' + (d.files || 0) + '</span>' +
+          '<div style="margin-top:6px;font-size:13px">' + (d.description || '') + '</div>' +
+          '<div style="margin-top:6px;color:#8a8f99;font-size:12px">标签：' + ((d.labels || []).join(' · ')) + '</div>' +
+          '<div style="margin-top:10px"><button id="dsBack">← 返回列表</button></div></div>';
+        const back = document.querySelector('#dsBack');
+        if (back) back.addEventListener('click', function(){ showRoute('/dataset'); });
+      } catch (e) {
+        body.innerHTML = '<div class="card"><b>详情加载失败</b><span>' + e.message + '</span></div>';
+      }
+    });
+  }
   if (route === '/paper') {
     const box = document.createElement('div');
     box.className = 'row';
@@ -457,6 +480,15 @@ export function createMockGatewayServer(opts = {}) {
           { id: 102, name: '全球气象再分析', domain: '地球科学', size: '88.1 GB', downloads: 1290, description: 'ERA5 子集' },
           { id: 103, name: '材料晶体结构库', domain: '物质科学', size: '5.7 GB', downloads: 964, description: 'Materials Project 子集' },
         ], total: 3 } }));
+      }
+      if (method === 'GET' && path === '/api/datasets/v1/dataset/detail') {
+        log('GET /datasets/v1/dataset/detail -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: {
+          id: 101, name: '蛋白质结构数据集', domain: '生命科学', size: '12.4 GB',
+          license: 'CC BY 4.0', files: 12840, downloads: 3821,
+          description: 'PDB 衍生的蛋白质结构集合，覆盖 12 万个结构条目。',
+          labels: ['结构生物学', '蛋白质', 'PDB'],
+        } }));
       }
       if (method === 'GET' && path === '/api/tokenplan/v1/models') {
         log('GET /tokenplan/v1/models -> 200 (synthetic)');
