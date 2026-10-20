@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { resolvePython, runPython } from './_python.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const INSPECT = join(ROOT, 'tools/inspect_inkstone_asar.py');
@@ -40,7 +40,8 @@ function buildAsar() {
 const dir = mkdtempSync(join(tmpdir(), 'inkstone-asar-'));
 const asar = join(dir, 'synthetic.asar');
 writeFileSync(asar, buildAsar());
-const run = (args) => { try { return { code: 0, out: execFileSync('python3', args, { encoding: 'utf8' }) }; } catch (e) { return { code: e.status ?? 1, out: String(e.stdout || ''), err: String(e.stderr || '') }; } };
+const PY = resolvePython();   // 跨平台发现；缺失时抛错，测试失败而非静默跳过
+const run = (args) => runPython(PY, args);
 
 test('inspect：全新 out/manifest 提取成功（合成 fixture）', () => {
   const man = join(dir, 'man-a.json');

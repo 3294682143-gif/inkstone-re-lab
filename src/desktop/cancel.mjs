@@ -41,5 +41,8 @@ export function cancelInferenceDecision({
   // 已退役记录的核对
   if (!retired || retired.streamId !== streamId) return { cancelled: false, reason: 'not_drained' };
   if (retired.independent && retired.semanticTerminal == null) return { cancelled: false, reason: 'independent_not_terminal' };
-  return { cancelled: true, reason: 'cancelled', recordsRecoveryProof: retired.semanticTerminal === 'message_end' };
+  // 恢复凭据只在“首个 message_end 且尚未记录”时生成（对照 M:37280 的 `&& !drained.drainRecorded`）。
+  // 已记录过仍可报告取消成功，但不得再次要求记录（因此不刷新 drainedAt）。
+  const recordsRecoveryProof = retired.semanticTerminal === 'message_end' && retired.drainRecorded !== true;
+  return { cancelled: true, reason: 'cancelled', recordsRecoveryProof };
 }

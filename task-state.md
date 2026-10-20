@@ -198,3 +198,13 @@
 ### 保留未完成
 - Web A5/A6（NOT_RUN）、Windows 动态（BLOCKED/ENV_WINDOWS_REQUIRED）、真实 gateway 推理（NOT_RUN/载荷 UNKNOWN）、原生 RPC（UNKNOWN）。
 - 证据：`06-desktop/validation/round4-20261019T043756Z/results.json`。
+
+---
+
+## Linux→Windows 交接轮（2026-10-19）
+
+- L1: cancel.mjs drainRecorded 去重；Windows ESM 模块URL；Python 跨平台发现。
+- L2: 原生定向分析（agentd 命中方法名/类型 agentrpc.HarnessEventV1/工具 tag），线索级；Windows 采集任务 T1–T7。
+- L3: driver-process.mjs / windows-driver-smoke.mjs / mock-headless-driver.mjs + 测试；07-handoff 文档。
+- 统计: npm test 140/140；runner --help OK；MOCK discovery/chat/cancel 通过。
+- 未完成: 桌面真实推理 NOT_RUN、Windows 动态 NOT_RUN、Web A5/A6 NOT_RUN、原生 RPC/取消/计费 UNKNOWN。

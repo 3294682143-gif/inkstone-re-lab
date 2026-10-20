@@ -44,3 +44,27 @@ test('error 终态成功取消但不记录 recoveryProof（仅 message_end 记�
   assert.equal(d.cancelled, true);
   assert.equal(d.recordsRecoveryProof, false);
 });
+
+// —— L1.1：drainRecorded 去重与恢复窗口 ——
+test('L1.1 首个 message_end 生成恢复凭据；已记录后不再要求记录', () => {
+  const first = cancelInferenceDecision({ activePresent: false, requestId: 'r', streamId: 's', retired: { streamId: 's', semanticTerminal: 'message_end', drainRecorded: false } });
+  assert.equal(first.cancelled, true);
+  assert.equal(first.recordsRecoveryProof, true);
+  const again = cancelInferenceDecision({ activePresent: false, requestId: 'r', streamId: 's', retired: { streamId: 's', semanticTerminal: 'message_end', drainRecorded: true } });
+  assert.equal(again.cancelled, true);            // 仍可报告取消成功
+  assert.equal(again.recordsRecoveryProof, false); // 但不得再次记录（=> 不刷新 drainedAt）
+});
+
+test('L1.1 error 终态不生成恢复凭据', () => {
+  const d = cancelInferenceDecision({ activePresent: false, requestId: 'r', streamId: 's', retired: { streamId: 's', semanticTerminal: 'error', drainRecorded: false } });
+  assert.equal(d.cancelled, true);
+  assert.equal(d.recordsRecoveryProof, false);
+});
+
+test('L1.1 已记录后，原 5000ms 恢复窗口过期仍过期（不因重复取消刷新）', async () => {
+  const { canRecoverInferenceConflict, INFERENCE_DRAIN_PROOF_MS } = await import('../../src/desktop/recovery.mjs');
+  const drainedAt = 1_000_000;
+  const proof = { requestId: 'old', drainedAt };
+  assert.equal(canRecoverInferenceConflict({ recoveryProof: proof, requestId: 'new', now: drainedAt + INFERENCE_DRAIN_PROOF_MS }), true);
+  assert.equal(canRecoverInferenceConflict({ recoveryProof: proof, requestId: 'new', now: drainedAt + INFERENCE_DRAIN_PROOF_MS + 1 }), false);
+});

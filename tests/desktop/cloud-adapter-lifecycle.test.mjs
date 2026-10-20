@@ -1,10 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createCloudAdapter, CloudAdapterError, safeCancel } from '../../src/desktop/cloud-adapter.mjs';
 
 const BASE = 'https://example.invalid/api/orbit/v1';
@@ -122,11 +121,23 @@ test('正常 SSE 完成后仍正常返回（清理不阻塞成功）', async () 
 // ============ R1-B：safeCancel 有界兑现与释放锁 ============
 test('B1 独立子进程：cancel 永不结束时，等待仍兑现且退出码为 0', () => {
   const dir = mkdtempSync(join(tmpdir(), 'inkstone-safe-'));
-  const mod = fileURLToPath(new URL('../../src/desktop/cloud-adapter.mjs', import.meta.url));
+  // 用模块 URL（非盘符路径）作为 ESM specifier；Windows 下同样成立
+  const moduleUrl = new URL('../../src/desktop/cloud-adapter.mjs', import.meta.url).href;
   const script = join(dir, 'probe.mjs');
-  writeFileSync(script, `import { safeCancel } from ${JSON.stringify(mod)};\nawait safeCancel({ cancel: () => new Promise(() => {}) }, 50);\nconsole.log('cleanup-finished');\n`);
+  writeFileSync(script, `import { safeCancel } from ${JSON.stringify(moduleUrl)};\nawait safeCancel({ cancel: () => new Promise(() => {}) }, 50);\nconsole.log('cleanup-finished');\n`);
   const out = execFileSync(process.execPath, [script], { encoding: 'utf8', timeout: 15000 });
   assert.match(out, /cleanup-finished/);           // execFileSync 在非零退出时抛错 => 隐含断言退出码为 0
+});
+
+test('B1b 子脚本路径含空格与中文仍可运行', () => {
+  const base = mkdtempSync(join(tmpdir(), 'inkstone safe 空格-'));
+  const dir = join(base, '含空格与中文目录');
+  mkdirSync(dir, { recursive: true });
+  const moduleUrl = new URL('../../src/desktop/cloud-adapter.mjs', import.meta.url).href;
+  const script = join(dir, 'probe 探针.mjs');
+  writeFileSync(script, `import { safeCancel } from ${JSON.stringify(moduleUrl)};\nawait safeCancel({ cancel: async () => {} }, 50);\nconsole.log('ok-space-cjk');\n`);
+  const out = execFileSync(process.execPath, [script], { encoding: 'utf8', timeout: 15000 });
+  assert.match(out, /ok-space-cjk/);
 });
 
 test('B2 cancel 同步抛错 / 异步拒绝 / 正常结束 都不抛出', async () => {

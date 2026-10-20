@@ -61,3 +61,12 @@
 - `semanticTerminal` 来源：推理事件流中首个 `message_end` 或 `error`（M:37831/37857）。
 - **不得**由 `{cancelled:true}` 推断服务端已停止计费（UNKNOWN）。
 - 纯函数实现与测试：`src/desktop/cancel.mjs`、`tests/desktop/cancel.test.mjs`（MOCK_VERIFIED）。
+
+---
+
+## 7. 范围澄清（L2 §4.4）
+
+- `turn.stop`（运行时 RPC）**当前明确的调用对象是本地运行时**；在缺少后续证据时，**不**直接描述为“远端服务端停止”。
+- headless 的 accepted 与终态通知顺序，依据 Promise 回调 + emit + 响应写入分析（见 driver-jsonl.md §8）；保留有界乱序处理；不假定乱序一定发生。
+- `tests/desktop/inference-flow.test.mjs` 的合成 body 与模拟顺序**只验证适配器机制**，不能证明真实业务顺序。
+- `src/desktop/cancel.mjs` / `recovery.mjs` 为纯判定函数；**不代表**已实现真实网络取消或服务端恢复。
