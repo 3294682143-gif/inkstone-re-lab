@@ -12,7 +12,10 @@
     "test": "node --test",
     "client": "node src/client.mjs",
     "regress": "node src/regress.mjs",
-    "mock:gateway": "node tools/mock-gateway.mjs"
+    "mock:gateway": "node tools/mock-gateway.mjs",
+    "ui": "node tools/aiyan-ui.mjs",
+    "ui:check": "node scripts/check-self-ui.mjs",
+    "ui:verify": "node scripts/ui-verify.mjs"
   },
   "dependencies": {
     "undici": "^6.21.0"

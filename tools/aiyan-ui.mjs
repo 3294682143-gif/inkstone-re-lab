@@ -5,8 +5,12 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const PORT = Number(process.env.PORT || 8899);
-const HOST = process.env.HOST || '127.0.0.1';
+function cliArg(name, fallback) {
+  const i = process.argv.indexOf('--' + name);
+  return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
+}
+const PORT = Number(cliArg('port', process.env.PORT || 8899));
+const HOST = cliArg('host', process.env.HOST || '127.0.0.1');
 const MOCK_ORIGIN = process.env.MOCK_ORIGIN || 'http://127.0.0.1:8787';
 const HTML_PATH = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), 'aiyan-ui.html');
 

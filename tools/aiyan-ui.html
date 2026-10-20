@@ -321,43 +321,184 @@ input.search{flex:1;min-width:220px}
     $('#bk', box).addEventListener('click', fn);
   }
 
+  var paperState = { mode: '快速搜索', field: '全部领域' };
   async function paperPage() {
-    var box = pageShell('论文工具', '深入挖掘学术前沿，追踪最新研究进展');
-    box.innerHTML = '<div class="row"><select id="tab"><option value="works">论文</option><option value="authors">作者</option><option value="journals">期刊</option></select>'
-      + '<input class="search" id="q" placeholder="输入检索词，例如 protein / crystal"/><button class="btn primary" id="go">检索</button><span id="cnt" style="color:#8a9099;font-size:12px"></span></div><div id="out"></div>';
-    var run = async function () {
-      var tab = $('#tab').value; var q = ($('#q').value || 'x').trim();
-      var ep = tab === 'authors' ? '/api/nova/v1/search/authors' : tab === 'journals' ? '/api/nova/v1/search/journals' : '/api/nova/v1/search/works';
-      var j = await api(ep + '?query=' + encodeURIComponent(q));
-      var list = (j && j.data && j.data.list) || [];
-      $('#cnt').textContent = '共 ' + list.length + ' 条';
-      $('#out').innerHTML = cards(list, function (x) {
-        if (tab === 'authors') return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.affiliation) + ' · 论文 ' + esc(x.papers) + ' · 引用 ' + esc(x.citations) + '</span></div>';
-        if (tab === 'journals') return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.issn) + ' · ' + esc(x.impact) + '</span></div>';
-        return '<div class="card" data-id="' + esc(x.id) + '"><b>' + esc(x.title) + '</b><span>' + esc(x.venue) + ' · ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + '</span></div>';
-      });
-      $$('#out .card[data-id]').forEach(function (c) {
-        c.addEventListener('click', async function () {
-          var id = c.getAttribute('data-id');
-          var dj = await api('/api/nova/v1/paper/detail?id=' + encodeURIComponent(id));
-          var d = (dj && dj.data) || {};
-          var out = $('#out');
-          out.innerHTML = '<div class="detail"><h3>' + esc(d.title) + '</h3>'
-            + '<div class="kv">' + esc(d.venue) + ' · ' + esc(d.year) + ' · 引用 ' + esc(d.citations) + ' · DOI ' + esc(d.doi) + '</div>'
-            + '<div class="kv">作者：' + esc((d.authors || []).join(', ')) + '</div>'
-            + '<p>' + esc(d.abstract) + '</p>'
-            + '<button class="btn primary" id="addSpace">＋ 加入课题</button></div>';
-          $('#addSpace', out).addEventListener('click', async function () {
-            await post('/api/spacebe/v1/space/create', { name: d.title });
-            toast('已加入课题（本地合成）');
-          });
-          backBtn(out, paperPage, '← 返回检索');
+    var box = pageShell('论文工具', '论文检索 · 论文精读 · 引文核验');
+    box.innerHTML = '<div class="row" id="ptabs">'
+      + '<span class="tag on" data-t="search">论文检索</span>'
+      + '<span class="tag" data-t="read">论文精读</span>'
+      + '<span class="tag" data-t="check">引文核验</span></div><div id="pbody"></div>';
+    var body = $('#pbody');
+    var show = function (t) {
+      $$('#ptabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === t); });
+      if (t === 'read') return paperRead(body);
+      if (t === 'check') return paperCheck(body);
+      return paperSearch(body);
+    };
+    $$('#ptabs .tag').forEach(function (t) {
+      t.addEventListener('click', function () { show(t.getAttribute('data-t')); });
+    });
+    show('search');
+  }
+
+  async function paperSearch(box) {
+    box.innerHTML = '<div class="row">'
+      + '<button class="pill on" id="mQuickSearch">快速搜索</button><button class="pill" id="mDeepSearch">深度搜索</button>'
+      + '</div>'
+      + '<div class="row"><input class="search" id="q" placeholder="输入研究主题、论文线索或检索要求，例如：大语言模型在科学发现中的应用综述"/>'
+      + '<button class="btn primary" id="go">开始检索</button></div>'
+      + '<div class="row" id="filters">'
+      + '<select id="fYear"><option value="">全部年份</option><option>2025</option><option>2024</option><option>2023</option></select>'
+      + '<select id="fType"><option value="">全部类型</option><option>期刊</option><option>会议</option><option>预印本</option></select>'
+      + '<label class="tag" style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="fFree" style="width:auto"/>仅免费 PDF</label>'
+      + '<button class="btn" id="reset">清空筛选</button>'
+      + '<select id="fSort"><option value="comp">综合排序</option><option value="cite">引用最多</option><option value="time">最新</option></select>'
+      + '<span id="cnt" style="color:#8a9099;font-size:12px"></span></div>'
+      + '<div id="out"></div>'
+      + '<div class="section" style="margin:18px 0 10px" id="hotHead">高热论文</div>'
+      + '<div class="row" id="hotFields"></div><div id="hot"></div>';
+
+    $('#mQuickSearch').addEventListener('click', function () {
+      paperState.mode = '快速搜索';
+      $('#mQuickSearch').classList.add('on'); $('#mDeepSearch').classList.remove('on');
+    });
+    $('#mDeepSearch').addEventListener('click', function () {
+      paperState.mode = '深度搜索';
+      $('#mDeepSearch').classList.add('on'); $('#mQuickSearch').classList.remove('on');
+    });
+
+    var render = function (list) {
+      $('#cnt').textContent = '命中 ' + list.length + ' 篇';
+      $('#out').innerHTML = list.length ? cards(list, function (x) {
+        return '<div class="card"><b>' + esc(x.title) + '</b>'
+          + '<div class="kv" style="color:#8a9099;font-size:12px">' + esc((x.authors || []).join(', ')) + ' · ' + esc(x.venue) + ' · ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + ' · ' + esc(x.type || '期刊') + (x.free_pdf ? ' · <span style="color:#2f6fed">免费 PDF</span>' : '') + '</div>'
+          + '<div style="color:#4a5058;font-size:12px;margin:6px 0">' + esc(x.abstract || '') + '</div>'
+          + '<div>' + (x.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>'
+          + '<div class="row" style="margin:10px 0 0"><button class="btn mini" data-act="add" data-id="' + esc(x.id) + '">添加到课题</button>'
+          + '<button class="btn mini" data-act="read" data-id="' + esc(x.id) + '">精读</button></div></div>';
+      }) : '<div class="section">没有命中结果，试试减少筛选条件</div>';
+      $$('#out .btn[data-act]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          var id = b.getAttribute('data-id');
+          if (b.getAttribute('data-act') === 'read') { window.paperReadDoc = id; paperRead($('#pbody'), id); $$('#ptabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === 'read'); }); return; }
+          await post('/api/spacebe/v1/space/create', { name: '论文收藏', field: '通用', description: id });
+          toast('已添加到课题（本地合成）');
         });
       });
     };
-    $('#go').addEventListener('click', run);
-    run();
+
+    var apply = function () {
+      var y = $('#fYear').value, ty = $('#fType').value, free = $('#fFree').checked, sort = $('#fSort').value;
+      api('/api/nova/v1/search/works?query=' + encodeURIComponent(($('#q').value || 'x').trim()) + '&mode=' + encodeURIComponent(paperState.mode)).then(function (j) {
+        var list = (j && j.data && j.data.list) || [];
+        if (y) list = list.filter(function (x) { return String(x.year) === y; });
+        if (ty) list = list.filter(function (x) { return (x.type || '期刊') === ty; });
+        if (free) list = list.filter(function (x) { return x.free_pdf; });
+        if (sort === 'cite') list = list.slice().sort(function (a, b) { return (b.citations || 0) - (a.citations || 0); });
+        if (sort === 'time') list = list.slice().sort(function (a, b) { return String(b.year).localeCompare(String(a.year)); });
+        render(list);
+      });
+    };
+    $('#go').addEventListener('click', apply);
+    ['#fYear', '#fType', '#fSort'].forEach(function (sel) { $(sel).addEventListener('change', apply); });
+    $('#fFree').addEventListener('change', apply);
+    $('#reset').addEventListener('click', function () { $('#fYear').value = ''; $('#fType').value = ''; $('#fFree').checked = false; $('#fSort').value = 'comp'; apply(); });
+
+    var hot = async function (field) {
+      var j = await api('/api/nova/v1/search/hot-papers?field=' + encodeURIComponent(field || '全部领域'));
+      var list = (j && j.data && j.data.list) || [];
+      $('#hot').innerHTML = cards(list, function (x) {
+        return '<div class="card"><b>' + esc(x.title) + '</b><span>' + esc((x.authors || []).join(', ') || '—') + ' · ' + esc(x.venue) + ' ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + '</span></div>';
+      });
+    };
+    var fields = ['全部领域', '生命科学', '地球科学', '神经科学', '材料科学', '化学', '物理', '数学'];
+    $('#hotFields').innerHTML = fields.map(function (f, i) { return '<span class="tag' + (i === 0 ? ' on' : '') + '" data-f="' + esc(f) + '">' + esc(f) + '</span>'; }).join('');
+    $$('#hotFields .tag').forEach(function (t) {
+      t.addEventListener('click', function () {
+        $$('#hotFields .tag').forEach(function (x) { x.classList.remove('on'); });
+        t.classList.add('on'); hot(t.getAttribute('data-f'));
+      });
+    });
+    hot('全部领域');
+    apply();
   }
+
+  async function paperRead(box, docId) {
+    box.innerHTML = '<div class="row"><label class="btn" style="display:inline-flex;align-items:center;gap:6px">上传 PDF<input type="file" accept="application/pdf" id="pdfFile" style="display:none"/></label>'
+      + '<button class="btn" id="fromSpace">从课题选择</button>'
+      + '<span id="pdfName" style="color:#8a9099;font-size:12px"></span></div>'
+      + '<div class="row" id="rTabs"><span class="tag on" data-t="ai">AI 对话</span><span class="tag" data-t="map">思维导图</span><span class="tag" data-t="note">笔记</span></div>'
+      + '<div id="rBody"></div>';
+    $('#pdfFile').addEventListener('change', function () {
+      var f = this.files && this.files[0];
+      if (f) { $('#pdfName').textContent = f.name + ' · ' + Math.round(f.size / 1024) + ' KB'; toast('已选择 ' + f.name); }
+    });
+    $('#fromSpace').addEventListener('click', function () { toast('已从课题载入《' + (docId || '示例论文') + '》'); });
+    var showPane = function (t) {
+      $$('#rTabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === t); });
+      var b = $('#rBody');
+      if (t === 'map') {
+        b.innerHTML = '<div class="section">思维导图（本地合成）</div><div class="grid">'
+          + '<div class="card"><b>研究目标</b><span>提出可溯源的科学发现方法</span></div>'
+          + '<div class="card"><b>核心方法</b><span>工具路由 + 领域专家协作</span></div>'
+          + '<div class="card"><b>主要结论</b><span>多基准验证有效</span></div>'
+          + '<div class="card"><b>延伸问题</b><span>跨学科泛化能力</span></div></div>';
+        return;
+      }
+      if (t === 'note') {
+        b.innerHTML = '<div class="row"><button class="btn primary" id="newNote">＋ 新建笔记</button></div><div class="section">暂无笔记（本地合成）</div>';
+        $('#newNote').addEventListener('click', function () { toast('已新建笔记（本地合成）'); });
+        return;
+      }
+      b.innerHTML = '<div class="detail"><h3>结构化摘要</h3>'
+        + '<div class="kv">研究目标 · 核心方法 · 主要结论 · 创新点（本地合成摘要）</div>'
+        + '<p>该论文提出面向科学发现的方法框架，结合工具调用与领域专家协作，在多基准上验证有效性。</p></div>'
+        + '<div class="row" style="margin-top:12px"><input class="search" id="rq" placeholder="围绕本文提问，例如：方法局限是什么？"/><button class="btn primary" id="rgo">提问</button></div>'
+        + '<div class="section" id="rans"></div>';
+      $('#rgo').addEventListener('click', async function () {
+        var q = $('#rq').value.trim(); if (!q) return;
+        $('#rans').textContent = '（本地合成）关于「' + q + '」，本文的方法在跨学科场景仍需更多验证。';
+      });
+    };
+    $$('#rTabs .tag').forEach(function (t) { t.addEventListener('click', function () { showPane(t.getAttribute('data-t')); }); });
+    showPane('ai');
+  }
+
+  async function paperCheck(box) {
+    box.innerHTML = '<div class="row" id="cTabs"><span class="tag on" data-t="file">文件上传</span><span class="tag" data-t="text">文本输入</span></div>'
+      + '<div id="cBody"></div>';
+    var show = function (t) {
+      $$('#cTabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === t); });
+      var b = $('#cBody');
+      if (t === 'file') {
+        b.innerHTML = '<div class="row"><label class="btn" style="display:inline-flex;align-items:center;gap:6px">上传 PDF<input type="file" accept="application/pdf" id="cFile" style="display:none"/></label>'
+          + '<select id="cMode"><option value="consistency">验证引文与观点一致性</option><option value="exist">验证引文存在性</option></select>'
+          + '<button class="btn primary" id="cGo">开始核验</button><span id="cName" style="color:#8a9099;font-size:12px"></span></div><div id="cOut"></div>';
+        $('#cFile').addEventListener('change', function () { var f = this.files && this.files[0]; if (f) $('#cName').textContent = f.name; });
+      } else {
+        b.innerHTML = '<div class="row"><textarea id="cText" placeholder="粘贴正文段落与参考文献列表…" style="width:100%;min-height:120px;border:1px solid #e8eaee;border-radius:10px;padding:10px"></textarea></div>'
+          + '<div class="row"><select id="cMode"><option value="consistency">验证引文与观点一致性</option><option value="exist">验证引文存在性</option></select>'
+          + '<button class="btn primary" id="cGo">开始核验</button><span id="cCnt" style="color:#8a9099;font-size:12px">0 / 20000</span></div><div id="cOut"></div>';
+        $('#cText').addEventListener('input', function () { $('#cCnt').textContent = this.value.length + ' / 20000'; });
+      }
+      $('#cGo').addEventListener('click', async function () {
+        var text = t === 'text' ? ($('#cText').value || '') : 'PDF 上传内容（本地合成）';
+        var j = await post('/api/nova/v1/paper/check', { text: text, mode: $('#cMode').value });
+        var d = (j && j.data) || {};
+        var st = d.stats || {};
+        $('#cOut').innerHTML = '<div class="row" style="margin-top:12px">'
+          + '<span class="tag on">全部 ' + esc(st.all || 0) + '</span><span class="tag">正确 ' + esc(st.correct || 0) + '</span>'
+          + '<span class="tag">存疑 ' + esc(st.doubtful || 0) + '</span><span class="tag">未核验 ' + esc(st.unchecked || 0) + '</span></div>'
+          + cards(d.items || [], function (x) {
+            return '<div class="card"><b>' + esc(x.claim) + '</b><span>' + esc(x.ref) + ' · 判断：' + esc(x.verdict) + '</span>'
+              + '<div style="color:#4a5058;font-size:12px;margin-top:6px">' + esc(x.evidence) + '</div></div>';
+          });
+      });
+    };
+    $$('#cTabs .tag').forEach(function (t) { t.addEventListener('click', function () { show(t.getAttribute('data-t')); }); });
+    show('file');
+  }
+
 
   async function repoPage() {
     var box = pageShell('课题空间', '按课题组织对话、资料、计算与产出');

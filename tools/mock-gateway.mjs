@@ -788,13 +788,35 @@ export function createMockGatewayServer(opts = {}) {
           { id: 'w4', title: 'Crystal graph networks for materials screening', venue: 'Nature Materials', year: 2024, citations: 428, angle_name: '材料筛选' },
         ];
         const hit = all.filter(function(x){ return (x.title + ' ' + x.venue + ' ' + x.angle_name).toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+    const mode = String((url.searchParams && url.searchParams.get('mode')) || '');
         const list = hit.length ? hit : all.slice(0, 2);
         return send(200, JSON.stringify({ code: 0, data: {
           reasoning_process: '按检索词拆分角度：' + q,
           termList: list.map(function(x){ return { angle_name: x.angle_name, query: q, count: x.citations }; }),
           total_count: list.length,
-          list: list,
+          list: list.map(function (x) {
+            return Object.assign({}, x, {
+              authors: x.id === 'w1' ? ['Zhang Y.', 'Li M.'] : x.id === 'w2' ? ['Chen H.', 'Wang X.'] : ['Liu Q.'],
+              abstract: '本文围绕「' + x.angle_name + '」提出方法并在多个基准上验证（本地合成摘要，可用于展开全文）。',
+              tags: [x.angle_name, x.venue],
+              type: x.id === 'w3' ? '会议' : '期刊',
+              free_pdf: x.id === 'w1' || x.id === 'w4',
+            });
+          }),
         } }));
+      }
+      if (method === 'POST' && path === '/api/nova/v1/paper/check') {
+        const body = await readBody(req);
+        const text = String(body.text || '');
+        const mode = String(body.mode || 'consistency');
+        const items = [
+          { claim: '正文观点：所提方法在多任务上优于基线', ref: 'Smith et al., 2023', verdict: '正确', evidence: '摘要与结果表支持该表述（本地合成）' },
+          { claim: '正文观点：训练数据规模达到 1TB', ref: 'Chen et al., 2024', verdict: '存疑', evidence: '原文仅提及 200GB，量级不符（本地合成）' },
+          { claim: '正文观点：某作者提出相反结论', ref: 'Li et al., 2022', verdict: '未核验', evidence: '未能检索到该条目（本地合成）' },
+        ];
+        const stats = { all: items.length, correct: items.filter((x) => x.verdict === '正确').length, doubtful: items.filter((x) => x.verdict === '存疑').length, unchecked: items.filter((x) => x.verdict === '未核验').length };
+        log('POST /nova/v1/paper/check mode=' + mode + ' len=' + text.length + ' -> 200 (synthetic ' + stats.all + ' 条)');
+        return send(200, JSON.stringify({ code: 0, data: { mode: mode, stats: stats, items: items } }));
       }
       if (method === 'GET' && path === '/api/nova/v1/paper/detail') {
         const id = String((url.searchParams && url.searchParams.get('id')) || 'w1');

@@ -4,36 +4,10 @@
 // 3) 论文检索 POST 必须按 query 过滤
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import net from 'node:net';
-import { once } from 'node:events';
+import { startServer } from './helpers-server.mjs';
 
-async function freePort() {
-  const srv = net.createServer();
-  srv.listen(0, '127.0.0.1');
-  await once(srv, 'listening');
-  const port = srv.address().port;
-  srv.close();
-  await once(srv, 'close');
-  return port;
-}
-
-async function startGateway() {
-  const port = await freePort();
-  const child = spawn(process.execPath, ['tools/mock-gateway.mjs', '--port', String(port), '--host', '127.0.0.1'], {
-    stdio: 'ignore', env: { ...process.env, ELECTRON_RUN_AS_NODE: '' },
-  });
-  const base = 'http://127.0.0.1:' + port;
-  for (let i = 0; i < 100; i++) {
-    try {
-      const r = await fetch(base + '/health');
-      if (r.ok) return { child, base };
-    } catch {}
-    await new Promise(r => setTimeout(r, 100));
-  }
-  child.kill();
-  throw new Error('gateway did not start');
-}
+// 复用 tests/helpers-server.mjs 的起服务逻辑（与 aiyan-ui 测试共用，避免重复造轮子）
+const startGateway = () => startServer('tools/mock-gateway.mjs');
 
 test('内联页面脚本语法有效', async () => {
   const { child, base } = await startGateway();
