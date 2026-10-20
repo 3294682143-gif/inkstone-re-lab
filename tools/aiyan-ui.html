@@ -125,6 +125,9 @@ input.search{flex:1;min-width:220px}
       <a href="/dataset" data-route="/dataset"><span class="ic">▤</span>科学数据</a>
       <a href="/compute" data-route="/compute"><span class="ic">▥</span>科学计算</a>
       <a href="/token-plan/home" data-route="/token-plan/home"><span class="ic">▦</span>科研模型</a>
+      <a href="/user-center" data-route="/user-center"><span class="ic">◍</span>用户中心</a>
+      <a href="/docs/data-prep" data-route="/docs/data-prep"><span class="ic">▤</span>数据准备</a>
+      <a href="/docs/developer" data-route="/docs/developer"><span class="ic">◈</span>开发者</a>
     </nav>
     <div class="histTitle">最近对话</div>
     <div class="hist" id="hist"></div>
@@ -196,7 +199,7 @@ input.search{flex:1;min-width:220px}
       + '<p>连接科研全流程的智能工作台 · 让每一个洞察都有迹可循</p>'
       + '<div class="composer"><textarea id="q" placeholder="描述一个科研问题、假设，或者直接粘贴一段论文片段……"></textarea>'
       + '<div class="crow"><label class="pill" id="plus" style="display:inline-flex;align-items:center;cursor:pointer">＋<input type="file" id="upFile" accept="image/*,application/pdf" style="display:none"/></label><span id="upName" style="color:#8a9099;font-size:12px"></span><button class="pill" id="quick">快速</button><button class="pill on" id="deep">深度</button>'
-      + '<span class="grow"></span><span class="model">◍ Auto ▾</span><button class="send" id="send" disabled>↑</button></div></div>'
+      + '<span class="grow"></span><span class="model">◍ Auto（多模态·智能路由）▾</span><button class="send" id="send" disabled>↑</button></div></div>'
       + '<div class="chips"><button class="chip">⚗ 高空大气环境</button><button class="chip">🧬 表型本体查询</button><button class="chip">💡 光子能量计算</button></div></div>'
       + '<div class="foot">智衍 衡鉴 · 本地离线演练</div>';
     var q = $('#q');
@@ -218,7 +221,7 @@ input.search{flex:1;min-width:220px}
     var bar = document.createElement('div');
     bar.className = 'acts';
     bar.innerHTML = '<button data-a="add">添加到课题</button><button data-a="regen">重新生成</button>'
-      + '<button data-a="copy">复制</button><button data-a="up">👍</button><button data-a="down">👎</button><button data-a="dl">下载</button>';
+      + '<button data-a="copy">复制</button><button data-a="up">👍</button><button data-a="down">👎</button><button data-a="dl">下载</button><button data-a="report">生成报告</button>';
     el.appendChild(bar);
     $$('button', bar).forEach(function (b) {
       b.addEventListener('click', async function () {
@@ -228,6 +231,11 @@ input.search{flex:1;min-width:220px}
         if (a === 'dl') { var blob = new Blob([text], { type: 'text/plain' }); var url = URL.createObjectURL(blob); var link = document.createElement('a'); link.href = url; link.download = 'answer-' + Date.now() + '.txt'; link.click(); URL.revokeObjectURL(url); toast('已下载'); }
         if (a === 'add') { await post('/api/orbit/v1/chat/' + chatState.chatId + '/note', { title: '对话笔记', text: text }); toast('已添加到课题'); }
         if (a === 'regen') { await sendText(text); }
+        if (a === 'report') {
+          var r = await post('/api/orbit/v1/chat/' + chatState.chatId + '/report', { title: '研究报告' });
+          toast('已生成报告 ' + ((r && r.data && r.data.name) || ''));
+          loadWorkspace(chatState.chatId);
+        }
       });
     });
     return bar;
@@ -313,6 +321,11 @@ input.search{flex:1;min-width:220px}
             meta.innerHTML = 'cid=' + esc(chatState.chatId) + ' · 追问：' + list;
             $$('.chip[data-f]', meta).forEach(function (b) { b.addEventListener('click', async function () { await sendText(b.getAttribute('data-f')); }); });
           }
+          if (e.event === 'expert') {
+            if (!thinkEl._experts) { thinkEl._experts = document.createElement('div'); thinkEl._experts.className = 'meta'; thinkEl.appendChild(thinkEl._experts); }
+            thinkEl.style.display = 'block';
+            thinkEl._experts.textContent += '→ 委托专家：' + (e.expert || '') + '（' + (e.stage || '') + '）';
+          }
           if (e.event === 'error') { bot.querySelector('.bubble').textContent += '\n[错误] ' + esc(e.error || '未知'); }
         }
       }
@@ -328,15 +341,19 @@ input.search{flex:1;min-width:220px}
 
   var FIELDS = ['通用', '生命科学', '地球科学', '神经科学', '材料科学', '化学', '物理', '数学', '量子计算', '算子开发', '其他'];
   var modalState = { field: '通用' };
-  function openCreateModal(onCreated) {
+  function openCreateModal(onCreated, opts) {
+    var opt = opts || {};
+    var fieldList = opt.fields || FIELDS;
+    var submitFn = opt.submit || null;
     var mask = $('#mask');
+    $('#mTitle').textContent = opt.title || '创建课题';
     $('#mName').value = '';
     $('#mDesc').value = '';
     $('#cName').textContent = '0 / 50';
     $('#cDesc').textContent = '0 / 200';
     $('#mCreate').disabled = true;
-    modalState.field = '通用';
-    $('#mFields').innerHTML = FIELDS.map(function (x, i) {
+    modalState.field = fieldList[0];
+    $('#mFields').innerHTML = fieldList.map(function (x, i) {
       return '<button class="fd' + (i === 0 ? ' on' : '') + '" data-f="' + esc(x) + '">✚ ' + esc(x) + '</button>';
     }).join('');
     $$('#mFields .fd').forEach(function (b) {
@@ -361,7 +378,8 @@ input.search{flex:1;min-width:220px}
     var submit = async function () {
       var name = $('#mName').value.trim();
       if (!name) return;
-      var r = await post('/api/spacebe/v1/space/create', { name: name, field: modalState.field, description: $('#mDesc').value.trim() });
+      var payload = { name: name, field: modalState.field, description: $('#mDesc').value.trim() };
+      var r = submitFn ? await submitFn(payload) : await post('/api/spacebe/v1/space/create', payload);
       close();
       toast('已创建课题 ' + ((r && r.data && r.data.id) || ''));
       if (typeof onCreated === 'function') onCreated();
@@ -402,56 +420,108 @@ input.search{flex:1;min-width:220px}
   }
 
   async function paperSearch(box) {
-    box.innerHTML = '<div class="row">'
-      + '<button class="pill on" id="mQuickSearch">快速搜索</button><button class="pill" id="mDeepSearch">深度搜索</button>'
-      + '</div>'
-      + '<div class="row"><input class="search" id="q" placeholder="输入研究主题、论文线索或检索要求，例如：大语言模型在科学发现中的应用综述"/>'
-      + '<button class="btn primary" id="go">开始检索</button></div>'
-      + '<div class="row" id="filters">'
+    var selected = {};
+    box.innerHTML = '<div class="row"><button class="pill on" id="mQuickSearch">快速搜索</button><button class="pill" id="mDeepSearch">深度搜索</button></div>'
+      + '<div class="row"><textarea id="q" placeholder="输入研究主题、论文线索或检索要求（可长文本），例如：大语言模型在科学发现中的应用综述，关注 2023 年后的进展" style="width:100%;min-height:64px;border:1px solid #e8eaee;border-radius:10px;padding:10px;font:inherit"></textarea></div>'
+      + '<div class="row"><button class="btn primary" id="go">开始检索</button>'
       + '<select id="fYear"><option value="">全部年份</option><option>2025</option><option>2024</option><option>2023</option></select>'
+      + '<select id="fField"><option value="">全部学科</option><option>生命科学</option><option>地球科学</option><option>材料科学</option><option>通用</option></select>'
       + '<select id="fType"><option value="">全部类型</option><option>期刊</option><option>会议</option><option>预印本</option></select>'
       + '<label class="tag" style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="fFree" style="width:auto"/>仅免费 PDF</label>'
       + '<button class="btn" id="reset">清空筛选</button>'
       + '<select id="fSort"><option value="comp">综合排序</option><option value="cite">引用最多</option><option value="time">最新</option></select>'
       + '<span id="cnt" style="color:#8a9099;font-size:12px"></span></div>'
-      + '<div id="out"></div>'
-      + '<div class="section" style="margin:18px 0 10px" id="hotHead">高热论文</div>'
-      + '<div class="row" id="hotFields"></div><div id="hot"></div>';
+      + '<div id="out"></div><div id="batchBar" class="section" style="display:none;margin-top:12px"></div>'
+      + '<div class="section" style="margin:18px 0 10px">高热论文</div><div class="row" id="hotFields"></div><div id="hot"></div>';
 
-    $('#mQuickSearch').addEventListener('click', function () {
-      paperState.mode = '快速搜索';
-      $('#mQuickSearch').classList.add('on'); $('#mDeepSearch').classList.remove('on');
-    });
-    $('#mDeepSearch').addEventListener('click', function () {
-      paperState.mode = '深度搜索';
-      $('#mDeepSearch').classList.add('on'); $('#mQuickSearch').classList.remove('on');
-    });
+    $('#mQuickSearch').addEventListener('click', function () { paperState.mode = '快速搜索'; $('#mQuickSearch').classList.add('on'); $('#mDeepSearch').classList.remove('on'); });
+    $('#mDeepSearch').addEventListener('click', function () { paperState.mode = '深度搜索'; $('#mDeepSearch').classList.add('on'); $('#mQuickSearch').classList.remove('on'); });
+
+    var syncBatch = function () {
+      var ids = Object.keys(selected).filter(function (k) { return selected[k]; });
+      var bar = $('#batchBar');
+      bar.style.display = ids.length ? 'block' : 'none';
+      bar.innerHTML = '已选择 ' + ids.length + ' 篇 · <button class="btn mini" id="bAdd">添加到课题</button> '
+        + '<button class="btn mini" id="bRead">精读第一篇</button> <button class="btn mini" id="bClear">取消勾选</button>';
+      var bAdd = $('#bAdd'); if (bAdd) bAdd.onclick = async function () {
+        await post('/api/spacebe/v1/space/create', { name: '批量收藏（' + ids.length + ' 篇）', field: '通用', description: ids.join(',') });
+        toast('已批量加入课题 ' + ids.length + ' 篇'); selected = {}; syncBatch();
+      };
+      var bRead = $('#bRead'); if (bRead) bRead.onclick = function () { jumpRead(ids[0]); };
+      var bClear = $('#bClear'); if (bClear) bClear.onclick = function () { selected = {}; $$('#out input[type=checkbox]').forEach(function (c) { c.checked = false; }); syncBatch(); };
+    };
+
+    var ACTIONS = ['获取 PDF', '添加到课题', '引用格式', '论文精读'];
+    var detail = async function (id) {
+      var dj = await api('/api/nova/v1/paper/detail?id=' + encodeURIComponent(id));
+      var d = (dj && dj.data) || {};
+      box.innerHTML = '<div id="dwrap"></div>';
+      var w = $('#dwrap', box);
+      w.innerHTML = '<div class="detail"><h3>' + esc(d.title) + '</h3>'
+        + '<div class="kv">' + esc(d.venue) + ' · ' + esc(d.year) + ' · 引用 ' + esc(d.citations) + ' · DOI ' + esc(d.doi) + ' · ' + (d.open_access ? '免费 PDF' : '需申请') + '</div>'
+        + '<div class="kv">作者：' + esc((d.authors || []).join(', ')) + '</div>'
+        + '<p>' + esc(d.abstract) + '</p>'
+        + '<div class="row">' + ACTIONS.map(function (a, i) { return '<button class="btn' + (i === 0 ? ' primary' : '') + '" data-act="' + i + '">' + a + '</button>'; }).join('') + '</div></div>'
+        + '<div class="row" style="margin-top:12px"><button class="btn" id="bk">← 返回检索</button></div>';
+      $$('#dwrap .btn[data-act]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          var idx = Number(b.getAttribute('data-act'));
+          if (idx === 0) { var r = await post('/api/nova/v1/paper/pdf', { id: id }); toast('PDF 地址：' + ((r && r.data && r.data.url) || '')); }
+          if (idx === 1) { await post('/api/spacebe/v1/space/create', { name: '论文收藏', field: '通用', description: id }); toast('已添加到课题'); }
+          if (idx === 2) { var c = await post('/api/nova/v1/paper/cite', { id: id, style: 'APA' }); toast('引用：' + ((c && c.data && c.data.text) || '').slice(0, 40)); }
+          if (idx === 3) { jumpRead(id); }
+        });
+      });
+      $('#bk', w).addEventListener('click', function () { paperSearch($('#pbody')); });
+    };
+
+    function jumpRead(id) {
+      $$('#ptabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === 'read'); });
+      paperRead($('#pbody'), id);
+    }
 
     var render = function (list) {
       $('#cnt').textContent = '命中 ' + list.length + ' 篇';
       $('#out').innerHTML = list.length ? cards(list, function (x) {
-        return '<div class="card"><b>' + esc(x.title) + '</b>'
-          + '<div class="kv" style="color:#8a9099;font-size:12px">' + esc((x.authors || []).join(', ')) + ' · ' + esc(x.venue) + ' · ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + ' · ' + esc(x.type || '期刊') + (x.free_pdf ? ' · <span style="color:#2f6fed">免费 PDF</span>' : '') + '</div>'
-          + '<div style="color:#4a5058;font-size:12px;margin:6px 0">' + esc(x.abstract || '') + '</div>'
+        return '<div class="card" data-id="' + esc(x.id) + '">'
+          + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#8a9099"><input type="checkbox" data-sel="' + esc(x.id) + '" style="width:auto"/>选择</label>'
+          + '<b style="cursor:pointer" data-open="' + esc(x.id) + '">' + esc(x.title) + '</b>'
+          + '<div style="color:#8a9099;font-size:12px">' + esc((x.authors || []).join(', ')) + ' · ' + esc(x.venue) + ' · ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + ' · ' + esc(x.type || '期刊') + (x.free_pdf ? ' · <span style="color:#2f6fed">免费 PDF</span>' : '') + '</div>'
+          + '<div style="color:#4a5058;font-size:12px;margin:6px 0" data-abs="' + esc(x.id) + '">' + esc(x.abstract || '') + '</div>'
           + '<div>' + (x.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>'
-          + '<div class="row" style="margin:10px 0 0"><button class="btn mini" data-act="add" data-id="' + esc(x.id) + '">添加到课题</button>'
-          + '<button class="btn mini" data-act="read" data-id="' + esc(x.id) + '">精读</button></div></div>';
-      }) : '<div class="section">没有命中结果，试试减少筛选条件</div>';
-      $$('#out .btn[data-act]').forEach(function (b) {
+          + '<div class="row" style="margin:10px 0 0"><button class="btn mini" data-expand="' + esc(x.id) + '">展开全文</button>'
+          + '<button class="btn mini" data-add="' + esc(x.id) + '">添加到课题</button><button class="btn mini" data-read="' + esc(x.id) + '">精读</button></div></div>';
+      }) : '<div class="section">没有命中结果</div>';
+
+      $$('#out input[data-sel]').forEach(function (c) {
+        c.addEventListener('change', function () { selected[c.getAttribute('data-sel')] = c.checked; syncBatch(); });
+      });
+      $$('#out [data-open]').forEach(function (b) { b.addEventListener('click', function () { detail(b.getAttribute('data-open')); }); });
+      $$('#out [data-expand]').forEach(function (b) {
         b.addEventListener('click', async function () {
-          var id = b.getAttribute('data-id');
-          if (b.getAttribute('data-act') === 'read') { window.paperReadDoc = id; paperRead($('#pbody'), id); $$('#ptabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === 'read'); }); return; }
-          await post('/api/spacebe/v1/space/create', { name: '论文收藏', field: '通用', description: id });
-          toast('已添加到课题（本地合成）');
+          var id = b.getAttribute('data-expand');
+          var dj = await api('/api/nova/v1/paper/detail?id=' + encodeURIComponent(id));
+          var full = (dj && dj.data && dj.data.abstract) || '';
+          var el = $('#out [data-abs="' + id + '"]');
+          if (el) el.textContent = b.textContent === '展开全文' ? full + '（完整摘要）' : (el.textContent || '').slice(0, 60) + '…';
+          b.textContent = b.textContent === '展开全文' ? '收起' : '展开全文';
         });
       });
+      $$('#out [data-add]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          await post('/api/spacebe/v1/space/create', { name: '论文收藏', field: '通用', description: b.getAttribute('data-add') });
+          toast('已添加到课题');
+        });
+      });
+      $$('#out [data-read]').forEach(function (b) { b.addEventListener('click', function () { jumpRead(b.getAttribute('data-read')); }); });
     };
 
     var apply = function () {
-      var y = $('#fYear').value, ty = $('#fType').value, free = $('#fFree').checked, sort = $('#fSort').value;
+      var y = $('#fYear').value, fld = $('#fField').value, ty = $('#fType').value, free = $('#fFree').checked, sort = $('#fSort').value;
       api('/api/nova/v1/search/works?query=' + encodeURIComponent(($('#q').value || 'x').trim()) + '&mode=' + encodeURIComponent(paperState.mode)).then(function (j) {
         var list = (j && j.data && j.data.list) || [];
         if (y) list = list.filter(function (x) { return String(x.year) === y; });
+        if (fld) list = list.filter(function (x) { return x.field === fld; });
         if (ty) list = list.filter(function (x) { return (x.type || '期刊') === ty; });
         if (free) list = list.filter(function (x) { return x.free_pdf; });
         if (sort === 'cite') list = list.slice().sort(function (a, b) { return (b.citations || 0) - (a.citations || 0); });
@@ -460,69 +530,88 @@ input.search{flex:1;min-width:220px}
       });
     };
     $('#go').addEventListener('click', apply);
-    ['#fYear', '#fType', '#fSort'].forEach(function (sel) { $(sel).addEventListener('change', apply); });
+    ['#fYear', '#fField', '#fType', '#fSort'].forEach(function (sel) { $(sel).addEventListener('change', apply); });
     $('#fFree').addEventListener('change', apply);
-    $('#reset').addEventListener('click', function () { $('#fYear').value = ''; $('#fType').value = ''; $('#fFree').checked = false; $('#fSort').value = 'comp'; apply(); });
+    $('#reset').addEventListener('click', function () { $('#fYear').value = ''; $('#fField').value = ''; $('#fType').value = ''; $('#fFree').checked = false; $('#fSort').value = 'comp'; apply(); });
 
     var hot = async function (field) {
       var j = await api('/api/nova/v1/search/hot-papers?field=' + encodeURIComponent(field || '全部领域'));
       var list = (j && j.data && j.data.list) || [];
       $('#hot').innerHTML = cards(list, function (x) {
-        return '<div class="card"><b>' + esc(x.title) + '</b><span>' + esc((x.authors || []).join(', ') || '—') + ' · ' + esc(x.venue) + ' ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + '</span></div>';
+        return '<div class="card"><b>' + esc(x.title) + '</b><span>' + esc(x.venue) + ' ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + '</span></div>';
       });
     };
     var fields = ['全部领域', '生命科学', '地球科学', '神经科学', '材料科学', '化学', '物理', '数学'];
     $('#hotFields').innerHTML = fields.map(function (f, i) { return '<span class="tag' + (i === 0 ? ' on' : '') + '" data-f="' + esc(f) + '">' + esc(f) + '</span>'; }).join('');
     $$('#hotFields .tag').forEach(function (t) {
-      t.addEventListener('click', function () {
-        $$('#hotFields .tag').forEach(function (x) { x.classList.remove('on'); });
-        t.classList.add('on'); hot(t.getAttribute('data-f'));
-      });
+      t.addEventListener('click', function () { $$('#hotFields .tag').forEach(function (x) { x.classList.remove('on'); }); t.classList.add('on'); hot(t.getAttribute('data-f')); });
     });
     hot('全部领域');
     apply();
   }
 
+
   async function paperRead(box, docId) {
     box.innerHTML = '<div class="row"><label class="btn" style="display:inline-flex;align-items:center;gap:6px">上传 PDF<input type="file" accept="application/pdf" id="pdfFile" style="display:none"/></label>'
-      + '<button class="btn" id="fromSpace">从课题选择</button>'
-      + '<span id="pdfName" style="color:#8a9099;font-size:12px"></span></div>'
-      + '<div class="row" id="rTabs"><span class="tag on" data-t="ai">AI 对话</span><span class="tag" data-t="map">思维导图</span><span class="tag" data-t="note">笔记</span></div>'
-      + '<div id="rBody"></div>';
-    $('#pdfFile').addEventListener('change', function () {
-      var f = this.files && this.files[0];
-      if (f) { $('#pdfName').textContent = f.name + ' · ' + Math.round(f.size / 1024) + ' KB'; toast('已选择 ' + f.name); }
+      + '<button class="btn" id="fromSpace">从课题选择</button><span id="pdfName" style="color:#8a9099;font-size:12px">' + (docId ? '已载入：' + esc(docId) : '') + '</span></div>'
+      + '<div class="grid" style="grid-template-columns:1.2fr 1fr">'
+      + '<div class="detail" id="pdfPane"><div class="kv">PDF 原文（占位预览 · 本地合成）</div>'
+      + '<div id="pdfText" style="font-size:13px;line-height:1.8;color:#4a5058">本文提出一种面向科学发现的方法（可在上方选择真实 PDF 文件；此处为占位文本，支持划词操作）。方法在多个基准上评估，结果优于基线，并讨论了跨学科迁移的局限。</div>'
+      + '<div class="row" style="margin-top:10px"><button class="btn mini" id="pgPrev">上一页</button><span class="kv" style="margin:0 8px">1 / 1</span><button class="btn mini" id="pgNext">下一页</button>'
+      + '<button class="btn mini" id="zoomOut">－</button><span class="kv" style="margin:0 8px" id="zoomVal">100%</span><button class="btn mini" id="zoomIn">＋</button>'
+      + '<button class="btn mini" id="mdView">Markdown 预览</button></div></div>'
+      + '<div><div class="row" id="rTabs"><span class="tag on" data-t="ai">AI 对话</span><span class="tag" data-t="map">思维导图</span><span class="tag" data-t="note">笔记</span></div><div id="rBody"></div></div>'
+      + '</div><div id="selMenu" style="display:none;position:fixed;background:#111;color:#fff;border-radius:8px;padding:6px"></div>';
+    var zoom = 100;
+    $('#pdfFile').addEventListener('change', function () { var f = this.files && this.files[0]; if (f) { $('#pdfName').textContent = f.name + ' · ' + Math.round(f.size / 1024) + ' KB'; toast('已选择 ' + f.name); } });
+    $('#fromSpace').addEventListener('click', function () { toast('已从课题载入'); });
+    $('#zoomIn').addEventListener('click', function () { zoom = Math.min(200, zoom + 10); $('#zoomVal').textContent = zoom + '%'; });
+    $('#zoomOut').addEventListener('click', function () { zoom = Math.max(60, zoom - 10); $('#zoomVal').textContent = zoom + '%'; });
+    $('#pgPrev').addEventListener('click', function () { toast('已是第一页'); });
+    $('#pgNext').addEventListener('click', function () { toast('已是最后一页'); });
+    $('#mdView').addEventListener('click', function () { $('#pdfText').innerHTML = '<h4>摘要</h4><p>本文提出一种面向科学发现的方法……</p><h4>方法</h4><p>工具调用 + 领域专家协作。</p><h4>结论</h4><p>多基准验证有效。</p>'; toast('已切换 Markdown 预览'); });
+
+    // 划词菜单
+    document.addEventListener('mouseup', function () {
+      var sel = window.getSelection();
+      var menu = $('#selMenu');
+      if (!menu) return;
+      if (sel && String(sel).trim().length > 0 && $('#pdfText') && $('#pdfText').contains(sel.anchorNode)) {
+        var r = sel.getRangeAt(0).getBoundingClientRect();
+        menu.style.display = 'block';
+        menu.style.left = (r.left + window.scrollX) + 'px';
+        menu.style.top = (r.top + window.scrollY - 36) + 'px';
+        menu.innerHTML = ['笔记', '翻译', '问 AI', '复制'].map(function (x) { return '<button class="btn mini" data-sel-act="' + x + '" style="margin:2px">' + x + '</button>'; }).join('');
+        $$('#selMenu [data-sel-act]').forEach(function (b) {
+          b.onclick = function () { toast('划词操作：' + b.getAttribute('data-sel-act')); menu.style.display = 'none'; };
+        });
+      } else {
+        menu.style.display = 'none';
+      }
     });
-    $('#fromSpace').addEventListener('click', function () { toast('已从课题载入《' + (docId || '示例论文') + '》'); });
+
     var showPane = function (t) {
       $$('#rTabs .tag').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === t); });
       var b = $('#rBody');
       if (t === 'map') {
-        b.innerHTML = '<div class="section">思维导图（本地合成）</div><div class="grid">'
-          + '<div class="card"><b>研究目标</b><span>提出可溯源的科学发现方法</span></div>'
-          + '<div class="card"><b>核心方法</b><span>工具路由 + 领域专家协作</span></div>'
-          + '<div class="card"><b>主要结论</b><span>多基准验证有效</span></div>'
-          + '<div class="card"><b>延伸问题</b><span>跨学科泛化能力</span></div></div>';
+        b.innerHTML = '<div class="grid">' + ['研究目标', '核心方法', '主要结论', '延伸问题'].map(function (k, i) {
+          return '<div class="card"><b>' + k + '</b><span>' + ['可溯源的科学发现', '工具路由+专家协作', '多基准有效', '跨学科泛化'][i] + '</span></div>';
+        }).join('') + '</div>';
         return;
       }
       if (t === 'note') {
         b.innerHTML = '<div class="row"><button class="btn primary" id="newNote">＋ 新建笔记</button></div><div class="section">暂无笔记（本地合成）</div>';
-        $('#newNote').addEventListener('click', function () { toast('已新建笔记（本地合成）'); });
+        $('#newNote').addEventListener('click', function () { toast('已新建笔记'); });
         return;
       }
-      b.innerHTML = '<div class="detail"><h3>结构化摘要</h3>'
-        + '<div class="kv">研究目标 · 核心方法 · 主要结论 · 创新点（本地合成摘要）</div>'
-        + '<p>该论文提出面向科学发现的方法框架，结合工具调用与领域专家协作，在多基准上验证有效性。</p></div>'
-        + '<div class="row" style="margin-top:12px"><input class="search" id="rq" placeholder="围绕本文提问，例如：方法局限是什么？"/><button class="btn primary" id="rgo">提问</button></div>'
-        + '<div class="section" id="rans"></div>';
-      $('#rgo').addEventListener('click', async function () {
-        var q = $('#rq').value.trim(); if (!q) return;
-        $('#rans').textContent = '（本地合成）关于「' + q + '」，本文的方法在跨学科场景仍需更多验证。';
-      });
+      b.innerHTML = '<div class="detail"><h3>结构化摘要</h3><div class="kv">研究目标 · 核心方法 · 主要结论 · 创新点</div><p>该论文提出面向科学发现的方法框架（本地合成）。</p></div>'
+        + '<div class="row" style="margin-top:12px"><input class="search" id="rq" placeholder="围绕本文提问"/><button class="btn primary" id="rgo">提问</button></div><div class="section" id="rans"></div>';
+      $('#rgo').addEventListener('click', function () { var q = $('#rq').value.trim(); if (q) $('#rans').textContent = '（本地合成）关于「' + q + '」的回答。'; });
     };
     $$('#rTabs .tag').forEach(function (t) { t.addEventListener('click', function () { showPane(t.getAttribute('data-t')); }); });
     showPane('ai');
   }
+
 
   async function paperCheck(box) {
     box.innerHTML = '<div class="row" id="cTabs"><span class="tag on" data-t="file">文件上传</span><span class="tag" data-t="text">文本输入</span></div>'
@@ -573,12 +662,32 @@ input.search{flex:1;min-width:220px}
         var both = await Promise.all([api('/api/spacebe/v1/space/details?id=' + encodeURIComponent(sid)), api('/api/spacebe/v1/space/assets/files?id=' + encodeURIComponent(sid))]);
         var dd = (both[0] && both[0].data) || {};
         var files = (both[1] && both[1].data && both[1].data.list) || [];
+        var tools = (await api('/api/spacebe/v1/space/tools?id=' + encodeURIComponent(sid))).data.list || [];
         box.innerHTML = '<div class="detail"><h3>' + esc(dd.name) + '</h3>'
           + '<div class="kv">领域 ' + esc(dd.field || '通用') + ' · 成员 ' + esc(dd.members) + ' · 文件 ' + esc(dd.files) + ' · 更新 ' + esc(dd.updated_at) + '</div>'
-          + '<p>' + esc(dd.description || '（无描述）') + '</p></div>'
+          + '<p>' + esc(dd.description || '（无描述）') + '</p>'
+          + '<div class="row" style="margin-top:10px"><button class="btn" id="delSpace">删除课题</button></div></div>'
           + '<div class="grid" style="margin-top:12px">' + files.map(function (x) {
             return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.type) + ' · ' + esc(x.size) + ' B</span></div>';
-          }).join('') + '</div>';
+          }).join('') + '</div>'
+          + '<div class="section" style="margin-top:14px">课题工具</div>'
+          + '<div class="grid">' + tools.map(function (t) {
+            return '<div class="card"><b>' + esc(t.name) + '</b><span>' + esc(t.desc) + '</span></div>';
+          }).join('') + '</div>'
+          + '<div class="section" style="margin-top:14px">课题内对话</div>'
+          + '<div class="row"><input class="search" id="sqChat" placeholder="在课题内提问，例如：帮我总结课题里的论文"/><button class="btn primary" id="sqGo">提问</button></div>'
+          + '<div class="section" id="sqAns">（尚未提问）</div>';
+        $('#delSpace', box).addEventListener('click', async function () {
+          if (!confirm('确认删除课题「' + dd.name + '」？')) return;
+          await post('/api/spacebe/v1/space/delete', { id: sid });
+          toast('已删除课题');
+          repoPage();
+        });
+        $('#sqGo', box).addEventListener('click', async function () {
+          var q = $('#sqChat', box).value.trim(); if (!q) return;
+          var r = await post('/api/spacebe/v1/space/chat', { id: sid, query: q });
+          $('#sqAns', box).textContent = (r && r.data && r.data.answer) || '（无回复）';
+        });
         backBtn(box, repoPage, '← 返回课题列表');
       });
     });
@@ -589,8 +698,13 @@ input.search{flex:1;min-width:220px}
     var both = await Promise.all([api('/api/moce/v1/apps/list'), api('/api/moce/v1/dry_wet_loop/apply/status/list')]);
     var list = (both[0] && both[0].data && both[0].data.list) || [];
     var reqs = (both[1] && both[1].data && both[1].data.list) || [];
-    box.innerHTML = '<div class="section">FEATURED · 干湿闭环平台</div>'
-      + cards(list, function (x) { return '<div class="card" data-id="' + esc(x.id || 'app1') + '"><b>' + esc(x.name) + '</b><span>' + esc(x.domain) + ' · ' + esc(x.summary) + '</span></div>'; })
+    var recommended = list.filter(function (x) { return (x.kind || 'recommended') === 'recommended'; });
+    var opensource = list.filter(function (x) { return x.kind === 'opensource'; });
+    var cardOf = function (x) { return '<div class="card" data-id="' + esc(x.id || 'app1') + '"><b>' + esc(x.name) + '</b><span>' + esc(x.domain) + ' · ' + esc(x.summary) + '</span></div>'; };
+    box.innerHTML = '<div class="section">推荐应用 · ' + recommended.length + ' 个</div>'
+      + cards(recommended, cardOf)
+      + '<div class="section" style="margin-top:14px">开源应用 · ' + opensource.length + ' 个</div>'
+      + cards(opensource, cardOf)
       + '<div class="section" style="margin-top:14px">我的干湿闭环申请 · ' + reqs.length + ' 个'
       + (reqs.length ? '：' + reqs.map(function (r) { return esc(r.title) + '（' + esc(r.status) + '）'; }).join(' · ') : '：暂无') + '</div>';
     $$('.card[data-id]', box).forEach(function (c) {
@@ -681,10 +795,24 @@ input.search{flex:1;min-width:220px}
         + '<div class="kv">调用 ' + esc(x.calls) + ' · 浏览 ' + esc(x.views) + ' · 下载 ' + esc(x.downloads) + '</div>'
         + '<p>' + esc(x.summary) + '</p>'
         + '<div class="mlabel">如何使用</div>' + how
+        + (x.doc ? '<div class="row" style="margin-top:10px"><button class="btn" id="skillDoc">查看介绍文档（SKILL.md）</button></div>' : '')
         + '<div class="mlabel" style="margin-top:12px">工具列表</div></div>'
         + '<div class="grid" style="margin-top:12px">' + (tools || '<div class="section">该服务未提供工具列表</div>') + '</div>'
         + '<div class="row" style="margin-top:14px"><button class="btn primary" id="useIt">▶ 使用</button><button class="btn" id="bk">← 返回列表</button></div>';
       $('#bk', box).addEventListener('click', scpPage);
+      var sd = $('#skillDoc', box);
+      if (sd) sd.addEventListener('click', function () {
+        var mask = $('#mask');
+        $('#mTitle').textContent = x.name + ' · SKILL.md';
+        $('#mName').style.display = 'none';
+        $('#mFields').innerHTML = '<pre style="white-space:pre-wrap;font-size:12px;background:#fbfcfe;border:1px solid #e8eaee;border-radius:8px;padding:10px;width:100%;max-height:320px;overflow:auto">' + esc(x.doc) + '</pre>';
+        $('#mDesc').style.display = 'none';
+        $('#mCreate').style.display = 'none';
+        mask.classList.add('on');
+        var close = function () { mask.classList.remove('on'); $('#mName').style.display = ''; $('#mDesc').style.display = ''; $('#mCreate').style.display = ''; };
+        $('#mClose').onclick = close;
+        $('#mCancel').onclick = close;
+      });
       $('#useIt', box).addEventListener('click', async function () {
         var r = await post('/api/scphub/v1/scp/use', { id: x.id });
         toast('已加入工作流，调用量 ' + ((r && r.data && r.data.downloads) || '-'));
@@ -696,32 +824,71 @@ input.search{flex:1;min-width:220px}
 
 
   async function datasetPage() {
-    var box = pageShell('科学数据', '从蛋白序列到气候模型 · 覆盖六大学科、多种模态的开放科学数据集广场');
-    var j = await api('/api/datasets/v1/dataset/square_list?page=1&page_size=12');
+    var box = pageShell('科学数据', '从蛋白序列到气候模型 · 按学科筛选、创建与下载数据集');
+    var j = await api('/api/datasets/v1/dataset/list');
     var list = (j && j.data && j.data.list) || [];
-    box.innerHTML = '<div class="row"><input class="search" id="dq" placeholder="搜索数据集"/></div><div id="out"></div>';
+    box.innerHTML = '<div class="row">'
+      + '<select id="dDomain"><option value="">全部学科</option><option>生命科学</option><option>地球科学</option><option>神经科学</option><option>材料科学</option><option>化学</option><option>物理</option><option>数学</option><option>通用</option></select>'
+      + '<input class="search" id="dq" placeholder="搜索数据集"/>'
+      + '<button class="btn primary" id="newDs">＋ 创建数据集</button>'
+      + '<button class="btn" id="guide">使用指南</button></div><div id="out"></div>';
     var run = function () {
       var kw = ($('#dq').value || '').trim().toLowerCase();
-      var rows = list.filter(function (d) { return !kw || (d.name + d.domain).toLowerCase().indexOf(kw) >= 0; });
-      $('#out').innerHTML = cards(rows, function (d) { return '<div class="card" data-id="' + esc(d.id) + '"><b>' + esc(d.name) + '</b><span>' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + '</span></div>'; });
+      var dom = $('#dDomain').value;
+      var rows = list.filter(function (d) {
+        return (!dom || d.domain === dom) && (!kw || (d.name + d.domain).toLowerCase().indexOf(kw) >= 0);
+      });
+      $('#out').innerHTML = rows.length ? cards(rows, function (d) {
+        return '<div class="card" data-id="' + esc(d.id) + '"><b>' + esc(d.name) + '</b><span>' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + ' · ' + esc(d.version) + '</span></div>';
+      }) : '<div class="section">没有匹配的数据集</div>';
       $$('#out .card[data-id]').forEach(function (c) {
         c.addEventListener('click', async function () {
           var id = c.getAttribute('data-id');
           var dj = await api('/api/datasets/v1/dataset/detail?id=' + encodeURIComponent(id));
           var d = (dj && dj.data) || {};
-          box.innerHTML = '<div class="detail"><h3>' + esc(d.name || id) + '</h3>'
-            + '<div class="kv">' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + ' · 文件 ' + esc(d.files) + '</div>'
-            + '<p>' + esc(d.description || '') + '</p><button class="btn primary" id="dl">⬇ 申请下载</button></div><div id="dlList" class="section" style="margin-top:12px"></div>';
-          var showDl = function () { api('/api/datasets/v1/dataset/downloads').then(function (j) { var l = (j && j.data && j.data.list) || []; var el = $('#dlList', box); if (el) el.innerHTML = '我的下载申请 · ' + l.length + ' 个' + (l.length ? '：' + l.map(function (x) { return esc(x.name); }).join(' · ') : ''); }); };
+          var item = rows.filter(function (x) { return String(x.id) === String(id); })[0] || {};
+          box.innerHTML = '<div class="detail"><h3>' + esc(d.name || item.name || id) + '</h3>'
+            + '<div class="kv">学科 ' + esc(item.domain || d.domain) + ' · 版本 ' + esc(item.version || d.version || '-') + ' · 大小 ' + esc(item.size || d.size) + ' · 许可 ' + esc(item.license || d.license) + '</div>'
+            + '<div class="kv">文件清单：' + (Array.isArray(d.files) ? d.files.length : (d.files || 0)) + ' 个</div>'
+            + '<p>' + esc(d.description || item.description || '（本地合成数据集）') + '</p>'
+            + '<button class="btn primary" id="dl">⬇ 申请下载</button></div>'
+            + '<div id="dlList" class="section" style="margin-top:12px"></div>'
+            + '<div class="row" style="margin-top:12px"><button class="btn" id="bk">← 返回数据集</button></div>';
+          $('#bk', box).addEventListener('click', datasetPage);
+          var showDl = function () {
+            api('/api/datasets/v1/dataset/downloads').then(function (j2) {
+              var l = (j2 && j2.data && j2.data.list) || [];
+              var el = $('#dlList', box);
+              if (el) el.innerHTML = '我的下载申请 · ' + l.length + ' 个' + (l.length ? '：' + l.map(function (x) { return esc(x.name); }).join(' · ') : '');
+            });
+          };
           showDl();
-          $('#dl', box).addEventListener('click', async function () { await post('/api/datasets/v1/dataset/download-request', { id: id, name: d.name || id }); toast('下载申请已提交'); showDl(); });
-          backBtn(box, datasetPage, '← 返回数据集');
+          $('#dl', box).addEventListener('click', async function () {
+            await post('/api/datasets/v1/dataset/download-request', { id: id, name: d.name || item.name });
+            toast('下载申请已提交'); showDl();
+          });
         });
       });
     };
     $('#dq').addEventListener('input', run);
+    $('#dDomain').addEventListener('change', run);
+    $('#newDs').addEventListener('click', function () {
+      openCreateModal(async function () { datasetPage(); }, { title: '创建数据集', nameLabel: '数据集名称', fields: ['生命科学', '地球科学', '材料科学', '通用'], submit: async function (payload) {
+        await post('/api/datasets/v1/dataset/create', { name: payload.name, domain: payload.field, description: payload.description });
+        toast('已创建数据集');
+      } });
+    });
+    $('#guide').addEventListener('click', async function () {
+      var g = await api('/api/datasets/v1/dataset/guide');
+      var d = (g && g.data) || {};
+      box.innerHTML = '<div class="detail"><h3>' + esc(d.title) + '</h3>'
+        + (d.sections || []).map(function (x) { return '<div class="kv"><b>' + esc(x.h) + '</b> ' + esc(x.p) + '</div>'; }).join('')
+        + '</div><div class="row" style="margin-top:12px"><button class="btn" id="bk">← 返回数据集</button></div>';
+      $('#bk', box).addEventListener('click', datasetPage);
+    });
     run();
   }
+
 
   async function computePage() {
     var box = pageShell('科学计算', '开发机 · 云盘 · 训练任务，一站式机器学习平台');
@@ -741,9 +908,23 @@ input.search{flex:1;min-width:220px}
           + '<button class="btn mini" data-act="stop" data-id="' + esc(m.id || m.name) + '">停止</button></div></div>';
       })
       + '<div class="section" style="margin-top:14px">云盘管理 · 已用 ' + esc(d.used_gb) + ' / ' + esc(d.total_gb) + ' GB · 文件 ' + esc(d.file_count) + '</div>'
+      + '<div class="row"><button class="btn mini" id="mkDir">＋ 新建文件夹</button><button class="btn mini" id="upFileBtn">上传文件</button></div>'
       + '<div class="grid">' + files.map(function (f) { return '<div class="card"><b>' + esc(f.name) + '</b><span>' + esc(f.type) + ' · ' + esc(f.size) + ' B</span></div>'; }).join('') + '</div>'
       + '<div class="section" style="margin-top:14px">训练任务管理 · ' + tasks.length + ' 个</div>'
-      + cards(tasks, function (t) { return '<div class="card"><b>' + esc(t.name) + '</b><span>' + esc(t.status) + ' · ' + esc(t.gpu) + ' · ' + esc(t.duration_min) + ' 分钟</span></div>'; });
+      + cards(tasks, function (t) {
+        return '<div class="card"><b>' + esc(t.name) + '</b><span>' + esc(t.status) + ' · ' + esc(t.gpu) + ' · ' + esc(t.duration_min) + ' 分钟</span>'
+          + (t.status === 'running' ? '<div class="row" style="margin:8px 0 0"><button class="btn mini" data-stop="' + esc(t.id) + '">停止</button></div>' : '') + '</div>';
+      });
+    var mk = $('#mkDir', box); if (mk) mk.onclick = async function () { await post('/api/ml/v1/cloud-disk/mkdir', { name: '新建文件夹' }); toast('已新建文件夹'); computePage(); };
+    var up = $('#upFileBtn', box); if (up) up.onclick = async function () { await post('/api/ml/v1/cloud-disk/upload', { name: 'upload-' + Date.now() + '.bin', size: 2048 }); toast('已上传文件'); computePage(); };
+    $$('.btn[data-stop]', box).forEach(function (b) {
+      b.addEventListener('click', async function (ev) {
+        ev.stopPropagation();
+        var r = await post('/api/ml/v1/training/stop', { id: b.getAttribute('data-stop') });
+        toast('已停止：' + ((r && r.data && r.data.status) || ''));
+        computePage();
+      });
+    });
     $$('.btn[data-act]', box).forEach(function (b) {
       b.addEventListener('click', async function (ev) {
         ev.stopPropagation();
@@ -788,7 +969,36 @@ input.search{flex:1;min-width:220px}
     run();
   }
 
-  var ROUTES = { '/chat': chatHome, '/paper': paperPage, '/repo': repoPage, '/app': appPage, '/scp': scpPage, '/dataset': datasetPage, '/compute': computePage, '/token-plan/home': tokenPlanPage };
+  async function userCenterPage() {
+    var box = pageShell('用户中心', '团队 · API Key · AKSK · 收藏 · Skills · 数据集');
+    var TABS = ['团队', 'API Key', 'AKSK', '收藏', 'Skills', '数据集'];
+    box.innerHTML = '<div class="row" id="ucTabs">' + TABS.map(function (t, i) { return '<span class="tag' + (i === 0 ? ' on' : '') + '" data-t="' + t + '">' + t + '</span>'; }).join('') + '</div><div id="ucBody"></div>';
+    var load = async function (tab) {
+      var ep = tab === '团队' ? '/api/usercenter/team' : tab === 'API Key' ? '/api/tokenplan/v1/keys' : tab === 'AKSK' ? '/api/usercenter/aksk' : tab === '收藏' ? '/api/usercenter/collections' : tab === 'Skills' ? '/api/usercenter/skills' : '/api/usercenter/datasets';
+      var j = await api(ep);
+      var list = (j && j.data && j.data.list) || [];
+      $('#ucBody').innerHTML = list.length ? cards(list, function (x) {
+        var title = x.name || x.title || x.id;
+        var sub = tab === '团队' ? (x.role || '') : tab === 'AKSK' ? (x.masked + ' · ' + x.status) : tab === '收藏' ? (x.count + ' 项') : tab === 'Skills' ? ('下载 ' + (x.downloads || 0)) : tab === '数据集' ? (x.domain + ' · ' + x.size) : (x.masked + ' · ' + x.status);
+        return '<div class="card"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></div>';
+      }) : '<div class="section">暂无数据</div>';
+    };
+    $$('#ucTabs .tag').forEach(function (t) {
+      t.addEventListener('click', function () {
+        $$('#ucTabs .tag').forEach(function (x) { x.classList.remove('on'); });
+        t.classList.add('on'); load(t.getAttribute('data-t'));
+      });
+    });
+    load('团队');
+  }
+  async function docPage(kind) {
+    var box = pageShell(kind === 'developer' ? '开发者' : '数据准备', '官方文档对齐页（本地合成内容）');
+    var j = await api('/api/usercenter/docs?kind=' + encodeURIComponent(kind));
+    var d = (j && j.data) || {};
+    box.innerHTML = '<div class="detail"><h3>' + esc(d.title) + '</h3>'
+      + (d.sections || []).map(function (x) { return '<div class="kv"><b>' + esc(x.h) + '</b> ' + esc(x.p) + '</div>'; }).join('') + '</div>';
+  }
+  var ROUTES = { '/user-center': userCenterPage, '/docs/data-prep': function () { return docPage('data-prep'); }, '/docs/developer': function () { return docPage('developer'); }, '/chat': chatHome, '/paper': paperPage, '/repo': repoPage, '/app': appPage, '/scp': scpPage, '/dataset': datasetPage, '/compute': computePage, '/token-plan/home': tokenPlanPage };
   function current() { var p = (location.pathname || '/chat').replace(/\/+$/, ''); return p || '/chat'; }
   function render() {
     var path = current(); if (!ROUTES[path]) path = '/chat';

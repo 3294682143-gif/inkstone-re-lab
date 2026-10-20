@@ -39,6 +39,12 @@ const DATASET_CATEGORIES = { list: [
 ], total: 6 };
 const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const APP_ITEMS = [
+  { id: 'app1', name: '干湿闭环平台', domain: '生命科学', summary: '从假设到湿实验的一体化编排', kind: 'recommended' },
+  { id: 'app2', name: '材料筛选助手', domain: '材料科学', summary: '晶体候选批量筛选', kind: 'recommended' },
+  { id: 'app3', name: '气候降尺度工作流', domain: '地球科学', summary: '区域尺度气候模拟', kind: 'opensource' },
+  { id: 'app4', name: '单细胞分析套件', domain: '生命科学', summary: '聚类/注释/差异表达', kind: 'opensource' },
+];
 const SCP_ITEMS = [
   { id: 'scp1', name: '蛋白结构预测', kind: 'SCP', field: '生命科学', use: '模型服务', org: '上海人工智能实验室', calls: 1820, views: 6400, downloads: 1280,
     summary: '基于序列预测蛋白三维结构', endpoint: 'https://scp.example.local/protein', tools: [{ name: 'predict_structure', desc: '输入 FASTA，输出 PDB', schema: '{ sequence: string }' }, { name: 'score_plddt', desc: '返回置信度', schema: '{ pdb: string }' }] },
@@ -82,6 +88,27 @@ const store = {
     { id: 'dw1', title: '蛋白表达湿实验', status: 'reviewing', submitted_at: '2026-10-12', owner: '禾青' },
   ],
   downloads: [],
+  chatFiles: {},
+  disk: [
+    { name: 'train.py', type: 'file', size: 4210 },
+    { name: 'coco.yaml', type: 'file', size: 1204 },
+    { name: 'runs/', type: 'dir', size: 0 },
+  ],
+  tasks: [
+    { id: 'tk1', name: 'yolov8-baseline', status: 'running', gpu: 'A100 80G', duration_min: 128 },
+    { id: 'tk2', name: 'coco-finetune', status: 'finished', gpu: 'A100 80G', duration_min: 436 },
+  ],
+  team: [
+    { id: 'u1', name: '禾青', role: 'owner' },
+    { id: 'u2', name: '张翼', role: 'member' },
+  ],
+  aksk: [{ id: 'ak1', name: 'CI AKSK', masked: 'AK****91c2', status: 'active' }],
+  collections: [{ id: 'c1', name: '蛋白结构论文', count: 12 }],
+  datasets: [
+    { id: 'ds1', name: '蛋白质结构数据集', domain: '生命科学', size: '12 GB', license: 'CC-BY-4.0', files: 3, version: 'v3.1' },
+    { id: 'ds2', name: '全球气候再分析', domain: '地球科学', size: '48 GB', license: 'ODbL', files: 2, version: 'v1.4' },
+    { id: 'ds3', name: '晶体材料库', domain: '材料科学', size: '6 GB', license: 'CC-BY-NC', files: 2, version: 'v2.0' },
+  ],
 };
 let seq = 100;
 
@@ -663,6 +690,10 @@ export function createMockGatewayServer(opts = {}) {
           { id: 103, name: '材料晶体结构库', domain: '物质科学', size: '5.7 GB', downloads: 964, description: 'Materials Project 子集' },
         ], total: 3 } }));
       }
+      if (method === 'GET' && path === '/api/datasets/v1/dataset/list') {
+        log('GET /datasets/v1/dataset/list -> 200 (' + store.datasets.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: { list: store.datasets, total: store.datasets.length } }));
+      }
       if (method === 'GET' && path === '/api/datasets/v1/dataset/detail') {
         log('GET /datasets/v1/dataset/detail -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: {
@@ -742,6 +773,12 @@ export function createMockGatewayServer(opts = {}) {
       return send(200, JSON.stringify({ code: 0, data: item }));
       }
       if (method === 'GET' && path === '/api/moce/v1/apps/list') {
+        const kind = String((url.searchParams && url.searchParams.get('kind')) || '');
+        if (kind) {
+          const src = APP_ITEMS.filter((x) => x.kind === kind);
+          log('GET /moce/v1/apps/list kind=' + kind + ' -> 200 (' + src.length + ')');
+          return send(200, JSON.stringify({ code: 0, data: { list: src, total: src.length } }));
+        }
         log('GET /moce/v1/apps/list -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: { list: [
           { id: 1, name: '干湿闭环平台', domain: '通用', summary: 'AI4S 干湿闭环工作流' },
@@ -755,11 +792,8 @@ export function createMockGatewayServer(opts = {}) {
         return send(200, JSON.stringify({ code: 0, data: { running: 1, quota: 2, cpu_cores: 32, gpu_type: 'A100 80G' } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/training/list') {
-        log('GET /ml/v1/training/list -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { id: 'tr-1', name: 'yolov8-baseline', status: 'running', duration_min: 128, gpu: 'A100 80G' },
-          { id: 'tr-2', name: 'coco-finetune', status: 'finished', duration_min: 436, gpu: 'A100 80G' },
-        ], total: 2 } }));
+        log('GET /ml/v1/training/list -> 200 (stateful, ' + store.tasks.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: { list: store.tasks, total: store.tasks.length } }));
       }
       if (method === 'POST' && (path === '/api/ml/v1/dev-machine/start' || path === '/api/ml/v1/dev-machine/stop')) {
       const body = await readBody(req);
@@ -769,13 +803,53 @@ export function createMockGatewayServer(opts = {}) {
       log('POST ' + path + ' id=' + String(body.id) + ' -> 200 (now ' + (m ? m.status : 'not-found') + ')');
       return send(200, JSON.stringify({ code: 0, data: { ok: !!m, id: body.id, status: m ? m.status : undefined } }));
       }
+      if (method === 'POST' && path === '/api/ml/v1/cloud-disk/mkdir') {
+        const body = await readBody(req);
+        const item = { name: String(body.name || 'new-folder') + '/', type: 'dir', size: 0 };
+        store.disk.push(item);
+        log('POST /cloud-disk/mkdir -> 200 (' + store.disk.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: item }));
+      }
+      if (method === 'POST' && path === '/api/ml/v1/cloud-disk/upload') {
+        const body = await readBody(req);
+        const item = { name: String(body.name || 'upload.bin'), type: 'file', size: Number(body.size || 1024) };
+        store.disk.push(item);
+        log('POST /cloud-disk/upload -> 200 (' + store.disk.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: item }));
+      }
+      if (method === 'POST' && path === '/api/ml/v1/training/stop') {
+        const body = await readBody(req);
+        const t = store.tasks.filter((x) => x.id === String(body.id))[0];
+        if (t) t.status = 'stopped';
+        log('POST /ml/v1/training/stop id=' + String(body.id) + ' -> 200 (' + (t ? t.status : 'nf') + ')');
+        return send(200, JSON.stringify({ code: 0, data: { ok: !!t, id: body.id, status: t ? t.status : undefined } }));
+      }
+      if (method === 'GET' && path === '/api/usercenter/team') {
+        return send(200, JSON.stringify({ code: 0, data: { list: store.team } }));
+      }
+      if (method === 'GET' && path === '/api/usercenter/aksk') {
+        return send(200, JSON.stringify({ code: 0, data: { list: store.aksk } }));
+      }
+      if (method === 'GET' && path === '/api/usercenter/collections') {
+        return send(200, JSON.stringify({ code: 0, data: { list: store.collections } }));
+      }
+      if (method === 'GET' && path === '/api/usercenter/skills') {
+        return send(200, JSON.stringify({ code: 0, data: { list: store.disk.slice(0, 2).map((x, i) => ({ id: 'sk' + i, name: x.name, downloads: 12 + i })) } }));
+      }
+      if (method === 'GET' && path === '/api/usercenter/datasets') {
+        return send(200, JSON.stringify({ code: 0, data: { list: store.datasets } }));
+      }
+      if (method === 'GET' && path === '/api/usercenter/docs') {
+        const kind = String((url.searchParams && url.searchParams.get('kind')) || 'data-prep');
+        const docs = {
+          'data-prep': { title: '数据准备', sections: [{ h: '一、上传数据', p: '在云盘新建目录并上传文件。' }, { h: '二、标注与切分', p: '按任务切分训练/验证集。' }] },
+          developer: { title: '开发者', sections: [{ h: '一、API Key', p: '在用户中心创建 AK/SK。' }, { h: '二、SDK 调用', p: 'pip install mcp 后配置 Endpoint。' }] },
+        };
+        return send(200, JSON.stringify({ code: 0, data: docs[kind] || docs['data-prep'] }));
+      }
       if (method === 'GET' && path === '/api/ml/v1/cloud-disk/list') {
-        log('GET /ml/v1/cloud-disk/list -> 200 (synthetic)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { name: 'train.py', type: 'file', size: 4210 },
-          { name: 'coco.yaml', type: 'file', size: 1204 },
-          { name: 'runs/', type: 'dir', size: 0 },
-        ], total: 3 } }));
+        log('GET /ml/v1/cloud-disk/list -> 200 (' + store.disk.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: { list: store.disk, total: store.disk.length } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/dev-machine/list') {
       log('GET /ml/v1/dev-machine/list -> 200 (stateful)');
@@ -808,6 +882,8 @@ export function createMockGatewayServer(opts = {}) {
               tags: [x.angle_name, x.venue],
               type: x.id === 'w3' ? '会议' : '期刊',
               free_pdf: x.id === 'w1' || x.id === 'w4',
+              field: x.id === 'w1' ? '生命科学' : x.id === 'w2' ? '通用' : x.id === 'w3' ? '通用' : '材料科学',
+              abstract_full: '完整摘要（本地合成）：本文围绕「' + x.angle_name + '」提出方法，在多个公开基准上评估，超过基线并给出消融实验与误差分析，最后讨论局限与跨学科迁移的可能。',
             });
           }),
         } }));
@@ -824,6 +900,17 @@ export function createMockGatewayServer(opts = {}) {
         const stats = { all: items.length, correct: items.filter((x) => x.verdict === '正确').length, doubtful: items.filter((x) => x.verdict === '存疑').length, unchecked: items.filter((x) => x.verdict === '未核验').length };
         log('POST /nova/v1/paper/check mode=' + mode + ' len=' + text.length + ' -> 200 (synthetic ' + stats.all + ' 条)');
         return send(200, JSON.stringify({ code: 0, data: { mode: mode, stats: stats, items: items } }));
+      }
+      if (method === 'POST' && path === '/api/nova/v1/paper/pdf') {
+        const body = await readBody(req);
+        log('POST /nova/v1/paper/pdf id=' + String(body.id) + ' -> 200 (synthetic url)');
+        return send(200, JSON.stringify({ code: 0, data: { id: body.id, url: 'https://pdf.example.local/' + String(body.id) + '.pdf', available: true } }));
+      }
+      if (method === 'POST' && path === '/api/nova/v1/paper/cite') {
+        const body = await readBody(req);
+        const style = String(body.style || 'APA');
+        log('POST /nova/v1/paper/cite id=' + String(body.id) + ' style=' + style + ' -> 200');
+        return send(200, JSON.stringify({ code: 0, data: { style: style, text: 'Zhang Y., Li M. (' + new Date().getFullYear() + '). Local synthetic paper ' + String(body.id) + '. Journal of Local Studies.' } }));
       }
       if (method === 'GET' && path === '/api/nova/v1/paper/detail') {
         const id = String((url.searchParams && url.searchParams.get('id')) || 'w1');
@@ -860,13 +947,39 @@ export function createMockGatewayServer(opts = {}) {
           { id: 'w3', title: 'AI4S: from tools to autonomous labs', venue: 'Cell', year: 2025, citations: 315 },
         ], total: 3 } }));
       }
+      if (method === 'GET' && path === '/api/spacebe/v1/space/tools') {
+        const id = String((url.searchParams && url.searchParams.get('id')) || '');
+        log('GET /spacebe/v1/space/tools id=' + id + ' -> 200 (3 tools)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 't1', name: '论文检索', desc: '在课题内检索文献并沉淀' },
+          { id: 't2', name: '数据分析', desc: '对课题文件做统计与可视化' },
+          { id: 't3', name: '报告生成', desc: '把结论生成 Markdown 报告' },
+        ] } }));
+      }
+      if (method === 'POST' && path === '/api/spacebe/v1/space/delete') {
+        const body = await readBody(req);
+        const id = String(body.id || '');
+        const before = store.spaces.length;
+        store.spaces = store.spaces.filter((x) => String(x.id) !== id);
+        log('POST /spacebe/v1/space/delete id=' + id + ' -> 200 (' + before + ' -> ' + store.spaces.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: { ok: before !== store.spaces.length, id: id } }));
+      }
+      if (method === 'POST' && path === '/api/spacebe/v1/space/chat') {
+        const body = await readBody(req);
+        const q = String(body.query || '');
+        log('POST /spacebe/v1/space/chat q=' + q.slice(0, 20) + ' -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { answer: '（课题内对话·本地合成）关于「' + q.slice(0, 40) + '」，建议先看课题内的论文与数据文件，再结合工具链复现。' } }));
+      }
       if (method === 'GET' && path === '/api/spacebe/v1/space/list') {
       log('GET /spacebe/v1/space/list -> 200 (stateful, ' + store.spaces.length + ' spaces)');
       return send(200, JSON.stringify({ code: 0, data: { list: store.spaces, total: store.spaces.length } }));
       }
       if (method === 'GET' && path === '/api/scphub/v1/scp/detail') {
         const id = String((url.searchParams && url.searchParams.get('id')) || 'scp1');
-        const item = SCP_ITEMS.filter((x) => x.id === id)[0] || SCP_ITEMS[0];
+        const base = SCP_ITEMS.filter((x) => x.id === id)[0] || SCP_ITEMS[0];
+        const item = Object.assign({}, base, base.kind === 'Skills' ? {
+          doc: '# ' + base.name + '\n\n## 能力边界\n\n该 Skill 封装「' + base.summary + '」的调用逻辑，支持嵌入科研工作流自动执行。\n\n## 调用逻辑\n\n1. 读取输入文件\n2. 调用领域工具\n3. 输出结构化结果\n\n## 预期输出\n\nJSON：{ result: string, confidence: number }',
+        } : {});
         log('GET /scphub/v1/scp/detail id=' + id + ' -> 200');
         return send(200, JSON.stringify({ code: 0, data: item }));
       }
@@ -883,6 +996,21 @@ export function createMockGatewayServer(opts = {}) {
         store.downloads.unshift(item);
         log('POST /datasets/v1/dataset/download-request -> 200 (stateful, ' + store.downloads.length + ')');
         return send(200, JSON.stringify({ code: 0, data: item }));
+      }
+      if (method === 'POST' && path === '/api/datasets/v1/dataset/create') {
+        const body = await readBody(req);
+        const item = { id: 'ds' + (++seq), name: String(body.name || '新建数据集'), domain: String(body.domain || '通用'), size: String(body.size || '1 GB'), license: String(body.license || 'CC-BY-4.0'), files: 1, version: 'v0.1' };
+        store.datasets.unshift(item);
+        log('POST /datasets/v1/dataset/create -> 200 (' + store.datasets.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: item }));
+      }
+      if (method === 'GET' && path === '/api/datasets/v1/dataset/guide') {
+        log('GET /datasets/v1/dataset/guide -> 200');
+        return send(200, JSON.stringify({ code: 0, data: { title: '科学数据使用指南', sections: [
+          { h: '一、浏览与筛选', p: '按学科、许可、文件大小筛选数据集。' },
+          { h: '二、申请下载', p: '在详情页点击「申请下载」，等待审批后获取链接。' },
+          { h: '三、引用规范', p: '使用数据集时请按许可要求引用来源。' },
+        ] } }));
       }
       if (method === 'GET' && path === '/api/datasets/v1/dataset/downloads') {
         log('GET /datasets/v1/dataset/downloads -> 200 (' + store.downloads.length + ')');
@@ -932,7 +1060,11 @@ export function createMockGatewayServer(opts = {}) {
         const emit = (o) => { if (!res.writableEnded) res.write('data: ' + JSON.stringify(o) + '\n\n'); };
         emit({ event: 'workflow_started', cid, mid });
         await sleepMs(120);
-        if (!st.cancelled && body?.thinking_mode) emit({ event: 'message', thinking: '这是合成的思考增量（网页协议 message.thinking）。', cid, mid });
+        if (!st.cancelled && body?.thinking_mode) {
+          emit({ event: 'message', thinking: '这是合成的思考增量（网页协议 message.thinking）。', cid, mid });
+          emit({ event: 'expert', cid, mid, expert: '地球科学专家', stage: '路由', note: '主 Agent 判断学科方向后委托' });
+          emit({ event: 'expert', cid, mid, expert: '物理专家', stage: '计算', note: '调用领域科研工具完成计算' });
+        }
         for (const ch of answerText.split('')) {
           await sleepMs(60);
           if (st.cancelled) break;
@@ -965,11 +1097,24 @@ export function createMockGatewayServer(opts = {}) {
       }
       const mFiles = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)\/files$/);
       if (method === 'GET' && mFiles) {
-        log('GET /chat/' + mFiles[1] + '/files -> 200 (2 files)');
-        return send(200, JSON.stringify({ code: 0, data: { list: [
-          { name: 'report.md', type: 'md', size: 2048, content: '# 研究报告\n\n## 结论\n本地合成报告内容。' },
-          { name: 'analysis.py', type: 'py', size: 1024, content: 'print("local synthetic script")' },
-        ] } }));
+        const key = String(mFiles[1]);
+        if (!store.chatFiles[key]) {
+          store.chatFiles[key] = [
+            { name: 'report.md', type: 'md', size: 2048, content: '# 研究报告\n\n## 结论\n本地合成报告内容。' },
+            { name: 'analysis.py', type: 'py', size: 1024, content: 'print("local synthetic script")' },
+          ];
+        }
+        log('GET /chat/' + key + '/files -> 200 (' + store.chatFiles[key].length + ' files)');
+        return send(200, JSON.stringify({ code: 0, data: { list: store.chatFiles[key] } }));
+      }
+      const mReport = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)\/report$/);
+      if (method === 'POST' && mReport) {
+        const key = String(mReport[1]);
+        if (!store.chatFiles[key]) store.chatFiles[key] = [];
+        const file = { name: 'report-' + (++seq) + '.md', type: 'md', size: 1760, content: '# 结构化研究报告\n\n## 1. 目标\n## 2. 方法\n## 3. 结果\n## 4. 解读（本地合成）' };
+        store.chatFiles[key].unshift(file);
+        log('POST /chat/' + key + '/report -> 200 (' + store.chatFiles[key].length + ' files)');
+        return send(200, JSON.stringify({ code: 0, data: file }));
       }
       const mNote = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)\/note$/);
       if (method === 'POST' && mNote) {
