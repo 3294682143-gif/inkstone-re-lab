@@ -90,3 +90,37 @@
 | `/api/datasets/v1/category/list` | **200 / code=0** | **公开**：`data.list[6]` + `total`，项含 `id/name/icon_url/sort/background_color` |
 
 > 判定规则：401 只说明"需要鉴权"，不能据此认为路径不存在；本次没有出现 404，说明清单里的路径全部真实存在。
+
+
+## 6. 子应用（Module Federation 远程件）2026-10-20
+
+壳工程只包含侧栏/聊天/账号，其余模块是**独立子应用**，通过 `/xxx-static/remoteEntry-var.js` 注册。实测存在的 9 个：
+
+| 子应用 | remoteEntry |
+| --- | --- |
+| 论文工具 | `/paper-static/remoteEntry-var.js` |
+| 课题空间 | `/repo-static/remoteEntry-var.js` |
+| 科研应用 | `/app-static/remoteEntry-var.js` |
+| 科学工具 | `/scp-static/remoteEntry-var.js` |
+| 科学数据 | `/dataset-static/remoteEntry-var.js` |
+| 科学计算 | `/compute-static/remoteEntry-var.js` |
+| 科研模型 | `/token-plan-static/remoteEntry-var.js` |
+| 聊天（MOCE） | `/chat-static/remoteEntry-var.js` + `static.openxlab.org.cn/.../moce-fe/<build>/remoteEntry.js` |
+| 用户中心 | `/user-center-static/remoteEntry-var.js` |
+
+> 结论：仓库此前抓到的是壳 + MOCE 聊天模块；这 7 个侧栏入口的实现分别在各子应用的包里，壳的 bundle 中不存在。
+
+### 论文子应用（已采集）的接口面
+
+来源：`02-sources/original/paper-static/`（12 个文件）
+
+| 分组 | 端点 |
+| --- | --- |
+| 检索 | `POST /api/nova/v1/search/works`、`/works/term-segmentation`、`/search/authors` |
+| 分面 | `/works/facets/{years,fields,types}` |
+| 单篇 | `/works/{id}`、`/works/{id}/{references,cited-by,related,read,pdf_url_check}` |
+| 收藏 | `/works/check_saved`、`/search/save-space` |
+| 热点/历史 | `/search/hot-papers`、`/search/recent-searches`（+ `clear`、`clear/{id}`） |
+| 对话 | `POST /api/nova/v1/chat` |
+
+新增 API 前缀：`nova`（此前只有 datasets/orbit/scphub/spacebe/tokenplan/user-center）。

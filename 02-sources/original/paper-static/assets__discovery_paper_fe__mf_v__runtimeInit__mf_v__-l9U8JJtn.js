@@ -1,0 +1,1 @@
+const _="__mf_init____mf__virtual/discovery_paper_fe__mf_v__runtimeInit__mf_v__.js__";if(!globalThis[_]){let i,e;const t=new Promise((o,s)=>{i=o,e=s});globalThis[_]={initPromise:t,initResolve:i,initReject:e}}var l=globalThis[_];export{l as d};
