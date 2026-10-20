@@ -81,6 +81,16 @@ input.search{flex:1;min-width:220px}
 .tag.on{background:var(--brand-weak);color:var(--brand);border:1px solid var(--brand-line)}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.on{opacity:.92}
+.chatWrap{display:flex;height:100%}
+.chatMain{flex:1;min-width:0}
+.ws{width:248px;flex:0 0 248px;border-left:1px solid var(--line);background:#fff;padding:14px 12px;overflow:auto}
+.ws h4{margin:0 0 10px;font-size:13px;color:#1b1f24}
+.ws .f{display:block;width:100%;text-align:left;border:0;background:transparent;padding:7px 8px;border-radius:8px;color:#4a5058;font-size:13px}
+.ws .f:hover{background:#f7f8fa}
+.ws .f span{color:#a3a9b3;font-size:11px;margin-left:6px}
+.acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.acts button{border:1px solid #e8eaee;background:#fff;border-radius:8px;height:26px;padding:0 9px;color:#4a5058;font-size:12px}
+.acts button.on{background:#eef3ff;border-color:#bcd2ff;color:#2f6fed}
 .mask{position:fixed;inset:0;background:rgba(20,26,38,.35);display:none;align-items:center;justify-content:center;z-index:20}
 .mask.on{display:flex}
 .modal{width:520px;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(15,25,45,.18);padding:18px 20px}
@@ -185,7 +195,7 @@ input.search{flex:1;min-width:220px}
       + '<div class="hero"><div class="logo">智</div><h1>衡鉴万象 衍智求真</h1>'
       + '<p>连接科研全流程的智能工作台 · 让每一个洞察都有迹可循</p>'
       + '<div class="composer"><textarea id="q" placeholder="描述一个科研问题、假设，或者直接粘贴一段论文片段……"></textarea>'
-      + '<div class="crow"><button class="pill" id="plus">＋</button><button class="pill" id="quick">快速</button><button class="pill on" id="deep">深度</button>'
+      + '<div class="crow"><label class="pill" id="plus" style="display:inline-flex;align-items:center;cursor:pointer">＋<input type="file" id="upFile" accept="image/*,application/pdf" style="display:none"/></label><span id="upName" style="color:#8a9099;font-size:12px"></span><button class="pill" id="quick">快速</button><button class="pill on" id="deep">深度</button>'
       + '<span class="grow"></span><span class="model">◍ Auto ▾</span><button class="send" id="send" disabled>↑</button></div></div>'
       + '<div class="chips"><button class="chip">⚗ 高空大气环境</button><button class="chip">🧬 表型本体查询</button><button class="chip">💡 光子能量计算</button></div></div>'
       + '<div class="foot">智衍 衡鉴 · 本地离线演练</div>';
@@ -196,9 +206,54 @@ input.search{flex:1;min-width:220px}
     $('#quick').addEventListener('click', function () { chatState.thinkMode = false; syncMode(); });
     $('#deep').addEventListener('click', function () { chatState.thinkMode = true; syncMode(); });
     $$('.chip').forEach(function (c) { c.addEventListener('click', function () { q.value = c.textContent.replace(/^[^ ]+ /, ''); q.dispatchEvent(new Event('input')); }); });
+    if ($('#upFile')) $('#upFile').addEventListener('change', function () {
+      var file = this.files && this.files[0];
+      if (file) { $('#upName').textContent = file.name; toast('已附加 ' + file.name); }
+    });
     function syncMode() { $('#quick').classList.toggle('on', !chatState.thinkMode); $('#deep').classList.toggle('on', chatState.thinkMode); }
     syncMode();
     setTimeout(function () { q.focus(); }, 50);
+  }
+  function messageActions(el, text) {
+    var bar = document.createElement('div');
+    bar.className = 'acts';
+    bar.innerHTML = '<button data-a="add">添加到课题</button><button data-a="regen">重新生成</button>'
+      + '<button data-a="copy">复制</button><button data-a="up">👍</button><button data-a="down">👎</button><button data-a="dl">下载</button>';
+    el.appendChild(bar);
+    $$('button', bar).forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var a = b.getAttribute('data-a');
+        if (a === 'copy') { try { await navigator.clipboard.writeText(text); } catch (_) {} b.classList.add('on'); toast('已复制'); }
+        if (a === 'up' || a === 'down') { b.classList.add('on'); toast(a === 'up' ? '已点赞' : '已点踩'); }
+        if (a === 'dl') { var blob = new Blob([text], { type: 'text/plain' }); var url = URL.createObjectURL(blob); var link = document.createElement('a'); link.href = url; link.download = 'answer-' + Date.now() + '.txt'; link.click(); URL.revokeObjectURL(url); toast('已下载'); }
+        if (a === 'add') { await post('/api/orbit/v1/chat/' + chatState.chatId + '/note', { title: '对话笔记', text: text }); toast('已添加到课题'); }
+        if (a === 'regen') { await sendText(text); }
+      });
+    });
+    return bar;
+  }
+  async function loadWorkspace(chatId) {
+    var ws = $('#ws');
+    if (!ws || !chatId) return;
+    var j = await api('/api/orbit/v1/chat/' + chatId + '/files');
+    var list = (j && j.data && j.data.list) || [];
+    ws.innerHTML = '<h4>工作空间</h4>' + (list.length ? list.map(function (x) {
+      return '<button class="f" data-name="' + esc(x.name) + '" data-body="' + esc(x.content || '') + '">' + esc(x.name) + '<span>' + esc(x.size) + ' B</span></button>';
+    }).join('') : '<div style="color:#a3a9b3;font-size:12px">暂无文件</div>');
+    $$('.ws .f').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var mask = $('#mask');
+        $('#mTitle').textContent = b.getAttribute('data-name');
+        $('#mName').style.display = 'none';
+        $('#mFields').innerHTML = '<pre style="white-space:pre-wrap;font-size:12px;background:#fbfcfe;border:1px solid #e8eaee;border-radius:8px;padding:10px;width:100%;max-height:240px;overflow:auto">' + esc(b.getAttribute('data-body')) + '</pre>';
+        $('#mDesc').style.display = 'none';
+        $('#mCreate').style.display = 'none';
+        mask.classList.add('on');
+        var close = function () { mask.classList.remove('on'); $('#mName').style.display = ''; $('#mDesc').style.display = ''; $('#mCreate').style.display = ''; };
+        $('#mClose').onclick = close;
+        $('#mCancel').onclick = close;
+      });
+    });
   }
   function addMsg(thread, who, text) {
     var el = document.createElement('div');
@@ -224,7 +279,7 @@ input.search{flex:1;min-width:220px}
   }
   async function sendText(text) {
     if (!text) return;
-    view.innerHTML = '<div class="thread" id="thread"></div>';
+    view.innerHTML = '<div class="chatWrap"><div class="chatMain"><div class="thread" id="thread"></div></div><div class="ws" id="ws"><h4>工作空间</h4><div style="color:#a3a9b3;font-size:12px">暂无文件</div></div></div>';
     var thread = $('#thread');
     addMsg(thread, 'me', text);
     var bot = addMsg(thread, 'bot', '');
@@ -263,7 +318,12 @@ input.search{flex:1;min-width:220px}
       }
     } catch (err) {
       if (err.name !== 'AbortError') bot.querySelector('.bubble').textContent += '\n[网络错误] ' + err.message;
-    } finally { if (bar && bar.parentNode) bar.remove(); loadHist(); }
+    } finally {
+      if (bar && bar.parentNode) bar.remove();
+      messageActions(bot, bot.querySelector('.bubble').textContent || '');
+      loadWorkspace(chatState.chatId);
+      loadHist();
+    }
   }
 
   var FIELDS = ['通用', '生命科学', '地球科学', '神经科学', '材料科学', '化学', '物理', '数学', '量子计算', '算子开发', '其他'];
@@ -552,42 +612,88 @@ input.search{flex:1;min-width:220px}
     });
   }
 
+  var scpState = { tab: 'Skills', field: '全部领域', use: '' };
   async function scpPage() {
-    var box = pageShell('科学工具', 'SCP 工具 · Skills 技能包 · 为科研 Agent 与工作流提供可组合的原子能力');
-    var tags = await api('/api/scphub/v1/scp/tags');
-    var tagList = ['全部领域'].concat(((tags && tags.data && tags.data.list) || []).map(function (t) { return t.name || t; }));
-    box.innerHTML = '<div class="row"><input class="search" id="sq" placeholder="搜索 SCP / Skills / 能力"/></div>'
-      + '<div class="row" id="tags">' + tagList.map(function (t, i) { return '<span class="tag' + (i === 0 ? ' on' : '') + '">' + esc(t) + '</span>'; }).join('') + '</div>'
+    var box = pageShell('科学工具', 'Skills 技能包 · SCP 工具服务 · 学科与用途双维筛选');
+    box.innerHTML = '<div class="row" id="stabs"><span class="tag on" data-t="Skills">Skills</span><span class="tag" data-t="SCP">SCP</span></div>'
+      + '<div class="row" id="sfields"></div>'
+      + '<div class="row"><select id="suse"><option value="">全部类型</option><option>文献检索</option><option>计算工具</option><option>模型服务</option><option>数据库</option><option>湿实验操作</option><option>知识库</option></select>'
+      + '<input class="search" id="sq" placeholder="搜索名称或描述"/></div>'
       + '<div id="out"></div>';
-    var current = '全部领域';
+    var FIELDS = ['全部领域', '生命科学', '地球科学', '神经科学', '材料科学', '化学', '物理', '数学', '通用'];
+    $('#sfields').innerHTML = FIELDS.map(function (x, i) {
+      return '<span class="tag' + (i === 0 ? ' on' : '') + '" data-f="' + esc(x) + '">' + esc(x) + '</span>';
+    }).join('');
+    $$('#sfields .tag').forEach(function (t) {
+      t.addEventListener('click', function () {
+        $$('#sfields .tag').forEach(function (x) { x.classList.remove('on'); });
+        t.classList.add('on');
+        scpState.field = t.getAttribute('data-f');
+        run();
+      });
+    });
+    $$('#stabs .tag').forEach(function (t) {
+      t.addEventListener('click', function () {
+        $$('#stabs .tag').forEach(function (x) { x.classList.remove('on'); });
+        t.classList.add('on');
+        scpState.tab = t.getAttribute('data-t');
+        run();
+      });
+    });
+    $('#suse').addEventListener('change', function () { scpState.use = this.value; run(); });
+    $('#sq').addEventListener('input', run);
+
     var run = async function () {
       var kw = ($('#sq').value || '').trim().toLowerCase();
-      var j = await api('/api/scphub/v1/scp/list?tag=' + encodeURIComponent(current));
-      var list = ((j && j.data && j.data.list) || []).filter(function (x) { return !kw || (x.name + x.tag).toLowerCase().indexOf(kw) >= 0; });
-      $('#out').innerHTML = list.length
-        ? cards(list, function (x) { return '<div class="card" data-id="' + esc(x.id) + '"><b>' + esc(x.name) + '</b><span>' + esc(x.type) + ' · ' + esc(x.tag) + ' · 下载 ' + esc(x.downloads) + '</span></div>'; })
-        : '<div class="section">没有匹配的工具</div>';
+      var qs = '/api/scphub/v1/scp/list?tab=' + encodeURIComponent(scpState.tab)
+        + '&field=' + encodeURIComponent(scpState.field === '全部领域' ? '' : scpState.field)
+        + '&use=' + encodeURIComponent(scpState.use);
+      var j = await api(qs);
+      var list = ((j && j.data && j.data.list) || []).filter(function (x) {
+        return !kw || (x.name + (x.summary || '')).toLowerCase().indexOf(kw) >= 0;
+      });
+      $('#out').innerHTML = list.length ? cards(list, function (x) {
+        return '<div class="card" data-id="' + esc(x.id) + '"><b>' + esc(x.name) + (x.kind === 'Skills' ? ' <span style="color:#2f6fed;font-size:11px">认证</span>' : '') + '</b>'
+          + '<span>' + esc(x.field) + ' · ' + esc(x.use) + '</span>'
+          + '<div style="color:#4a5058;font-size:12px;margin:6px 0">' + esc(x.summary || '') + '</div>'
+          + '<span>' + esc(x.org || '') + ' · 调用 ' + esc(x.calls || 0) + ' · 浏览 ' + esc(x.views || 0) + ' · 下载 ' + esc(x.downloads || 0) + '</span></div>';
+      }).join('') : '<div class="section">没有匹配的工具</div>';
       $$('#out .card[data-id]').forEach(function (c) {
-        c.addEventListener('click', function () {
-          var id = c.getAttribute('data-id');
-          var item = list.filter(function (x) { return x.id === id; })[0] || {};
-          box.innerHTML = '<div class="detail"><h3>' + esc(item.name) + '</h3><div class="kv">' + esc(item.type) + ' · ' + esc(item.tag) + ' · 下载 ' + esc(item.downloads) + '</div>'
-            + '<p>用于科研 Agent 的原子能力（本地合成描述）。</p><button class="btn primary" id="useIt">▶ 立即使用</button></div>';
-          $('#useIt', box).addEventListener('click', async function () {
-            var r = await post('/api/scphub/v1/scp/use', { id: id });
-            toast('已加入工作流，下载量 ' + ((r && r.data && r.data.downloads) || '-'));
-            scpPage();
-          });
-          backBtn(box, scpPage, '← 返回工具列表');
-        });
+        c.addEventListener('click', function () { detail(c.getAttribute('data-id')); });
       });
     };
-    $$('#tags .tag').forEach(function (t) {
-      t.addEventListener('click', function () { $$('#tags .tag').forEach(function (x) { x.classList.remove('on'); }); t.classList.add('on'); current = t.textContent; run(); });
-    });
-    $('#sq').addEventListener('input', run);
+
+    var detail = async function (id) {
+      var j = await api('/api/scphub/v1/scp/detail?id=' + encodeURIComponent(id));
+      var x = (j && j.data) || {};
+      var how = x.kind === 'Skills'
+        ? '<div class="kv">① 命令行下载：<code>curl -O https://scp.example.local/skills/' + esc(x.id) + '.md</code></div>'
+          + '<div class="kv">② 或使用 <code>wget</code>；③ 放入本地 skills 目录后即可被 Agent 调用</div>'
+        : '<div class="kv">① 安装 MCP SDK：<code>pip install mcp</code></div>'
+          + '<div class="kv">② 申请 API Key（本站点为本地合成）</div>'
+          + '<div class="kv">③ 配置 Endpoint：<code>' + esc(x.endpoint || '—') + '</code></div>';
+      var tools = (x.tools || []).map(function (t) {
+        return '<div class="card"><b>' + esc(t.name) + '</b><span>' + esc(t.desc) + '</span>'
+          + '<div style="color:#8a9099;font-size:12px;margin-top:6px">Input Schema：' + esc(t.schema) + '</div></div>';
+      }).join('');
+      box.innerHTML = '<div class="detail"><h3>' + esc(x.name) + '</h3>'
+        + '<div class="kv">' + esc(x.kind) + ' · ' + esc(x.field) + ' · ' + esc(x.use) + ' · ' + esc(x.org) + '</div>'
+        + '<div class="kv">调用 ' + esc(x.calls) + ' · 浏览 ' + esc(x.views) + ' · 下载 ' + esc(x.downloads) + '</div>'
+        + '<p>' + esc(x.summary) + '</p>'
+        + '<div class="mlabel">如何使用</div>' + how
+        + '<div class="mlabel" style="margin-top:12px">工具列表</div></div>'
+        + '<div class="grid" style="margin-top:12px">' + (tools || '<div class="section">该服务未提供工具列表</div>') + '</div>'
+        + '<div class="row" style="margin-top:14px"><button class="btn primary" id="useIt">▶ 使用</button><button class="btn" id="bk">← 返回列表</button></div>';
+      $('#bk', box).addEventListener('click', scpPage);
+      $('#useIt', box).addEventListener('click', async function () {
+        var r = await post('/api/scphub/v1/scp/use', { id: x.id });
+        toast('已加入工作流，调用量 ' + ((r && r.data && r.data.downloads) || '-'));
+      });
+    };
+
     run();
   }
+
 
   async function datasetPage() {
     var box = pageShell('科学数据', '从蛋白序列到气候模型 · 覆盖六大学科、多种模态的开放科学数据集广场');

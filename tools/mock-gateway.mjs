@@ -40,11 +40,18 @@ const DATASET_CATEGORIES = { list: [
 const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const SCP_ITEMS = [
-  { id: 'scp1', name: '蛋白结构预测', tag: '生命科学', type: 'SCP', downloads: 1280 },
-  { id: 'scp2', name: '气候模式降尺度', tag: '地球科学', type: 'SCP', downloads: 860 },
-  { id: 'scp3', name: '晶体结构筛选', tag: '物质科学', type: 'Skills', downloads: 2140 },
-  { id: 'scp4', name: '单细胞聚类', tag: '生命科学', type: 'Skills', downloads: 530 },
-  { id: 'scp5', name: '光子能量计算', tag: '物理科学', type: 'SCP', downloads: 310 },
+  { id: 'scp1', name: '蛋白结构预测', kind: 'SCP', field: '生命科学', use: '模型服务', org: '上海人工智能实验室', calls: 1820, views: 6400, downloads: 1280,
+    summary: '基于序列预测蛋白三维结构', endpoint: 'https://scp.example.local/protein', tools: [{ name: 'predict_structure', desc: '输入 FASTA，输出 PDB', schema: '{ sequence: string }' }, { name: 'score_plddt', desc: '返回置信度', schema: '{ pdb: string }' }] },
+  { id: 'scp2', name: '气候模式降尺度', kind: 'SCP', field: '地球科学', use: '计算工具', org: '大气科学团队', calls: 640, views: 2100, downloads: 860,
+    summary: '把粗网格气候数据降尺度到区域尺度', endpoint: 'https://scp.example.local/climate', tools: [{ name: 'downscale', desc: '区域降尺度', schema: '{ grid: string, factor: number }' }] },
+  { id: 'scp3', name: '晶体结构筛选', kind: 'Skills', field: '材料科学', use: '计算工具', org: '材料基因平台', calls: 2140, views: 8800, downloads: 2140,
+    summary: '按能带/稳定性筛选候选晶体', endpoint: '', tools: [{ name: 'screen_crystals', desc: '批量筛选', schema: '{ candidates: string[] }' }] },
+  { id: 'scp4', name: '单细胞聚类', kind: 'Skills', field: '生命科学', use: '文献检索', org: '生物信息组', calls: 530, views: 1900, downloads: 530,
+    summary: '单细胞表达谱聚类与标注', endpoint: '', tools: [{ name: 'cluster_cells', desc: '聚类', schema: '{ matrix: string }' }] },
+  { id: 'scp5', name: '光子能量计算', kind: 'SCP', field: '物理', use: '计算工具', org: '物理所', calls: 310, views: 1200, downloads: 310,
+    summary: '按波长换算光子能量', endpoint: 'https://scp.example.local/photon', tools: [{ name: 'photon_energy', desc: '波长→能量', schema: '{ wavelength_nm: number }' }] },
+  { id: 'scp6', name: '文献元数据补全', kind: 'SCP', field: '通用', use: '文献检索', org: '文献组', calls: 960, views: 3300, downloads: 960,
+    summary: '按 DOI 补全元数据与摘要', endpoint: 'https://scp.example.local/meta', tools: [{ name: 'enrich_meta', desc: 'DOI 补全', schema: '{ doi: string }' }] },
 ];
 
 // 有状态存储：新建/启停/创建 Key/申请 会真正改变后续查询结果
@@ -857,10 +864,16 @@ export function createMockGatewayServer(opts = {}) {
       log('GET /spacebe/v1/space/list -> 200 (stateful, ' + store.spaces.length + ' spaces)');
       return send(200, JSON.stringify({ code: 0, data: { list: store.spaces, total: store.spaces.length } }));
       }
+      if (method === 'GET' && path === '/api/scphub/v1/scp/detail') {
+        const id = String((url.searchParams && url.searchParams.get('id')) || 'scp1');
+        const item = SCP_ITEMS.filter((x) => x.id === id)[0] || SCP_ITEMS[0];
+        log('GET /scphub/v1/scp/detail id=' + id + ' -> 200');
+        return send(200, JSON.stringify({ code: 0, data: item }));
+      }
       if (method === 'POST' && path === '/api/scphub/v1/scp/use') {
         const body = await readBody(req);
         const item = SCP_ITEMS.filter((x) => x.id === String(body.id))[0];
-        if (item) item.downloads = Number(item.downloads || 0) + 1;
+        if (item) { item.downloads = Number(item.downloads || 0) + 1; item.calls = Number(item.calls || 0) + 1; }
         log('POST /scphub/v1/scp/use id=' + String(body.id) + ' -> 200 (stateful, downloads=' + (item ? item.downloads : '-') + ')');
         return send(200, JSON.stringify({ code: 0, data: { ok: !!item, id: body.id, downloads: item ? item.downloads : undefined } }));
       }
@@ -876,6 +889,9 @@ export function createMockGatewayServer(opts = {}) {
         return send(200, JSON.stringify({ code: 0, data: { list: store.downloads, total: store.downloads.length } }));
       }
       if (method === 'GET' && path === '/api/scphub/v1/scp/list') {
+        const tab = String((url.searchParams && url.searchParams.get('tab')) || '');
+        const field = String((url.searchParams && url.searchParams.get('field')) || '');
+        const use = String((url.searchParams && url.searchParams.get('use')) || '');
         const tag = String((url.searchParams && url.searchParams.get('tag')) || '');
         const all = SCP_ITEMS;
         const _unused = [
@@ -885,8 +901,12 @@ export function createMockGatewayServer(opts = {}) {
           { id: 'scp4', name: '单细胞聚类', tag: '生命科学', type: 'Skills', downloads: 530 },
           { id: 'scp5', name: '光子能量计算', tag: '物理科学', type: 'SCP', downloads: 310 },
         ];
-        const list = tag && tag !== '全部领域' ? all.filter(x => x.tag === tag) : all;
-        log('GET /scphub/v1/scp/list tag=' + (tag || '-') + ' -> 200 (synthetic)');
+        let list = all;
+        if (tab) list = list.filter((x) => x.kind === tab);
+        const f = field || (tag && tag !== '全部领域' ? tag : '');
+        if (f) list = list.filter((x) => x.field === f);
+        if (use) list = list.filter((x) => x.use === use);
+        log('GET /scphub/v1/scp/list tab=' + (tab || '-') + ' field=' + (f || '-') + ' use=' + (use || '-') + ' -> 200 (' + list.length + ')');
         return send(200, JSON.stringify({ code: 0, data: { list: list, total: list.length } }));
       }
       if (method === 'GET' && path === '/api/scphub/v1/scp/tags') {
@@ -942,6 +962,23 @@ export function createMockGatewayServer(opts = {}) {
           messages: [{ id: String(mid), chat_id: id, message_id: mid, request: '本地 mock：请只回复 OK', response: 'OK', status: 1, model: 'Default', created_at: new Date().toISOString(), thinking: false }],
           turns: [], total: 1,
         } }));
+      }
+      const mFiles = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)\/files$/);
+      if (method === 'GET' && mFiles) {
+        log('GET /chat/' + mFiles[1] + '/files -> 200 (2 files)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { name: 'report.md', type: 'md', size: 2048, content: '# 研究报告\n\n## 结论\n本地合成报告内容。' },
+          { name: 'analysis.py', type: 'py', size: 1024, content: 'print("local synthetic script")' },
+        ] } }));
+      }
+      const mNote = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)\/note$/);
+      if (method === 'POST' && mNote) {
+        const body = await readBody(req);
+        const item = { id: 'sp' + (++seq), name: String(body.title || '对话笔记'), field: '通用', description: String((body.text || '').slice(0, 80)), members: 1, files: 0, updated_at: new Date().toISOString() };
+        store.spaces.unshift(item);
+        store.files[item.id] = [{ id: 'fnote', name: 'note.md', size: (body.text || '').length, type: 'file' }];
+        log('POST /chat/' + mNote[1] + '/note -> 200 (added to spaces: ' + store.spaces.length + ')');
+        return send(200, JSON.stringify({ code: 0, data: item }));
       }
       if (method === 'GET' && path === '/api/orbit/v1/chat/list') {
         log('GET /chat/list -> 200 (web)');
