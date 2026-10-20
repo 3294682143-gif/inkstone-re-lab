@@ -1,0 +1,48 @@
+{
+  "round": "round5-handoff-20261020T011319Z",
+  "date_utc": "2026-10-20T01:13:19Z",
+  "reviewed_baseline_commit": "351dd7510f3a0cf4cb17cf11d65ee69d4adb3085",
+  "validated_source_commit": "3f949e797fa72acd041da2b490df507a06e0799f",
+  "delivery_branch": "re/linux-windows-handoff",
+  "os": "linux",
+  "node": "v24.7.0",
+  "python": "3.10.6",
+  "commands": [
+    { "cmd": "npm ci --ignore-scripts --no-audit --no-fund", "exit": 0 },
+    { "cmd": "npm test", "exit": 0, "tests": 140, "pass": 140, "fail": 0 },
+    { "cmd": "node scripts/windows-driver-smoke.mjs --help", "exit": 0 },
+    { "cmd": "node scripts/windows-driver-smoke.mjs --mock --scenario discovery", "exit": 0, "mode": "MOCK" },
+    { "cmd": "node scripts/windows-driver-smoke.mjs --mock --scenario chat", "exit": 0, "mode": "MOCK" },
+    { "cmd": "node scripts/windows-driver-smoke.mjs --mock --scenario cancel", "exit": 0, "mode": "MOCK" },
+    { "cmd": "git diff --check", "exit": 0 }
+  ],
+  "L1": {
+    "cancel_drain_recorded": "PASS (src/desktop/cancel.mjs + tests/desktop/cancel.test.mjs)",
+    "windows_esm_url": "PASS (tests/desktop/cloud-adapter-lifecycle.test.mjs)",
+    "python_discovery": "PASS (tests/desktop/_python.mjs, used by asar-tools.test.mjs)"
+  },
+  "L2": {
+    "native_targeted": "CLUE (06-desktop/contracts/native-runtime.md L2；agentd 命中 turn.start / gateway.inference.start|.cancel / conversation.* / tool_use_id|response_id|stop_reason / agentrpc.HarnessEventV1 + tool tags)",
+    "wire_schema": "UNKNOWN",
+    "windows_tasks": "07-handoff/windows-todo.md"
+  },
+  "L3": {
+    "runner": "scripts/windows-driver-smoke.mjs",
+    "transport": "src/desktop/driver-process.mjs",
+    "mock_driver": "tests/fixtures/mock-headless-driver.mjs",
+    "tests": "tests/desktop/driver-process.test.mjs (11)"
+  },
+  "platform_status": {
+    "linux_offline": "PASS",
+    "linux_mock_runner": "MOCK",
+    "desktop_live_inference": "NOT_RUN",
+    "windows_dynamic": "NOT_RUN",
+    "web_a5_a6": "NOT_RUN"
+  },
+  "not_run_or_blocked": [
+    { "id": "desktop-inference-live", "status": "NOT_RUN", "reason": "messages/tools element schema UNKNOWN" },
+    { "id": "windows-dynamic", "status": "NOT_RUN", "reason": "ENV_WINDOWS_REQUIRED" },
+    { "id": "native-rpc", "status": "UNKNOWN" }
+  ],
+  "legend": "PASS / MOCK / NOT_RUN / UNKNOWN；MOCK 与 NOT_RUN 不计入 LIVE 通过。"
+}

@@ -3,13 +3,14 @@
   "generated_from_repo": "https://github.com/3294682143-gif/inkstone-re-lab",
   "delivery_branch": "re/linux-windows-handoff",
   "windows_branch": "re/windows-desktop-027",
-  "validated_source_commit": "<filled after clean-copy verification>",
-  "validated_at_utc": "<filled>",
+  "validated_source_commit": "3f949e797fa72acd041da2b490df507a06e0799f",
+  "validated_at_utc": "2026-10-20T01:13:19Z",
   "os": "linux",
   "node": "v24.7.0",
   "python_required_by": "tools/inspect_inkstone_asar.py / tools/compare_asar_manifest.py",
   "install_command": "npm ci --ignore-scripts --no-audit --no-fund",
   "test_command": "npm test",
+  "test_stats": { "tests": 140, "pass": 140, "fail": 0 },
   "runner": { "path": "scripts/windows-driver-smoke.mjs", "scenarios": ["preflight", "discovery", "chat", "cancel"], "mock_flag": "--mock" },
   "sample": {
     "installer": "inkstone-desktop-0.2.7-setup.exe",
@@ -27,5 +28,6 @@
   },
   "unknown_items": ["messages/tools element schema", "local-turn request body construction", "native RPC frame/cancel/recovery", "server-side cancel & billing semantics"],
   "windows_tasks": "07-handoff/windows-todo.md",
-  "next_minimal_action": "Windows: git clone branch -> switch --detach <HANDOFF_SHA> -> npm ci/test -> node scripts/windows-driver-smoke.mjs --help"
+  "validation_record": "06-desktop/validation/round5-handoff-20261020T011319Z/results.json",
+  "next_minimal_action": "Windows: git clone branch -> switch --detach 3f949e79... -> npm ci/test -> node scripts/windows-driver-smoke.mjs --help"
 }
