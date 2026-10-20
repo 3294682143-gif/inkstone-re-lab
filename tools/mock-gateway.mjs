@@ -400,6 +400,35 @@ async function showRoute(route, push){
       }
     });
   }
+  if (route === '/compute') {
+    body.dataset.skip = '1';
+    const loadCompute = async function(){
+      body.innerHTML = '<div class="card">加载中…</div>';
+      try {
+        const [dm, res, disk, tr] = await Promise.all([
+          fetch('/api/ml/v1/dev-machine/list').then(function(r){ return r.json(); }),
+          fetch('/api/ml/v1/dev-machine/user_resource').then(function(r){ return r.json(); }),
+          fetch('/api/ml/v1/cloud-disk/quota').then(function(r){ return r.json(); }),
+          fetch('/api/ml/v1/training/list').then(function(r){ return r.json(); }),
+        ]);
+        const machines = (dm && dm.data && dm.data.list) || [];
+        const r = (res && res.data) || {};
+        const d = (disk && disk.data) || {};
+        const tasks = (tr && tr.data && tr.data.list) || [];
+        const section = function(title, hint){
+          return '<div class="card" style="grid-column:1/-1"><b>' + title + '</b><span>' + hint + '</span></div>';
+        };
+        body.innerHTML = section('开发机管理 · ' + (r.running || 0) + ' 运行中 / ' + (r.quota || 0) + ' 配额', r.gpu_type || '') +
+          machines.map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + (m.status || '') + ' · ' + (m.gpu || '') + ' · 配额 ' + (m.quota || '') + '</span></div>'; }).join('') +
+          section('云盘管理', '已用 ' + (d.used_gb ?? '-') + ' GB / ' + (d.total_gb ?? '-') + ' GB · 文件 ' + (d.file_count || 0)) +
+          section('训练任务管理 · ' + tasks.length + ' 个', '') +
+          tasks.map(function(t){ return '<div class="card"><b>' + t.name + '</b><span>' + (t.status || '') + ' · ' + (t.gpu || '') + ' · ' + (t.duration_min || 0) + ' 分钟</span></div>'; }).join('');
+      } catch (e) {
+        body.innerHTML = '<div class="card"><b>加载失败</b><span>' + e.message + '</span></div>';
+      }
+    };
+    loadCompute();
+  }
   if (route === '/token-plan/home') {
     const bar = document.createElement('div');
     bar.className = 'row';
@@ -608,6 +637,17 @@ export function createMockGatewayServer(opts = {}) {
           { id: 3, name: '材料发现', domain: '物质科学', summary: '晶体与材料筛选' },
           { id: 4, name: '地球系统模拟', domain: '地球科学', summary: '多圈层耦合模拟' },
         ], total: 4 } }));
+      }
+      if (method === 'GET' && path === '/api/ml/v1/dev-machine/user_resource') {
+        log('GET /ml/v1/dev-machine/user_resource -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { running: 1, quota: 2, cpu_cores: 32, gpu_type: 'A100 80G' } }));
+      }
+      if (method === 'GET' && path === '/api/ml/v1/training/list') {
+        log('GET /ml/v1/training/list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'tr-1', name: 'yolov8-baseline', status: 'running', duration_min: 128, gpu: 'A100 80G' },
+          { id: 'tr-2', name: 'coco-finetune', status: 'finished', duration_min: 436, gpu: 'A100 80G' },
+        ], total: 2 } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/dev-machine/list') {
         log('GET /ml/v1/dev-machine/list -> 200 (synthetic)');

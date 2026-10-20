@@ -60,6 +60,8 @@ test('网页协议与子应用接口均返回 code=0', async () => {
       '/api/moce/v1/apps/list',
       '/api/ml/v1/dev-machine/list',
       '/api/ml/v1/cloud-disk/quota',
+      '/api/ml/v1/dev-machine/user_resource',
+      '/api/ml/v1/training/list',
       '/api/tokenplan/v1/models',
       '/api/tokenplan/v1/keys',
       '/api/tokenplan/v1/usage/summary',
