@@ -15,8 +15,8 @@ mkdirSync('02-sources/original', { recursive: true });
 mkdirSync('02-sources/working', { recursive: true });
 
 const manifest = [];
-const dispatcher = ProxyAgent ? new ProxyAgent(PROXY) : undefined;
-const doFetch = ufetch || fetch;
+const dispatcher = PROXY ? new ProxyAgent(PROXY) : undefined;
+const doFetch = fetch;
 
 function safeName(u) {
   const x = new URL(u);

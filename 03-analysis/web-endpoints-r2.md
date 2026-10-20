@@ -124,3 +124,21 @@
 | 对话 | `POST /api/nova/v1/chat` |
 
 新增 API 前缀：`nova`（此前只有 datasets/orbit/scphub/spacebe/tokenplan/user-center）。
+
+
+### 子应用接口面（2026-10-20，用仓库 fetch_sources 下载）
+
+| 子应用 | 包位置 | API 前缀 | 端点（节选） |
+| --- | --- | --- | --- |
+| 论文工具 | `/paper-static/` | `nova` | `POST /api/nova/v1/search/works`、`/works/{id}/{references,cited-by,related,read,pdf_url_check}`、`/search/{hot-papers,recent-searches,authors,save-space}`、`POST /api/nova/v1/chat` |
+| 科研应用 | `static.openxlab.org.cn/.../discovery-app-fe/<build>/` | `moce` | `/api/moce/v1/apps/list`、`/apps/view`、`/dry_wet_loop/apply`、`/dry_wet_loop/apply/status/list` |
+| 科学计算 | `/compute-static/` | `ml` | `/api/ml/v1/dev-machine/{list,create,start,stop,delete,enter,rename}`、`/cloud-disk/{list,quota,mkdir,rename,move,copy,delete,download-url,upload-url}`、`/dataset/mount-list`、`/mirrors`、`/resource/*`、`/training/code_upload_url`、`/inference` |
+
+### 仓库工具缺陷修复（本轮）
+
+`src/fetch_sources.mjs` 在两处无法在本机运行：
+
+1. 无代理时仍构造 `new ProxyAgent(PROXY)` → `Proxy uri is mandatory`；改为 `PROXY ? new ProxyAgent(PROXY) : undefined`。
+2. `const doFetch = ufetch || fetch` 中 `ufetch` 未定义 → ReferenceError；改为 `const doFetch = fetch`。
+
+修复后该脚本可对任意 `a0-network.json` 工作，本轮据此采集了 paper / compute / app 三个子应用。

@@ -1,0 +1,58 @@
+[
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_remoteEntry-var.js",
+    "status": 200,
+    "bytes": 639,
+    "sha256": "abefc313bf4c0dae998d6688226c8b32a7c89150900e49a97ca9d4f7b81c8abb",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/remoteEntry.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_remoteEntry.js",
+    "status": 200,
+    "bytes": 77082,
+    "sha256": "50eeab74131e50cf4e72a3f430f1d793dddd31791d6e2d2c4efd67e1f58fb06e",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/assets/preload-helper-DVnQvsg_.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_assets_preload-helper-DVnQvsg_.js",
+    "status": 200,
+    "bytes": 1165,
+    "sha256": "52b6944f9779c065663db53a35b2c9210150538ffc8634ba2485f659c70b7f21",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/assets/localSharedImportMap-DiEU0mEu.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_assets_localSharedImportMap-DiEU0mEu.js",
+    "status": 200,
+    "bytes": 2289,
+    "sha256": "20d647384825f2f089884825863056814405f1b37f198be08af3bc940a48fd88",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/assets/virtualExposes-FINyns2Q.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_assets_virtualExposes-FINyns2Q.js",
+    "status": 200,
+    "bytes": 1262,
+    "sha256": "4a26c32a5ae84d1d1559d3f74aacfaec61acc5f7f6a5986d71b52feb6447fa52",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/assets/RemoteApp-CPdkXPxP.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_assets_RemoteApp-CPdkXPxP.js",
+    "status": 200,
+    "bytes": 323158,
+    "sha256": "52d1d306068cc6c3dde792e9a81158454e4eed67b3336578335c1c273ddc2776",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://discovery.intern-ai.org.cn/compute-static/assets/ReloadOutlined-B00s2TmV.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_compute-static_assets_ReloadOutlined-B00s2TmV.js",
+    "status": 200,
+    "bytes": 847,
+    "sha256": "0aab4dd8319d581865db712efaa03af0fd85e9b1d1cb13ea551d37e1910124c6",
+    "contentType": "application/javascript"
+  }
+]

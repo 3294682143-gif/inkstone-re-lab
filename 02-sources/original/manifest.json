@@ -1,194 +1,74 @@
 [
   {
-    "url": "https://discovery.intern-ai.org.cn/js/vendors.1cb37f21.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_vendors.1cb37f21.js",
+    "url": "https://discovery.intern-ai.org.cn/app-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_app-static_remoteEntry-var.js",
     "status": 200,
-    "bytes": 2067739,
-    "sha256": "25d71fb4776290e90114769d07d671850d8bf3d71f61d0a9a51f2d8fd9d9bb97",
+    "bytes": 686,
+    "sha256": "17ae2be9429a620ff8f3274df9b3223128d2826e274244deb5c19f7ef9b20198",
     "contentType": "application/javascript"
   },
   {
-    "url": "https://discovery.intern-ai.org.cn/js/main.63f27b75.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_main.63f27b75.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/remoteEntry.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_remoteEntry.js",
     "status": 200,
-    "bytes": 89856,
-    "sha256": "276709e379046dccb760223da070190b7505f96b203b1e2a1a91844d96b8bf3e",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/remoteEntry.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_remoteEntry.js",
-    "status": 200,
-    "bytes": 90121,
-    "sha256": "64574d0d0fde054aad1e5580bffa5590b26b0d1d6c0014f2ec2976248398423b",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/js/vendor-react.0b181b8c.chunk.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_vendor-react.0b181b8c.chunk.js",
-    "status": 200,
-    "bytes": 175674,
-    "sha256": "6aac7bb170ed6106203872952bccc219e1825e90d7680b7701a37414790304c5",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/js/vendor-antd.06aaee88.chunk.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js",
-    "status": 200,
-    "bytes": 1420455,
-    "sha256": "51e5bf5f8764a00bcade90530cf880d2ad1f0b2ee3f1d2ab94c29434de7b6654",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/js/vendor-markdown.1a2f21c3.chunk.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_vendor-markdown.1a2f21c3.chunk.js",
-    "status": 200,
-    "bytes": 94689,
-    "sha256": "b2e05b7559024cf6af45e232f2d749e65b4addef1a35205b9bb0cdb42de57e29",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/js/vendor-copilot.26498263.chunk.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_vendor-copilot.26498263.chunk.js",
-    "status": 200,
-    "bytes": 560367,
-    "sha256": "ae24737ea02f87db8ac5d31e80f5e9c05b95b76271e397243f1da571eae7f8c0",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/js/137.202041b5.chunk.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_137.202041b5.chunk.js",
-    "status": 200,
-    "bytes": 43393,
-    "sha256": "ed0668a9e708a38f9cd203cd31e8067717b99ea6d118500b7e7efab89ab31142",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/js/597.629ea519.chunk.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_js_597.629ea519.chunk.js",
-    "status": 200,
-    "bytes": 128815,
-    "sha256": "65352851c8d461753115e3d5f680e511155ea8ef817b402f404d4ecb5fb4f9c9",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://at.alicdn.com/t/c/font_3858115_canajbyr6yf.js",
-    "file": "02-sources/original/at.alicdn.com_t_c_font_3858115_canajbyr6yf.js",
-    "status": 200,
-    "bytes": 647701,
-    "sha256": "b8d35b1ebeac5d7a7177bf0639261038288fd1a0e8a29754f7f1c4bf87ccb472",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/migo-web/sensors/sensorsdata.min.js",
-    "file": "02-sources/original/static.openxlab.org.cn_migo-web_sensors_sensorsdata.min.js",
-    "status": 200,
-    "bytes": 177594,
-    "sha256": "0cf276d8d63b0d9f01749379084d332df763634045de698eec333a38901753df",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://discovery.intern-ai.org.cn/moce/remoteEntry-var.js",
-    "file": "02-sources/original/discovery.intern_ai.org.cn_moce_remoteEntry-var.js",
-    "status": 200,
-    "bytes": 689,
-    "sha256": "0823e9924ef2ea8d472c24a575ffe330360f841cbe3ee3963e5938ceeda124cf",
-    "contentType": "application/javascript"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/remoteEntry.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_remoteEntry.js",
-    "status": 200,
-    "bytes": 3633,
-    "sha256": "e84ad15b2f5edc07965c35e5e9f7419639ef18abc5c89b121e800e12790c591c",
+    "bytes": 3331,
+    "sha256": "fd57798a12b95474ddf410ce7301133c9ec42418dafa519ae6669b78b75daa19",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index.cjs-BgaQYHXq.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_index.cjs-BgaQYHXq.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/index.cjs-DZUU_bua.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_index.cjs-DZUU_bua.js",
     "status": 200,
-    "bytes": 56484,
-    "sha256": "7726a35ae8c30bee67eb15e28eaa6aada234c3c9215f6e4a090de2a5355486c5",
+    "bytes": 57027,
+    "sha256": "1aa79bcd43d2bb286d513de5e3d40fa624cf1b7237c91fbee9e35217ed961c7e",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/virtualExposes-stLctsZd.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_virtualExposes-stLctsZd.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/virtualExposes-Dt7IsUQe.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_virtualExposes-Dt7IsUQe.js",
     "status": 200,
-    "bytes": 1177,
-    "sha256": "971f96c2196485700efcb00028355c4873327001a3b68d03cd7cd3b86d276e8b",
+    "bytes": 1029,
+    "sha256": "94f710d38ce303468d2371c8088ff64107ea8f2b6b2aaa52e73adf331757eb25",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/preload-helper-CkCuUFUU.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_preload-helper-CkCuUFUU.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/preload-helper-BJp2Yy4Q.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_preload-helper-BJp2Yy4Q.js",
     "status": 200,
-    "bytes": 1013,
-    "sha256": "9f252860a40a4e8523b0242a4c9cff122d3a5dd019f93d9c7967923dec867370",
+    "bytes": 1018,
+    "sha256": "cb032cf2df9b77305576eafa90839291771ec12a4a4b8827cb42b800e2d28bfb",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/runtimeInit-BUkdM_Jo.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_runtimeInit-BUkdM_Jo.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/runtimeInit-DI3bYXXk.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_runtimeInit-DI3bYXXk.js",
     "status": 200,
-    "bytes": 429,
-    "sha256": "e0ab47f0dd6345702f5cbe30b1b2b2290291b8f6e75ac32490b80517d1c57f27",
+    "bytes": 419,
+    "sha256": "62937f1134e15a8c1757a9d73150fce927f0ea2f119be9a868d0d98aa8b4d3bd",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/remote-app-j8k-XzOr.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_remote-app-j8k-XzOr.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/remote-app-CubehDmM.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_remote-app-CubehDmM.js",
     "status": 200,
-    "bytes": 903,
-    "sha256": "a147e63b91f1e8a8396bacd3447f288d381cf55b1a7becc5ee04c6e3f38ec1d3",
+    "bytes": 563661,
+    "sha256": "969b5706038f1f1f6c3d9fce05187c839ee24cb2f435a88f7cd4e777de182c31",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/space-common-provider-5p1CqXmB.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/discovery_app__loadShare__react__loadShare__.mjs-CzpHvsVN.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_discovery_app_loadShare_react_loadShare_.mjs-CzpHvsVN.js",
     "status": 200,
-    "bytes": 830896,
-    "sha256": "4c37b42e7e742f8c6de05f24beb4a0e4880b6ae5774539c506e1f3439fdbf950",
+    "bytes": 1848,
+    "sha256": "c0b30c1762aea5e12570c8832ebf20e56dfe07bdc20632c37e622589d11a2706",
     "contentType": "application/javascript; charset=utf-8"
   },
   {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs-Db2ZS5NC.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_discovery_chat_loadShare_react_loadShare_.mjs-Db2ZS5NC.js",
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/discovery_app__loadShare__react_mf_2_dom__loadShare__.mjs-DiUchHb_.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_discovery_app_loadShare_react_mf_2_dom_loadShare_.mjs-DiUchHb_.js",
     "status": 200,
-    "bytes": 1872,
-    "sha256": "1e23a0374416581a495bc890f8c94ad4c2ff285b7c5e4c878dd2d3b3a6e0822b",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_router_mf_2_dom__loadShare__.mjs-BEHOCTth.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_discovery_chat_loadShare_react_mf_2_router_mf_2_dom_loadShare_.mjs-BEHOCTth.js",
-    "status": 200,
-    "bytes": 1642,
-    "sha256": "0c6b7a427d6daecb0f2fc584bb0308555948977558db81873e8e81caecc81eaa",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react__loadShare__.mjs_commonjs-proxy-NHBfaYmM.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_discovery_chat_loadShare_react_loadShare_.mjs_commonjs-proxy-NHBfaYmM.js",
-    "status": 200,
-    "bytes": 831,
-    "sha256": "f8e2077273c4c90a99f0bb66ec92e39891a546e66b645e87f4767faf137cc77e",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/discovery_chat__loadShare__react_mf_2_dom__loadShare__.mjs-7zeyoQMr.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_discovery_chat_loadShare_react_mf_2_dom_loadShare_.mjs-7zeyoQMr.js",
-    "status": 200,
-    "bytes": 1154,
-    "sha256": "7b700dbc8793b4514a6919eb2282742c73f9750378f2508bba25d0811363e958",
-    "contentType": "application/javascript; charset=utf-8"
-  },
-  {
-    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-BXHFF-HQ.js",
-    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_index-BXHFF-HQ.js",
-    "status": 200,
-    "bytes": 465,
-    "sha256": "89b068c5a8104780c6417d72fb5af83a9778fb788318b06f5c4db1082178ba70",
+    "bytes": 1147,
+    "sha256": "6a1995de7aa6d23c783e933026bd469e2bd3e16ac2d56abaf22db819dfafc159",
     "contentType": "application/javascript; charset=utf-8"
   }
 ]

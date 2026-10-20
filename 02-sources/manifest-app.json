@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://discovery.intern-ai.org.cn/app-static/remoteEntry-var.js",
+    "file": "02-sources/original/discovery.intern_ai.org.cn_app-static_remoteEntry-var.js",
+    "status": 200,
+    "bytes": 686,
+    "sha256": "17ae2be9429a620ff8f3274df9b3223128d2826e274244deb5c19f7ef9b20198",
+    "contentType": "application/javascript"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/remoteEntry.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_remoteEntry.js",
+    "status": 200,
+    "bytes": 3331,
+    "sha256": "fd57798a12b95474ddf410ce7301133c9ec42418dafa519ae6669b78b75daa19",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/index.cjs-DZUU_bua.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_index.cjs-DZUU_bua.js",
+    "status": 200,
+    "bytes": 57027,
+    "sha256": "1aa79bcd43d2bb286d513de5e3d40fa624cf1b7237c91fbee9e35217ed961c7e",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/virtualExposes-Dt7IsUQe.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_virtualExposes-Dt7IsUQe.js",
+    "status": 200,
+    "bytes": 1029,
+    "sha256": "94f710d38ce303468d2371c8088ff64107ea8f2b6b2aaa52e73adf331757eb25",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/preload-helper-BJp2Yy4Q.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_preload-helper-BJp2Yy4Q.js",
+    "status": 200,
+    "bytes": 1018,
+    "sha256": "cb032cf2df9b77305576eafa90839291771ec12a4a4b8827cb42b800e2d28bfb",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/runtimeInit-DI3bYXXk.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_runtimeInit-DI3bYXXk.js",
+    "status": 200,
+    "bytes": 419,
+    "sha256": "62937f1134e15a8c1757a9d73150fce927f0ea2f119be9a868d0d98aa8b4d3bd",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/remote-app-CubehDmM.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_remote-app-CubehDmM.js",
+    "status": 200,
+    "bytes": 563661,
+    "sha256": "969b5706038f1f1f6c3d9fce05187c839ee24cb2f435a88f7cd4e777de182c31",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/discovery_app__loadShare__react__loadShare__.mjs-CzpHvsVN.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_discovery_app_loadShare_react_loadShare_.mjs-CzpHvsVN.js",
+    "status": 200,
+    "bytes": 1848,
+    "sha256": "c0b30c1762aea5e12570c8832ebf20e56dfe07bdc20632c37e622589d11a2706",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  {
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-app-fe/4cbb6628/assets/discovery_app__loadShare__react_mf_2_dom__loadShare__.mjs-DiUchHb_.js",
+    "file": "02-sources/original/static.openxlab.org.cn_discovery-fe_prod_discovery-app-fe_4cbb6628_assets_discovery_app_loadShare_react_mf_2_dom_loadShare_.mjs-DiUchHb_.js",
+    "status": 200,
+    "bytes": 1147,
+    "sha256": "6a1995de7aa6d23c783e933026bd469e2bd3e16ac2d56abaf22db819dfafc159",
+    "contentType": "application/javascript; charset=utf-8"
+  }
+]

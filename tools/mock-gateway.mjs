@@ -110,6 +110,14 @@ header b{font-size:15px}.tag{background:#fff4e6;color:#b26a00;border:1px solid #
 .foot .sep{margin:0 8px}
 .wrap{max-width:920px;margin:0 auto;padding:16px;width:100%}
 .dev{margin:4px 0 8px;font-size:12px;color:#8a8f99}
+.view{padding:4px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.card b{display:block;margin-bottom:4px;font-size:14px}
+.card span{color:#8a8f99;font-size:12px}
+.viewTitle{font-size:15px;font-weight:600;margin:6px 0 2px}
+.viewHint{color:#8a8f99;font-size:12px}
+.nav a.active{background:#eef3ff;color:#2f6fed}
 .dev summary{cursor:pointer}
 .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 input,select,button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
@@ -137,15 +145,21 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div class="app">
 <aside class="side">
   <div class="brand"><span class="dot">◍</span> 书生·端砚</div>
-  <button class="newchat">＋ 新建对话</button>
+  <button class="newchat" data-route="/chat">＋ 新建对话</button>
   <nav class="nav">
-    <a>▤ 论文工具</a><a>▥ 课题空间</a><a>◈ 科研应用</a><a>▦ 科学工具</a>
-    <a>▤ 科学数据</a><a>▥ 科学计算</a><a>▦ 科研模型</a>
+    <a data-route="/paper">▤ 论文工具</a>
+    <a data-route="/repo">▥ 课题空间</a>
+    <a data-route="/app">◈ 科研应用</a>
+    <a data-route="/scp">▦ 科学工具</a>
+    <a data-route="/dataset">▤ 科学数据</a>
+    <a data-route="/compute">▥ 科学计算</a>
+    <a data-route="/token-plan/home">▦ 科研模型</a>
   </nav>
 </aside>
 <main class="main">
 <div class="hero"><h1>科学发现 探索未来</h1><p>连接科研全流程的智能工作台 · 让每一个洞察都有迹可循</p></div>
 <div class="wrap">
+<div id="chatPane">
   <div class="row composer">
     <select id="wmodel" style="max-width:220px"></select>
     <input id="model" value="synthetic-model-a" style="max-width:200px;display:none">
@@ -166,6 +180,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="row" id="tagsRow" style="flex-wrap:wrap;gap:6px"></div>
   <div class="meta" id="status"></div>
 </div>
+</div>
+<div id="view" class="view" style="display:none"></div>
 <footer class="foot"><span>平台服务协议</span><span class="sep">|</span><span>个人信息保护政策</span><span class="sep">|</span><span>沪ICP备2021009351号-21</span></footer>
 </main>
 </div>
@@ -329,9 +345,43 @@ $('#new').addEventListener('click',()=>newConv());
 $('#send').addEventListener('click',()=>send());
 $('#stop').addEventListener('click',()=>{ if($('#pmode').value==='web'){ stopWeb(); } else if(ac)ac.abort(); });
 $('#text').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
-// 侧栏入口接线：新建对话复用真实逻辑；导航项给出明确未实现提示（避免看起来像坏了）
-document.querySelectorAll('.side .newchat').forEach(el=>el.addEventListener('click',()=>$('#new').click()));
-document.querySelectorAll('.nav a').forEach(el=>el.addEventListener('click',()=>{ setStatus('演示页：' + el.textContent.trim() + ' 入口尚未实现（本轮逆向范围是对话协议）'); }));
+// 路由：路径取自 bundle 侧栏配置（/chat /paper /repo /app /scp /dataset /compute /token-plan/home）
+const VIEWS = {
+  '/repo': { title: '课题空间', path: '/repo', api: '/api/spacebe/v1/space/list?page=1&page_size=10', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + (x.name||('课题 '+x.id)) + '</b><span>' + (x.description||'') + '</span></div>'; }).join(''); } },
+  '/scp': { title: '科学工具', path: '/scp', api: '/api/scphub/v1/scp/tags', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + x.name + '</b><span>' + (x.name_en||'') + '</span></div>'; }).join(''); } },
+  '/dataset': { title: '科学数据', path: '/dataset', api: '/api/datasets/v1/category/list', render: function(d){ return (d.list||[]).map(function(x){ return '<div class="card"><b>' + x.name + '</b><span>共 ' + (d.total||0) + ' 类</span></div>'; }).join(''); } },
+  '/token-plan/home': { title: '科研模型', path: '/token-plan/home', api: '/api/orbit/v1/models', render: function(d){ return (d.models||[]).map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + ((m.tags||[]).join(' · ')) + '</span></div>'; }).join(''); } },
+  '/paper': { title: '论文工具', path: '/paper', api: '/api/nova/v1/search/hot-papers', render: function(d){ return (d.list||[]).map(function(p){ return '<div class="card"><b>' + p.title + '</b><span>' + (p.venue||'') + ' · ' + (p.year||'') + ' · 引用 ' + (p.citations||0) + '</span></div>'; }).join(''); } },
+  '/app': { title: '科研应用', path: '/app', api: '/api/moce/v1/apps/list', render: function(d){ return (d.list||[]).map(function(a){ return '<div class="card"><b>' + a.name + '</b><span>' + (a.domain||'') + ' · ' + (a.summary||'') + '</span></div>'; }).join(''); } },
+  '/compute': { title: '科学计算', path: '/compute', api: '/api/ml/v1/dev-machine/list', render: function(d){ return (d.list||[]).map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + (m.status||'') + ' · ' + (m.gpu||'') + ' · 配额 ' + (m.quota||'') + '</span></div>'; }).join(''); } },
+};
+async function showRoute(route, push){
+  route = (route || '').replace(/^#/, '') || '/chat';
+  if (push !== false) location.hash = route;
+  document.querySelectorAll('.nav a').forEach(function(a){ a.classList.toggle('active', a.dataset.route === route); });
+  const pane = document.querySelector('#chatPane'), view = document.querySelector('#view');
+  if (route === '/chat') { pane.style.display = ''; view.style.display = 'none'; setStatus(''); return; }
+  pane.style.display = 'none'; view.style.display = '';
+  const v = VIEWS[route];
+  if (!v) { view.innerHTML = '<div class="viewTitle">' + route + '</div><div class="viewHint">未知路由</div>'; return; }
+  view.innerHTML = '<div class="viewTitle">' + v.title + ' <span class="viewHint">' + v.path + '</span></div><div class="viewHint">数据接口：' + (v.api || '（未逆向到公开接口）') + '</div><div id="viewBody" class="grid"></div>';
+  const body = document.querySelector('#viewBody');
+  if (!v.api) {
+    body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>未实现</b><span>路由已从前端包确认（' + v.path + '），但该模块的接口尚未定位；本轮逆向范围是对话协议。</span></div>';
+    return;
+  }
+  try {
+    const r = await fetch(v.api, { headers: { accept: 'application/json' } });
+    const j = await r.json();
+    const html = v.render((j && j.data) || {});
+    body.innerHTML = html || '<div class="card"><b>空</b><span>接口返回空列表</span></div>';
+  } catch (e) {
+    body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>请求失败</b><span>' + e.message + '</span></div>';
+  }
+}
+document.querySelectorAll('[data-route]').forEach(function(el){ el.addEventListener('click', function(ev){ ev.preventDefault(); const route = el.dataset.route; if (route === '/chat') { document.querySelector('#new').click(); showRoute('/chat'); return; } showRoute(route); }); });
+window.addEventListener('hashchange', function(){ showRoute(location.hash || '/chat', false); });
+if (location.hash && location.hash !== '/chat' && location.hash !== '#') showRoute(location.hash, false);
 </script></body></html>`;
 
 export function createMockGatewayServer(opts = {}) {
@@ -378,6 +428,41 @@ export function createMockGatewayServer(opts = {}) {
       }
       // ===== 网页协议（依据 04-contracts/api-contract.md + web-a5/web-a6）=====
       // 公开接口（未登录态实测 200，形状见 03-analysis/web-endpoints-r2.md §5）
+      if (method === 'GET' && path === '/api/moce/v1/apps/list') {
+        log('GET /moce/v1/apps/list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 1, name: '干湿闭环平台', domain: '通用', summary: 'AI4S 干湿闭环工作流' },
+          { id: 2, name: '蛋白质结构预测', domain: '生命科学', summary: '序列到结构预测' },
+          { id: 3, name: '材料发现', domain: '物质科学', summary: '晶体与材料筛选' },
+          { id: 4, name: '地球系统模拟', domain: '地球科学', summary: '多圈层耦合模拟' },
+        ], total: 4 } }));
+      }
+      if (method === 'GET' && path === '/api/ml/v1/dev-machine/list') {
+        log('GET /ml/v1/dev-machine/list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'dm-001', name: 'A100 开发机', status: 'running', gpu: 'A100 80G', quota: '1/1' },
+          { id: 'dm-002', name: 'CPU 调试机', status: 'stopped', gpu: '-', quota: '0/1' },
+        ], total: 2 } }));
+      }
+      if (method === 'GET' && path === '/api/ml/v1/cloud-disk/quota') {
+        log('GET /ml/v1/cloud-disk/quota -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { used_gb: 12.5, total_gb: 100, file_count: 42 } }));
+      }
+      if (method === 'GET' && path === '/api/nova/v1/search/hot-papers') {
+        log('GET /nova/v1/search/hot-papers -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'w1', title: 'Deep learning for protein structure prediction', venue: 'Nature', year: 2024, citations: 1280 },
+          { id: 'w2', title: 'Foundation models for scientific discovery', venue: 'Science', year: 2025, citations: 640 },
+          { id: 'w3', title: 'AI4S: from tools to autonomous labs', venue: 'Cell', year: 2025, citations: 315 },
+        ], total: 3 } }));
+      }
+      if (method === 'GET' && path === '/api/spacebe/v1/space/list') {
+        log('GET /spacebe/v1/space/list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 3914, name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比', space_type: 1 },
+          { id: 3915, name: '离线回归项目', description: '桌面/网页协议回归验证用', space_type: 1 },
+        ], total: 2 } }));
+      }
       if (method === 'GET' && path === '/api/scphub/v1/scp/tags') {
         log('GET /scphub/v1/scp/tags -> 200 (public)');
         return send(200, JSON.stringify({ code: 0, data: SCp_TAGS }));
