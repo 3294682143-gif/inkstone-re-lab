@@ -5,6 +5,7 @@
 // 说明：仅镜像前端页面/静态资源；页面内的业务接口仍需原站登录态，浏览器侧可能是未登录界面。
 import http from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { ProxyAgent } from 'undici';
 
 const DEFAULT_ORIGIN = 'https://discovery.intern-ai.org.cn';
@@ -17,7 +18,7 @@ export function rewriteHtml(html, origin) {
   return out;
 }
 
-export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.env.HTTPS_PROXY || process.env.https_proxy || null, log = () => {} } = {}) {
+export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.env.HTTPS_PROXY || process.env.https_proxy || null, snapshot = false, bearer = process.env.INKSTONE_WEB_TOKEN || null, log = () => {} } = {}) {
   const dispatcher = proxy ? new ProxyAgent(proxy) : undefined;
   const get = async (url) => {
     const opts = { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 (mirror)', 'accept': '*/*' } };
@@ -25,14 +26,26 @@ export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.en
     return fetch(url, opts);
   };
 
+  // 通用上游请求：保留方法/请求体/鉴权；bearer 来自 INKSTONE_WEB_TOKEN（不落盘、不写日志）
+  const upstream = async (url, method, body, contentType) => {
+    const headers = { 'user-agent': 'Mozilla/5.0 (mirror)', accept: '*/*' };
+    if (contentType) headers['content-type'] = contentType;
+    if (bearer) headers.authorization = 'Bearer ' + bearer;
+    const opts = { method, headers, redirect: 'follow' };
+    if (body && body.length) opts.body = body;
+    if (dispatcher) opts.dispatcher = dispatcher;
+    return fetch(url, opts);
+  };
+
   const server = http.createServer(async (req, res) => {
-    if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); return res.end('method not allowed'); }
+    const ALLOWED = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']);
+    if (!ALLOWED.has(req.method)) { res.writeHead(405); return res.end('method not allowed'); }
     const u = new URL(req.url, 'http://localhost');
     let path = u.pathname;
     try {
-      // 首页：优先用抓取到的页面；否则代理原站 /chat/
+      // 首页：默认代理原站当前外壳（渲染结果与目标一致）；--snapshot 时改用抓取快照
       if (path === '/' || path === '' || path === '/chat/' || path === '/chat') {
-        if (existsSync(CAPTURED)) {
+        if (snapshot && existsSync(CAPTURED)) {
           const html = rewriteHtml(readFileSync(CAPTURED, 'utf8'), origin);
           res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
           log('GET / -> captured a0-page.html (rewritten)');
@@ -50,7 +63,10 @@ export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.en
       } else {
         target = `${origin}${path}${u.search}`;
       }
-      const r = await get(target);
+      const chunks = [];
+      for await (const c of req) chunks.push(c);
+      const bodyBuf = Buffer.concat(chunks);
+      const r = await upstream(target, req.method, req.method === 'GET' || req.method === 'HEAD' ? null : bodyBuf, req.headers['content-type']);
       const ct = r.headers.get('content-type') || 'application/octet-stream';
       let body = Buffer.from(await r.arrayBuffer());
       if (/text\/html/i.test(ct)) body = Buffer.from(rewriteHtml(body.toString('utf8'), origin));
@@ -67,11 +83,15 @@ export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.en
   return server;
 }
 
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// Windows: 不能用 `file://${process.argv[1]}` 直接拼（盘符路径无法构成合法 file URL）
+const __isMain = (() => { try { return !!process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url; } catch { return false; } })();
+if (__isMain) {
   const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 ? process.argv[i + 1] : d; };
   const host = arg('host', '0.0.0.0');
   const port = Number(arg('port', 8788));
   const origin = arg('origin', DEFAULT_ORIGIN);
-  const server = createMirrorServer({ origin, log: (m) => console.log('[mirror] ' + m) });
+  const snapshot = process.argv.includes('--snapshot');
+  const server = createMirrorServer({ origin, snapshot, log: (m) => console.log('[mirror] ' + m) });
+  console.log('[mirror] mode=' + (snapshot ? 'snapshot(a0-page.html)' : 'live-shell(proxy origin)'));
   server.listen(port, host, () => console.log(`[mirror] listening on http://${host}:${port}/  (origin=${origin})`));
 }

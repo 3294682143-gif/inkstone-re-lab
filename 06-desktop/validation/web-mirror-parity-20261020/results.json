@@ -1,0 +1,29 @@
+{
+  "schema_version": "inkstone-web-mirror-parity/1",
+  "checked_at": "2026-10-20T02:20:00Z",
+  "mode": "live-shell(proxy origin)",
+  "local_url": "http://127.0.0.1:8788/",
+  "target_url": "https://discovery.intern-ai.org.cn/chat",
+  "render_text_parity": "identical (含 科学计算/科研模型、平台服务协议、ICP)",
+  "screenshot_sha256": "2afd6500699728d468d35b803879f0e3733a71e2679b9989f1c76c41382fbed7",
+  "screenshot_bytes": 98612,
+  "screenshot_identical": true,
+  "mirror_requests": 48,
+  "mirror_non_200": [
+    { "path": "/api/orbit/v1/models", "status": 401, "reason": "镜像未携带登录态（预期）" },
+    { "path": "/api/spacebe/v1/space/list", "status": 401, "reason": "同上" }
+  ],
+  "fixes": [
+    "入口判断改用 pathToFileURL（原 file:// 拼接在 Windows 永不成立，服务启动即退出）",
+    "默认改为 live-shell 代理（原来默认用 2026-10-17 的旧快照，界面缺 科学计算/科研模型 与页脚）"
+  ],
+  "upgrades": [
+    "允许 POST/PUT/PATCH/DELETE 并转发请求体（此前只 GET/HEAD，本地无法发消息）",
+    "支持 INKSTONE_WEB_TOKEN 运行时注入 Authorization: Bearer（不落盘、不写日志）",
+    "--snapshot 保留旧快照模式用于离线对照"
+  ],
+  "known_gaps": [
+    "未注入 token 时 API 返回 401，界面为登录前状态",
+    "SSE 透传未做端到端验证（需登录态）"
+  ]
+}
