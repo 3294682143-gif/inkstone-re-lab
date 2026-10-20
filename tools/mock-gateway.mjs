@@ -21,6 +21,22 @@ const WEB_MODELS = [
   { name: 'DeepSeek-V4-Flash', tags: [], icon: '' },
   { name: 'Kimi-K2.7-Code', tags: [], icon: '' },
 ];
+const SCp_TAGS = { list: [
+  { id: 1, name: '生命科学', name_en: 'Life Sciences', icon: '', type: 1 },
+  { id: 2, name: '地球科学', name_en: 'Earth Sciences', icon: '', type: 1 },
+  { id: 3, name: '物质科学', name_en: 'Materials Science', icon: '', type: 1 },
+  { id: 4, name: '神经科学', name_en: 'Neuroscience', icon: '', type: 1 },
+  { id: 5, name: '数学物理', name_en: 'Math & Physics', icon: '', type: 1 },
+  { id: 6, name: '通用', name_en: 'General', icon: '', type: 1 },
+] };
+const DATASET_CATEGORIES = { list: [
+  { id: 1, name: '生命科学', icon_url: '', sort: 0, background_color: '#E4EEFF' },
+  { id: 2, name: '地球科学', icon_url: '', sort: 1, background_color: '#E6F7EE' },
+  { id: 3, name: '物质科学', icon_url: '', sort: 2, background_color: '#FFF4E6' },
+  { id: 4, name: '神经科学', icon_url: '', sort: 3, background_color: '#F3E8FF' },
+  { id: 5, name: '空间科学', icon_url: '', sort: 4, background_color: '#E8F4FF' },
+  { id: 6, name: '空气动力学', icon_url: '', sort: 5, background_color: '#FFECEC' },
+], total: 6 };
 const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const CAPABILITIES = (marker) => ({
@@ -116,6 +132,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <input id="text" placeholder="输入消息，例如：请只回复 OK" autocomplete="off">
     <button class="primary" id="send">发送</button>
   </div>
+  <div class="row" id="tagsRow" style="flex-wrap:wrap;gap:6px"></div>
   <div class="meta" id="status"></div>
 </div>
 <script>
@@ -248,6 +265,23 @@ async function stopWeb(){
   }catch(e){ setStatus('stop 失败: '+e.message); }
   if(ac)ac.abort();
 }
+async function loadTags(){
+  try{
+    const [a,b]=await Promise.all([
+      fetch($('#base').value.replace('/orbit/v1','')+'/scphub/v1/scp/tags').then(r=>r.json()).catch(()=>null),
+      fetch($('#base').value.replace('/orbit/v1','')+'/datasets/v1/category/list').then(r=>r.json()).catch(()=>null)
+    ]);
+    const tags=(a&&a.data&&a.data.list)||[];
+    const cats=(b&&b.data&&b.data.list)||[];
+    const row=$('#tagsRow');
+    row.innerHTML='<span style="font-size:12px;color:#8a8f99;align-self:center">学科：</span>'+
+      tags.map(t=>'<button data-t="'+t.name+'" style="border:1px solid #e3e6ec;background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;color:#4a5058">'+t.name+'</button>').join('')+
+      '<span style="font-size:12px;color:#8a8f99;align-self:center;margin-left:8px">数据分类：</span>'+
+      cats.map(t=>'<button data-d="'+t.name+'" style="border:1px solid #e3e6ec;background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;color:#4a5058">'+t.name+'</button>').join('');
+    setStatus('公开接口：学科标签 '+tags.length+' 个、数据分类 '+cats.length+' 个');
+  }catch(e){ setStatus('公开接口加载失败: '+e.message); }
+}
+loadTags();
 $('#pmode').addEventListener('change',()=>{
   const web=$('#pmode').value==='web';
   $('#wmodel').style.display=web?'':'none';
@@ -304,6 +338,15 @@ export function createMockGatewayServer(opts = {}) {
         return send(200, envelope({ id }));
       }
       // ===== 网页协议（依据 04-contracts/api-contract.md + web-a5/web-a6）=====
+      // 公开接口（未登录态实测 200，形状见 03-analysis/web-endpoints-r2.md §5）
+      if (method === 'GET' && path === '/api/scphub/v1/scp/tags') {
+        log('GET /scphub/v1/scp/tags -> 200 (public)');
+        return send(200, JSON.stringify({ code: 0, data: SCp_TAGS }));
+      }
+      if (method === 'GET' && path === '/api/datasets/v1/category/list') {
+        log('GET /datasets/v1/category/list -> 200 (public)');
+        return send(200, JSON.stringify({ code: 0, data: DATASET_CATEGORIES }));
+      }
       if (method === 'GET' && path === '/api/orbit/v1/models') {
         log('GET /models -> 200 (web)');
         return send(200, JSON.stringify({ code: 0, data: { models: WEB_MODELS } }));
