@@ -400,6 +400,46 @@ async function showRoute(route, push){
       }
     });
   }
+  if (route === '/token-plan/home') {
+    const bar = document.createElement('div');
+    bar.className = 'row';
+    bar.innerHTML = '<select id="tpTab"><option value="models">模型列表</option><option value="keys">API Key</option><option value="usage">用量查询</option></select>';
+    view.insertBefore(bar, body);
+    // 顶部余额卡
+    const bal = document.createElement('div');
+    bal.className = 'row';
+    bal.id = 'tpBalance';
+    bal.innerHTML = '<span class="viewHint">余额加载中…</span>';
+    view.insertBefore(bal, body);
+    body.dataset.skip = '1';
+    const loadTab = async function(){
+      const tab = (document.querySelector('#tpTab') || {}).value || 'models';
+      const ep = tab === 'keys' ? '/api/tokenplan/v1/keys' : tab === 'usage' ? '/api/tokenplan/v1/usage/summary' : '/api/tokenplan/v1/models';
+      body.innerHTML = '<div class="card">加载中…</div>';
+      try {
+        const r = await fetch(ep, { headers: { accept: 'application/json' } });
+        const j = await r.json();
+        const d = (j && j.data) || {};
+        if (tab === 'usage') {
+          body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>用量（' + (d.period || '') + '）</b><span>请求 ' + (d.requests || 0) + ' · 输入 ' + (d.prompt_tokens || 0) + ' · 输出 ' + (d.completion_tokens || 0) + ' · 合计 ' + (d.total_tokens || 0) + '</span></div>';
+        } else if (tab === 'keys') {
+          body.innerHTML = (d.list || []).map(function(k){ return '<div class="card"><b>' + k.name + '</b><span>' + (k.masked || '') + ' · ' + (k.status || '') + ' · ' + (k.created_at || '') + '</span></div>'; }).join('');
+        } else {
+          body.innerHTML = (d.list || []).map(function(m){ return '<div class="card"><b>' + m.name + '</b><span>' + (m.context || '') + ' · ' + (m.pricing || '') + '</span></div>'; }).join('');
+        }
+      } catch (e) {
+        body.innerHTML = '<div class="card"><b>加载失败</b><span>' + e.message + '</span></div>';
+      }
+    };
+    fetch('/api/tokenplan/v1/credits/balance').then(function(r){ return r.json(); }).then(function(j){
+      const d = (j && j.data) || {};
+      const el = document.querySelector('#tpBalance');
+      if (el) el.innerHTML = '<span class="viewHint">余额：' + (d.balance ?? '-') + ' ' + (d.currency || '') + ' · 下次重置 ' + (d.next_reset || '-') + '</span>';
+    }).catch(function(){});
+    const sel = document.querySelector('#tpTab');
+    if (sel) sel.addEventListener('change', loadTab);
+    loadTab();
+  }
   if (route === '/dataset') {
     body.addEventListener('click', async function(ev){
       const card = ev.target.closest ? ev.target.closest('.card') : null;
@@ -455,6 +495,7 @@ async function showRoute(route, push){
     if (qInput) qInput.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') runSearch(); });
   }
   try {
+    if (body.dataset.skip === '1') return;
     const r = await fetch(v.api, { headers: { accept: 'application/json' } });
     const j = await r.json();
     const html = v.render((j && j.data) || {});
@@ -528,6 +569,21 @@ export function createMockGatewayServer(opts = {}) {
           description: 'PDB 衍生的蛋白质结构集合，覆盖 12 万个结构条目。',
           labels: ['结构生物学', '蛋白质', 'PDB'],
         } }));
+      }
+      if (method === 'GET' && path === '/api/tokenplan/v1/keys') {
+        log('GET /tokenplan/v1/keys -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'key_1', name: '默认 Key', masked: 'sk-****3f2a', created_at: '2026-09-01', status: 'active' },
+          { id: 'key_2', name: 'CI Key', masked: 'sk-****88cd', created_at: '2026-10-02', status: 'active' },
+        ], total: 2 } }));
+      }
+      if (method === 'GET' && path === '/api/tokenplan/v1/usage/summary') {
+        log('GET /tokenplan/v1/usage/summary -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { total_tokens: 1284000, prompt_tokens: 902000, completion_tokens: 382000, requests: 1840, period: '2026-10' } }));
+      }
+      if (method === 'GET' && path === '/api/tokenplan/v1/credits/balance') {
+        log('GET /tokenplan/v1/credits/balance -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { balance: 386.5, currency: 'CNY', next_reset: '2026-11-01' } }));
       }
       if (method === 'GET' && path === '/api/tokenplan/v1/models') {
         log('GET /tokenplan/v1/models -> 200 (synthetic)');
