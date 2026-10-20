@@ -1,0 +1,76 @@
+{
+  "schema_version": "inkstone-windows-validation/1",
+  "stage": "W1/W2/W3 实机动态闭环",
+  "status": {
+    "WINDOWS_DRIVER_PASS": "PASS",
+    "WINDOWS_CANCEL_PASS": "PASS",
+    "WIRE_SCHEMA_CONFIRMED": "NOT_RUN",
+    "ADAPTER_LIVE_PASS": "NOT_RUN"
+  },
+  "sample": {
+    "app_asar_sha256": "10c286f32211bcf2dc05f9ea4bbcf3e982627be2b92f2bc656503eec7535ad77",
+    "runtime_bundle_build_id": "0.2.7-8dabffa00633"
+  },
+  "root_cause": {
+    "issue": "inkstone.exe 一启动就退出；headless 永远收不到 driver.ready",
+    "cause": "DSH 会话环境设置了 ELECTRON_RUN_AS_NODE=1，Electron 二进制被当作纯 Node 运行",
+    "fix": "runner 的 appEnv() 在 spawn 前删除 ELECTRON_RUN_AS_NODE / ELECTRON_NO_ATTACH_CONSOLE",
+    "proof": [
+      "arg 模式：bad option: --headless-chat-driver",
+      "加 `--` 后：Node 报 Cannot find module（证明在 Node 模式）",
+      "清变量后：driver.ready 立即返回 inkstone-headless-chat/v1"
+    ]
+  },
+  "project_prerequisite": {
+    "finding": "headless 侧 projects.list 为空时 session.create 直接 HEADLESS_PROJECT_NOT_FOUND",
+    "source_evidence": "app.asar selectProject(): projects.length===0 → HEADLESS_PROJECT_NOT_FOUND",
+    "no_headless_create": "headless dispatch 只有 projects.list，没有 projects.create",
+    "resolution": "用 Electron CDP(--remote-debugging-port=9333) 驱动 GUI 创建本地项目「re-lab 测试项目」",
+    "project_id": "541e0c3c-503d-43db-aa77-f4c2d48aff41"
+  },
+  "w1_discovery": {
+    "protocol_version": "inkstone-headless-chat/v1",
+    "models_count": 9,
+    "projects_count": 1
+  },
+  "w2_chat": {
+    "session_create": {
+      "cleanup": false,
+      "ok": true
+    },
+    "turn1": {
+      "outcome": "completed",
+      "answer": "OK"
+    },
+    "turn2": {
+      "outcome": "completed",
+      "answer_repeats_marker": true
+    },
+    "history": {
+      "messages": 4,
+      "turns": 2,
+      "all_status": "complete",
+      "model_ref": "书生-S2",
+      "active_request_id": null
+    }
+  },
+  "w3_cancel": {
+    "turn_send_accepted": true,
+    "stop": {
+      "stopped": true,
+      "request_id_matches": true
+    },
+    "terminal_outcome": "stopped",
+    "history": {
+      "assistant_status": "stopped",
+      "active_request_id": null
+    },
+    "race_completed_before_stop": false,
+    "caveat": "本地停止 ≠ 服务端停止/计费（UNKNOWN，未验证）"
+  },
+  "remaining": [
+    "W4：gateway wire payload（messages/tools/local-turn body）仍未捕获",
+    "scenario 数值、SSE 完整 type 集合、stop 响应体字段",
+    "远端计费是否随停止而止（不可由本地证明）"
+  ]
+}

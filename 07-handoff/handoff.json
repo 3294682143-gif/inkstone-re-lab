@@ -10,8 +10,21 @@
   "python_required_by": "tools/inspect_inkstone_asar.py / tools/compare_asar_manifest.py",
   "install_command": "npm ci --ignore-scripts --no-audit --no-fund",
   "test_command": "npm test",
-  "test_stats": { "tests": 140, "pass": 140, "fail": 0 },
-  "runner": { "path": "scripts/windows-driver-smoke.mjs", "scenarios": ["preflight", "discovery", "chat", "cancel"], "mock_flag": "--mock" },
+  "test_stats": {
+    "tests": 140,
+    "pass": 140,
+    "fail": 0
+  },
+  "runner": {
+    "path": "scripts/windows-driver-smoke.mjs",
+    "scenarios": [
+      "preflight",
+      "discovery",
+      "chat",
+      "cancel"
+    ],
+    "mock_flag": "--mock"
+  },
   "sample": {
     "installer": "inkstone-desktop-0.2.7-setup.exe",
     "installer_sha256": "eb8ef2da7c67df4fd2728a686cf84c1699fa410746af2d5b08f6e9b89d6dfcd8",
@@ -23,11 +36,18 @@
     "linux_offline": "PASS",
     "linux_mock_runner": "MOCK",
     "desktop_live_inference": "NOT_RUN",
-    "windows_dynamic": "NOT_RUN",
-    "web_a5_a6": "NOT_RUN"
+    "windows_dynamic": "WINDOWS_DRIVER_PASS + WINDOWS_CANCEL_PASS (2026-10-20 实机)",
+    "web_a5_a6": "NOT_RUN",
+    "windows_evidence": "06-desktop/validation/windows-w2-w3-20261020/results.json",
+    "wire_schema": "NOT_RUN"
   },
-  "unknown_items": ["messages/tools element schema", "local-turn request body construction", "native RPC frame/cancel/recovery", "server-side cancel & billing semantics"],
+  "unknown_items": [
+    "messages/tools element schema",
+    "local-turn request body construction",
+    "native RPC frame/cancel/recovery",
+    "server-side cancel & billing semantics"
+  ],
   "windows_tasks": "07-handoff/windows-todo.md",
   "validation_record": "06-desktop/validation/round5-handoff-20261020T011319Z/results.json",
-  "next_minimal_action": "Windows: git clone branch -> switch --detach 3f949e79... -> npm ci/test -> node scripts/windows-driver-smoke.mjs --help"
+  "next_minimal_action": "W4：抓 gateway wire payload（messages/tools/local-turn body）"
 }
