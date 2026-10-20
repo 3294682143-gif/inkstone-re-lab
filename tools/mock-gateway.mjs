@@ -90,10 +90,10 @@ document.querySelectorAll('button').forEach(b=>b.addEventListener('click',async(
 // 逆向协议演示页：新建会话 → 发送 → SSE 流式渲染（thinking/content/tool/usage）→ 本地轮次同步
 const CHAT_HTML = `<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>Intern InkStone · 逆向协议演示</title>
 <style>
-:root{--bg:#0f1115;--panel:#171a21;--line:#262b36;--fg:#e8eaf0;--muted:#9aa3b2;--acc:#5b8cff;--think:#8b93a7}
+:root{--bg:#f7f8fa;--panel:#ffffff;--line:#e3e6ec;--fg:#1c1c1e;--muted:#8a8f99;--acc:#2f6fed;--think:#9aa3a8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 system-ui,Segoe UI,Arial}
 header{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-header b{font-size:15px}.tag{background:#3a1d1d;color:#ff8f8f;border:1px solid #5a2a2a;border-radius:10px;padding:1px 8px;font-size:12px}
+header b{font-size:15px}.tag{background:#fff4e6;color:#b26a00;border:1px solid #f0d48a;border-radius:10px;padding:1px 8px;font-size:12px}
 .app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
 .side{background:#fff;border-right:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
 .brand{font-weight:700;font-size:15px;padding:4px 6px 10px;display:flex;gap:8px;align-items:center}
@@ -109,16 +109,18 @@ header b{font-size:15px}.tag{background:#3a1d1d;color:#ff8f8f;border:1px solid #
 .foot{text-align:center;color:#a2a7b0;font-size:11px;padding:14px 0 18px;margin-top:auto}
 .foot .sep{margin:0 8px}
 .wrap{max-width:920px;margin:0 auto;padding:16px;width:100%}
+.dev{margin:4px 0 8px;font-size:12px;color:#8a8f99}
+.dev summary{cursor:pointer}
 .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 input,select,button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
 input{flex:1;min-width:220px}button{cursor:pointer}button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
 button:disabled{opacity:.5;cursor:not-allowed}
 .chat{border:1px solid var(--line);border-radius:12px;padding:12px;min-height:260px;background:var(--panel)}
 .msg{margin:10px 0;padding:10px 12px;border-radius:10px;white-space:pre-wrap;word-break:break-word}
-.user{background:#1d2740;border:1px solid #2b3c63}
-.assistant{background:#141821;border:1px solid var(--line)}
+.user{background:#eaf1ff;border:1px solid #cfe0ff}
+.assistant{background:#f4f5f7;border:1px solid var(--line)}
 .think{color:var(--think);font-style:italic;border-left:2px solid #3a4152;padding-left:8px;margin:6px 0;white-space:pre-wrap}
-.tool{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#cfe3ff;background:#101826;border:1px dashed #2c4a7a;border-radius:8px;padding:6px 8px;margin:6px 0;white-space:pre-wrap}
+.tool{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#274b7a;background:#f4f7fb;border:1px dashed #c8d6ea;border-radius:8px;padding:6px 8px;margin:6px 0}
 .meta{color:var(--muted);font-size:12.5px;margin-top:6px}
 .err{color:#ff9a9a}
 .ids{color:var(--muted);font-size:12px}
@@ -144,14 +146,18 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <main class="main">
 <div class="hero"><h1>科学发现 探索未来</h1><p>连接科研全流程的智能工作台 · 让每一个洞察都有迹可循</p></div>
 <div class="wrap">
-  <div class="row">
-    <label>base</label><input id="base">
-    <label>model</label><input id="model" value="synthetic-model-a" style="max-width:200px">
-    <label>协议</label><select id="pmode"><option value="desktop">桌面协议</option><option value="web">网页协议</option></select>
-    <select id="wmodel" style="max-width:200px;display:none"></select>
-    <button id="new">新建会话</button>
+  <div class="row composer">
+    <select id="wmodel" style="max-width:220px"></select>
+    <input id="model" value="synthetic-model-a" style="max-width:200px;display:none">
+    <button id="new">＋ 新建对话</button>
     <button id="stop" disabled>停止</button>
   </div>
+  <details class="dev"><summary>调试 / 协议</summary>
+    <div class="row">
+      <label>base</label><input id="base">
+      <label>协议</label><select id="pmode"><option value="desktop">桌面协议</option><option value="web" selected>网页协议</option></select>
+    </div>
+  </details>
   <div class="chat" id="chat"><div class="msg assistant">已就绪。点击「新建会话」，然后输入消息发送。协议：<code>/chat/new</code> → <code>/local-agent/messages</code>(SSE, type 事件) → 本地轮次同步。</div></div>
   <div class="row">
     <input id="text" placeholder="输入消息，例如：请只回复 OK" autocomplete="off">
@@ -310,6 +316,8 @@ async function loadTags(){
   }catch(e){ setStatus('公开接口加载失败: '+e.message); }
 }
 loadTags();
+// 初始：按当前协议模式准备输入区
+if ($('#pmode').value === 'web') { $('#wmodel').style.display = ''; $('#model').style.display = 'none'; loadWebModels(); }
 $('#pmode').addEventListener('change',()=>{
   const web=$('#pmode').value==='web';
   $('#wmodel').style.display=web?'':'none';
@@ -321,6 +329,9 @@ $('#new').addEventListener('click',()=>newConv());
 $('#send').addEventListener('click',()=>send());
 $('#stop').addEventListener('click',()=>{ if($('#pmode').value==='web'){ stopWeb(); } else if(ac)ac.abort(); });
 $('#text').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
+// 侧栏入口接线：新建对话复用真实逻辑；导航项给出明确未实现提示（避免看起来像坏了）
+document.querySelectorAll('.side .newchat').forEach(el=>el.addEventListener('click',()=>$('#new').click()));
+document.querySelectorAll('.nav a').forEach(el=>el.addEventListener('click',()=>{ setStatus('演示页：' + el.textContent.trim() + ' 入口尚未实现（本轮逆向范围是对话协议）'); }));
 </script></body></html>`;
 
 export function createMockGatewayServer(opts = {}) {
