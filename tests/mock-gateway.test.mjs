@@ -73,17 +73,22 @@ test('网页协议与子应用接口均返回 code=0', async () => {
   } finally { child.kill(); }
 });
 
-test('论文检索按 query 过滤', async () => {
+test('论文检索按 query 过滤（GET + params，源码语义）', async () => {
   const { child, base } = await startGateway();
   try {
-    const r = await fetch(base + '/api/nova/v1/search/works', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query: 'crystal' }),
-    });
+    const r = await fetch(base + '/api/nova/v1/search/works?query=crystal');
     assert.equal(r.status, 200);
     const j = await r.json();
     assert.equal(j.code, 0);
     assert.ok(Array.isArray(j.data.list) && j.data.list.length >= 1);
-    assert.ok(j.data.list.every(x => (x.title + ' ' + x.venue).toLowerCase().includes('crystal')), '结果应全部命中 query');
+    assert.ok(j.data.list.every(x => (x.title + ' ' + x.venue + ' ' + x.angle_name).toLowerCase().includes('crystal')), '结果应全部命中 query');
+    // 形状与前端校验器一致（angle_name/query/count + total_count + reasoning_process）
+    assert.equal(typeof j.data.reasoning_process, 'string');
+    assert.equal(typeof j.data.total_count, 'number');
+    for (const t of j.data.termList) {
+      assert.equal(typeof t.angle_name, 'string');
+      assert.equal(typeof t.query, 'string');
+      assert.equal(typeof t.count, 'number');
+    }
   } finally { child.kill(); }
 });
