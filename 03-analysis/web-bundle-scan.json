@@ -1,0 +1,225 @@
+{
+  "scanned_at": "2026-10-20T05:38:10.265Z",
+  "files": 24,
+  "endpoints": [
+    {
+      "value": "/api/datasets/v1/category/list",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@109955"
+      ]
+    },
+    {
+      "value": "/api/datasets/v1/dataset/browse/add",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@48128"
+      ]
+    },
+    {
+      "value": "/api/orbit/v1",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@570720"
+      ]
+    },
+    {
+      "value": "/api/orbit/v1/chat",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@111074"
+      ]
+    },
+    {
+      "value": "/api/scphub/v1/scp/tags",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@764068"
+      ]
+    },
+    {
+      "value": "/api/spacebe/v1",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@570739"
+      ]
+    },
+    {
+      "value": "/api/spacebe/v1/space/assets/files",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@806600"
+      ]
+    },
+    {
+      "value": "/api/spacebe/v1/space/assets/files/search",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@815129"
+      ]
+    },
+    {
+      "value": "/api/spacebe/v1/space/details",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@814819"
+      ]
+    },
+    {
+      "value": "/api/spacebe/v1/space/list",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@812092"
+      ]
+    },
+    {
+      "value": "/api/tokenplan/v1/users/free-grant-status",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@61512"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/messages/announcement-mark-all-read",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@104007"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/messages/announcementlist",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@103557"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/messages/noticelist",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@103239"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/messages/read",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@104236"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/messages/readall_notice",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@104065"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/messages/unreadlist",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@16974"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/team/my_team_list",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@111773"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/users/auth",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@92916"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/users/feedback",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@45414"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/users/feedback/upload_url",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@46627"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/users/getUserInfo",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@92985"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/users/logout",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@93027"
+      ]
+    },
+    {
+      "value": "/api/user-center/v1/users/profile",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@44653"
+      ]
+    },
+    {
+      "value": "/api/v1",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@570707"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "abort",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@1361831",
+        "discovery.intern_ai.org.cn_js_vendors.1cb37f21.js@96057",
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@596245"
+      ]
+    },
+    {
+      "name": "cancel",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@161766",
+        "discovery.intern_ai.org.cn_js_vendor-react.0b181b8c.chunk.js@24007",
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@225780"
+      ]
+    },
+    {
+      "name": "error",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@7464",
+        "discovery.intern_ai.org.cn_js_main.63f27b75.js@59209",
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@80248"
+      ]
+    },
+    {
+      "name": "file",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@53018",
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@708715",
+        "discovery.intern_ai.org.cn_js_vendor-markdown.1a2f21c3.chunk.js@92370"
+      ]
+    },
+    {
+      "name": "message",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_597.629ea519.chunk.js@18363",
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@77864",
+        "discovery.intern_ai.org.cn_js_vendor-markdown.1a2f21c3.chunk.js@94575"
+      ]
+    },
+    {
+      "name": "stop",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_vendors.1cb37f21.js@848205"
+      ]
+    },
+    {
+      "name": "thinking",
+      "hits": [
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@698782"
+      ]
+    },
+    {
+      "name": "upload",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@1381706",
+        "discovery.intern_ai.org.cn_js_vendors.1cb37f21.js@1031871",
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@592209"
+      ]
+    },
+    {
+      "name": "usage",
+      "hits": [
+        "discovery.intern_ai.org.cn_js_vendor-antd.06aaee88.chunk.js@250030",
+        "static.openxlab.org.cn_discovery-fe_prod_discovery-moce-fe_3b8d2b32_assets_space-common-provider-5p1CqXmB.js@323134"
+      ]
+    }
+  ]
+}

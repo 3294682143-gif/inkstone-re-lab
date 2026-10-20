@@ -119,3 +119,36 @@
 **修正**：早前把 `/chat/list` 记作"POST 候选"，实测为 **GET**。
 
 **发送请求体字段补全（实测）**：`scenario`、`thinking_mode`、`planning_mode`、`model`、`query`、`chat_id`。
+
+
+---
+
+## 补充 R2：源码静态提取的端点面（2026-10-20）
+
+- 证据：`03-analysis/web-endpoints-r2.md`、`03-analysis/web-bundle-scan.json`（每条含 `文件@字节偏移`）
+- 确认等级：**源码可证**（字面量存在），非运行时观察；不得据此宣称接口行为。
+
+| 分组 | 新增端点 | 用途 |
+| --- | --- | --- |
+| spacebe | `GET /api/spacebe/v1/space/details`、`/space/assets/files`、`/space/assets/files/search` | 课题空间详情与文件检索 |
+| user-center | `/users/auth`、`/users/profile`、`/users/feedback`、`/users/feedback/upload_url`、`/messages/{noticelist,announcementlist,read,readall_notice,announcement-mark-all-read}`、`/team/my_team_list` | 账号、消息、附件上传第一跳 |
+| tokenplan | `/users/free-grant-status` | 额度状态（是否影响模型可见性：UNKNOWN） |
+| scphub | `/scp/tags` | 科学工具标签 |
+| datasets | `/category/list`、`/dataset/browse/add` | 科学数据 |
+
+### 契约修正：传输层命名不一致（重要）
+
+| 层 | 字段形态 | 证据 |
+| --- | --- | --- |
+| 组件层（MOCE provider 入参） | camelCase：`modelKey` / `thinkingMode` / `followup` | 源码字面量（@699378 / @700426） |
+| 运行时可观察 wire | snake_case：`model` / `thinking_mode` / `planning_mode` | A5/A6 实测抓包 |
+
+结论：两者之间存在一层**未定位的转换**。写实现时必须以运行时抓到的 snake_case 为准；组件参数不可直接当 wire 字段用。
+
+### 新增 UNKNOWN（已登记到 windows-todo 的网页侧待采）
+
+1. `space/assets/files` 的分页参数与返回结构。
+2. `messages/*` 的已读语义。
+3. `feedback/upload_url` 的上传凭证流程（附件链路）。
+4. camelCase → snake_case 转换函数位置。
+5. `/chat/list` 分页与返回字段（仅确认 GET 形态）。
