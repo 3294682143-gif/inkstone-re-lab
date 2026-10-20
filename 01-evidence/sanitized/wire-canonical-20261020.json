@@ -240,9 +240,38 @@
     }
   },
   "still_unknown": [
-    "local-turn checkpoint / complete 的 HTTP body（只观测到 running_turn/cleared 本地状态）",
     "approval 记录结构（需 permission_mode=request 且有工具需审批的轮次）",
     "agentd → gateway 的真实 wire body（本地 canonical 与 wire 之间还有一层）",
-    "stop 响应体字段（网页端）"
-  ]
+    "stop 响应体字段（网页端）",
+    "local-turn checkpoint / complete body（两次实验均未观测到 checkpoint 记录，机制未知）"
+  ],
+  "checkpoint_experiment": {
+    "captured_at": "2026-10-20T06:23:00Z",
+    "hypothesis": "每个工具步骤会产生 checkpoint 记录，可用于确认 local-turn checkpoint body",
+    "attempts": [
+      {
+        "turn_kind": "纯文本长回答",
+        "wait_ms": 20000,
+        "stopped": true,
+        "checkpointSeq_observed": 0,
+        "checkpoint_records": 0
+      },
+      {
+        "turn_kind": "工具型（5 条命令）",
+        "wait_ms": 25000,
+        "stopped": true,
+        "checkpointSeq_observed": 0,
+        "checkpoint_records": 0,
+        "toolCalls": 1,
+        "thinkingDurationMs": 4449
+      }
+    ],
+    "result": "NOT_OBSERVED",
+    "reading": "两次中途中止的轮次里，running_turn.checkpointSeq 始终为 0，agent-state JSONL 中没有出现 type=checkpoint 的记录；无法据此确认 checkpoint 的结构。",
+    "new_fields_observed": [
+      "turn.messageId",
+      "turn.thinking",
+      "turn.thinkingDurationMs"
+    ]
+  }
 }

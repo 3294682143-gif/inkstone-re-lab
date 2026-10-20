@@ -52,3 +52,13 @@
 - 已检索**全部 180 个应用文件**（`01-evidence/private/desktop-027/asar/out/**`）：字符串 `local-turns`、`conversation.start/checkpoint/complete` 仅出现在接收端处理器（M:36847-36849、M:38034-38063）与其 RPC 允许清单（M:41070-41072）。
 - 调用方通过动态方法名调用 RPC，**未在应用 JS 中找到 `body` 的构造代码** → 请求体元素结构 **UNKNOWN**（归属：调用方/原生运行时侧）。
 - 现有离线实现因此对 `body` **仅做对象透传**，不虚构字段（符合“不用猜测补成可运行假协议”）。
+
+
+## 补充 R6：checkpoint 阴性结果（2026-10-20）
+
+- 证据：`01-evidence/sanitized/wire-canonical-20261020.json` → `checkpoint_experiment`
+- 两次中途中止实验（纯文本 20s / 工具型 25s）：
+  - `running_turn.turn.checkpointSeq` 恒为 **0**
+  - agent-state JSONL 中**没有** `type=checkpoint` 记录
+- 结论：checkpoint 的触发条件与结构仍 **UNKNOWN**；此前的契约描述不能据此升级为已验证。
+- 顺带观测到 turn 记录新增字段：`messageId`、`thinking`、`thinkingDurationMs`。
