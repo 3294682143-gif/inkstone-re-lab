@@ -426,16 +426,25 @@ async function showRoute(route, push){
   if (route === '/paper') {
     const box = document.createElement('div');
     box.className = 'row';
-    box.innerHTML = '<input id="paperQuery" placeholder="输入检索词，例如：protein / crystal / labs"> <button id="paperGo" class="primary">检索</button>';
+    box.innerHTML = '<select id="paperTab"><option value="works">论文</option><option value="authors">作者</option><option value="journals">期刊</option></select>' +
+      '<input id="paperQuery" placeholder="输入检索词，例如：protein / crystal / labs"> <button id="paperGo" class="primary">检索</button>';
     view.insertBefore(box, body);
     const runSearch = async function(){
       const q = (document.querySelector('#paperQuery') || {}).value || '';
       body.innerHTML = '<div class="card">检索中…</div>';
       try {
-        const r = await fetch('/api/nova/v1/search/works?query=' + encodeURIComponent(q.trim()), { headers: { accept: 'application/json' } });
+        const tab = (document.querySelector('#paperTab') || {}).value || 'works';
+        const ep = tab === 'authors' ? '/api/nova/v1/search/authors' : tab === 'journals' ? '/api/nova/v1/search/journals' : '/api/nova/v1/search/works';
+        const r = await fetch(ep + '?query=' + encodeURIComponent(q.trim()), { headers: { accept: 'application/json' } });
         const j = await r.json();
         const d = (j && j.data) || {};
-        body.innerHTML = (d.list || []).map(function(p){ return '<div class="card"><b>' + p.title + '</b><span>' + (p.venue || '') + ' · ' + (p.year || '') + ' · 引用 ' + (p.citations || 0) + '</span></div>'; }).join('') || '<div class="card"><b>无结果</b><span>换个检索词试试</span></div>';
+        const tabNow = (document.querySelector('#paperTab') || {}).value || 'works';
+        const card = function(x){
+          if (tabNow === 'authors') return '<div class="card"><b>' + x.name + '</b><span>' + (x.affiliation || '') + ' · 论文 ' + (x.papers || 0) + ' · 引用 ' + (x.citations || 0) + '</span></div>';
+          if (tabNow === 'journals') return '<div class="card"><b>' + x.name + '</b><span>' + (x.issn || '') + ' · 论文 ' + (x.papers || 0) + ' · ' + (x.impact || '') + '</span></div>';
+          return '<div class="card"><b>' + x.title + '</b><span>' + (x.venue || '') + ' · ' + (x.year || '') + ' · 引用 ' + (x.citations || 0) + '</span></div>';
+        };
+        body.innerHTML = (d.list || []).map(card).join('') || '<div class="card"><b>无结果</b><span>换个检索词试试</span></div>';
       } catch (e) {
         body.innerHTML = '<div class="card"><b>检索失败</b><span>' + e.message + '</span></div>';
       }
@@ -572,6 +581,24 @@ export function createMockGatewayServer(opts = {}) {
           total_count: list.length,
           list: list,
         } }));
+      }
+      if (method === 'GET' && path === '/api/nova/v1/search/authors') {
+        log('GET /nova/v1/search/authors -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'a1', name: 'Jumper J.', affiliation: 'DeepMind', papers: 42, citations: 52000 },
+          { id: 'a2', name: 'Zhang Y.', affiliation: 'Shanghai AI Lab', papers: 61, citations: 8800 },
+        ], total: 2 } }));
+      }
+      if (method === 'GET' && path === '/api/nova/v1/search/journals') {
+        log('GET /nova/v1/search/journals -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { id: 'j1', name: 'Nature', issn: '0028-0836', papers: 128000, impact: 'IF 50.5' },
+          { id: 'j2', name: 'Science', issn: '0036-8075', papers: 96000, impact: 'IF 44.7' },
+        ], total: 2 } }));
+      }
+      if (method === 'GET' && path === '/api/nova/v1/search/recent-searches') {
+        log('GET /nova/v1/search/recent-searches -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: ['protein structure', 'crystal screening'], total: 2 } }));
       }
       if (method === 'GET' && path === '/api/nova/v1/search/hot-papers') {
         log('GET /nova/v1/search/hot-papers -> 200 (synthetic)');

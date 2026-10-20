@@ -170,3 +170,26 @@
 | 分词响应形状 | `{reasoning_process:string, termList:[{angle_name,query,count}], total_count:number}`（也接受 `term_list` 别名） |
 
 > 此前把 `search/works` 记成 POST 是错的，已按源码更正；本地重建页与 mock 已同步改为 GET + query 参数，返回体按上述形状给出。
+
+
+### 论文子应用：请求封装全表（源码核对，2026-10-20）
+
+来源：`paper-static/assets__antd-provider-DxwSgmJN.js`（15 个封装去重）
+
+| 方法 | 路径 | 载荷 |
+| --- | --- | --- |
+| GET | `/api/nova/v1/search/works` | params |
+| GET | `/api/nova/v1/search/works/term-segmentation` | params |
+| GET | `/api/nova/v1/search/works/facets/{years,fields,types}` | params |
+| POST | `/api/nova/v1/search/works/check_saved` | `{works}` |
+| POST | `/api/nova/v1/search/save-space` | data |
+| GET | `/api/nova/v1/search/hot-papers` | params |
+| GET | `/api/nova/v1/search/recent-searches` | params |
+| GET | `/api/nova/v1/search/recent-searches/clear` | 无 |
+| GET | `/api/nova/v1/search/authors` | params |
+| GET | `/api/nova/v1/search/journals` | params |
+| POST | `/api/nova/v1/paper` | `{file_url, file_hash}` |
+
+新增端点：`search/journals`、`POST /api/nova/v1/paper`（论文文件上传，需 file_url + file_hash）。
+
+界面语义：检索页有三个 tab（论文/作者/期刊），排序维度为综合/引用/时间/相关度/年份（文案键 `search.sort*`）；**检索参数名未在已下载 chunk 中定位**（UNKNOWN）。

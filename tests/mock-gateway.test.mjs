@@ -62,6 +62,9 @@ test('网页协议与子应用接口均返回 code=0', async () => {
       '/api/ml/v1/cloud-disk/quota',
       '/api/tokenplan/v1/models',
       '/api/nova/v1/search/hot-papers',
+      '/api/nova/v1/search/authors',
+      '/api/nova/v1/search/journals',
+      '/api/nova/v1/search/recent-searches',
     ];
     for (const p of paths) {
       const r = await fetch(base + p);
