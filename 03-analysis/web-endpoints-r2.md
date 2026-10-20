@@ -156,3 +156,17 @@
 实测 `/repo-static/remoteEntry-var.js`、`/scp-static/remoteEntry-var.js` 返回的是 **SPA 兜底 HTML**（不是 JS），说明这两个路由没有独立远程件；它们由 MOCE 远程应用承载（MOCE bundle 内含 `/api/spacebe/v1` 与 `/api/scphub/v1`）。
 
 真正验证存在远程件的：`paper`、`app`、`compute`、`dataset`、`token-plan`、`chat(MOCE)`。
+
+
+### 更正：论文检索是 GET（2026-10-20，源码核对）
+
+来源：`02-sources/original/paper-static/assets__antd-provider-DxwSgmJN.js`
+
+| 结论 | 证据 |
+| --- | --- |
+| `GET /api/nova/v1/search/works`（**params，不是 POST body**） | `wt.get("/api/nova/v1/search/works",{params:e,timeout:3e4})` |
+| `GET /api/nova/v1/search/works/term-segmentation`（params） | `wt.get("/api/nova/v1/search/works/term-segmentation",{params:e,...})` |
+| 检索结果项形状校验 | `typeof angle_name==="string" && typeof query==="string" && typeof count==="number"` |
+| 分词响应形状 | `{reasoning_process:string, termList:[{angle_name,query,count}], total_count:number}`（也接受 `term_list` 别名） |
+
+> 此前把 `search/works` 记成 POST 是错的，已按源码更正；本地重建页与 mock 已同步改为 GET + query 参数，返回体按上述形状给出。

@@ -370,6 +370,26 @@ async function showRoute(route, push){
     body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>未实现</b><span>路由已从前端包确认（' + v.path + '），但该模块的接口尚未定位；本轮逆向范围是对话协议。</span></div>';
     return;
   }
+  if (route === '/repo') {
+    body.addEventListener('click', async function(ev){
+      const card = ev.target.closest ? ev.target.closest('.card') : null;
+      if (!card) return;
+      body.innerHTML = '<div class="card">加载课题详情…</div>';
+      try {
+        const r = await fetch('/api/spacebe/v1/space/details');
+        const j = await r.json();
+        const d = (j && j.data) || {};
+        body.innerHTML = '<div class="card" style="grid-column:1/-1"><b>' + (d.name || '') + '</b>' +
+          '<span>成员 ' + (d.members || 0) + ' · 文件 ' + (d.files || 0) + ' · 更新 ' + (d.updated_at || '') + '</span>' +
+          '<div style="margin-top:6px;font-size:13px">' + (d.description || '') + '</div>' +
+          '<div style="margin-top:10px"><button id="repoBack">← 返回课题列表</button></div></div>';
+        const back = document.querySelector('#repoBack');
+        if (back) back.addEventListener('click', function(){ showRoute('/repo'); });
+      } catch (e) {
+        body.innerHTML = '<div class="card"><b>详情加载失败</b><span>' + e.message + '</span></div>';
+      }
+    });
+  }
   if (route === '/dataset') {
     body.addEventListener('click', async function(ev){
       const card = ev.target.closest ? ev.target.closest('.card') : null;
@@ -402,7 +422,7 @@ async function showRoute(route, push){
       const q = (document.querySelector('#paperQuery') || {}).value || '';
       body.innerHTML = '<div class="card">检索中…</div>';
       try {
-        const r = await fetch('/api/nova/v1/search/works', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: q.trim() }) });
+        const r = await fetch('/api/nova/v1/search/works?query=' + encodeURIComponent(q.trim()), { headers: { accept: 'application/json' } });
         const j = await r.json();
         const d = (j && j.data) || {};
         body.innerHTML = (d.list || []).map(function(p){ return '<div class="card"><b>' + p.title + '</b><span>' + (p.venue || '') + ' · ' + (p.year || '') + ' · 引用 ' + (p.citations || 0) + '</span></div>'; }).join('') || '<div class="card"><b>无结果</b><span>换个检索词试试</span></div>';
@@ -498,6 +518,13 @@ export function createMockGatewayServer(opts = {}) {
           { name: 'DeepSeek-V4-Flash', context: '64K', pricing: '￥0.0005/1K', status: 'available' },
         ], total: 3 } }));
       }
+      if (method === 'GET' && path === '/api/spacebe/v1/space/details') {
+        log('GET /spacebe/v1/space/details -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: {
+          id: 3914, name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比',
+          members: 3, files: 27, updated_at: '2026-10-18T09:12:00Z',
+        } }));
+      }
       if (method === 'GET' && path === '/api/moce/v1/apps/list') {
         log('GET /moce/v1/apps/list -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: { list: [
@@ -518,18 +545,23 @@ export function createMockGatewayServer(opts = {}) {
         log('GET /ml/v1/cloud-disk/quota -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: { used_gb: 12.5, total_gb: 100, file_count: 42 } }));
       }
-      if (method === 'POST' && path === '/api/nova/v1/search/works') {
-        const body = await readBody(req);
-        const q = String(body?.query || '').trim() || '(空)';
-        log('POST /nova/v1/search/works query=' + q + ' -> 200 (synthetic)');
+      if (method === 'GET' && path === '/api/nova/v1/search/works') {
+        const q = String((url.searchParams && url.searchParams.get('query')) || '').trim() || '(空)';
+        log('GET /nova/v1/search/works query=' + q + ' -> 200 (synthetic)');
         const all = [
-          { id: 'w1', title: 'Deep learning for protein structure prediction', venue: 'Nature', year: 2024, citations: 1280 },
-          { id: 'w2', title: 'Foundation models for scientific discovery', venue: 'Science', year: 2025, citations: 640 },
-          { id: 'w3', title: 'AI4S: from tools to autonomous labs', venue: 'Cell', year: 2025, citations: 315 },
-          { id: 'w4', title: 'Crystal graph networks for materials screening', venue: 'Nature Materials', year: 2024, citations: 428 },
+          { id: 'w1', title: 'Deep learning for protein structure prediction', venue: 'Nature', year: 2024, citations: 1280, angle_name: '结构预测' },
+          { id: 'w2', title: 'Foundation models for scientific discovery', venue: 'Science', year: 2025, citations: 640, angle_name: '基础模型' },
+          { id: 'w3', title: 'AI4S: from tools to autonomous labs', venue: 'Cell', year: 2025, citations: 315, angle_name: '自主实验' },
+          { id: 'w4', title: 'Crystal graph networks for materials screening', venue: 'Nature Materials', year: 2024, citations: 428, angle_name: '材料筛选' },
         ];
-        const hit = all.filter(function(x){ return (x.title + ' ' + x.venue).toLowerCase().indexOf(q.toLowerCase()) >= 0; });
-        return send(200, JSON.stringify({ code: 0, data: { query: q, list: hit.length ? hit : all.slice(0, 2), total: hit.length || 2 } }));
+        const hit = all.filter(function(x){ return (x.title + ' ' + x.venue + ' ' + x.angle_name).toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+        const list = hit.length ? hit : all.slice(0, 2);
+        return send(200, JSON.stringify({ code: 0, data: {
+          reasoning_process: '按检索词拆分角度：' + q,
+          termList: list.map(function(x){ return { angle_name: x.angle_name, query: q, count: x.citations }; }),
+          total_count: list.length,
+          list: list,
+        } }));
       }
       if (method === 'GET' && path === '/api/nova/v1/search/hot-papers') {
         log('GET /nova/v1/search/hot-papers -> 200 (synthetic)');
