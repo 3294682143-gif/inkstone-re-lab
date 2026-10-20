@@ -52,3 +52,18 @@
 - 登录态探测：`GET /api/orbit/v1/models` → 200（有效）。
 
 - 所测代码版本：`2657ec4d845a2f619fc5ed9f23d09eb80e560545`
+
+---
+
+## 网页端 A5/A6 实测（2026-10-20，Windows + Edge CDP）
+
+| 场景 | 方法 | 结果 | 证据 |
+| --- | --- | --- | --- |
+| A6 模型列表 | 页面上下文 fetch + Bearer | `200 / code=0 / data.models[8]`，条目仅 `name/tags/icon` | `01-evidence/sanitized/web-a5a6-capture.json` |
+| A6 鉴权差异 | 裸 fetch vs 带 Bearer | 裸 `401/code=-10002`；带 Bearer `200` | 同上 |
+| A6 思考模式切换 | 点 `快速` → `深度` | `discovery:science-thinking-mode-preference`: `true → false → true` | 同上 |
+| A6 模型切换 | 点 `button[title="选择模型"]` | 选择器打开；偏好 `discovery:science-model-preference = 书生-S2`；**下拉项 DOM 未取到** | 同上 |
+| A5 停止生成 | 发送后点 `aria-label=中止对话` | `POST /api/orbit/v1/chat/{chat_id}/stop` body `{"message_id":<n>}`，`200` | 同上 |
+| A5 未取到 | stop 响应体 / SSE 终止事件 | **UNKNOWN**（CDP getResponseBody 对流式未返回正文） | — |
+
+结论边界：本轮确认的是**请求侧协议与本地偏好语义**；响应结构、流终止与计费语义仍为 UNKNOWN，不宣称取消闭环完成。

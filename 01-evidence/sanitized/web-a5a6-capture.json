@@ -1,0 +1,103 @@
+{
+  "unknown": [
+    "停止后 SSE 是否以 message_end / workflow_finished 收尾（未取到流正文）",
+    "stop 响应 JSON 的字段结构（body 未取到）",
+    "模型选择器的下拉项 DOM 结构（portal 渲染未命中）",
+    "重复 stop 请求是否为前端重试"
+  ],
+  "schema_version": "inkstone-web-a5a6/1",
+  "chat_send_body_observed": {
+    "chat_id": "<number>",
+    "planning_mode": false,
+    "model": "书生-S2",
+    "scenario": 1,
+    "thinking_mode": true,
+    "query": "<已省略>"
+  },
+  "a6_switch": {
+    "model_ui": {
+      "control": "button[title=\"选择模型\"] class _modelPill_*",
+      "picker_options_captured": false,
+      "shows": "当前模型名",
+      "writes": "localStorage[\"discovery:science-model-preference\"] (值为模型 name)"
+    },
+    "thinking_mode_ui": {
+      "observed": [
+        "true",
+        "false"
+      ],
+      "active_class_contains": "_active_",
+      "buttons": [
+        "快速",
+        "深度"
+      ],
+      "writes": "localStorage[\"discovery:science-thinking-mode-preference\"]"
+    },
+    "chat_input_settings": "localStorage[\"repository-detail-chat-input-settings\"] = {\"thinkingMode\":bool,\"selectedModelName\":string}"
+  },
+  "captured_at": "2026-10-20T01:55:00Z",
+  "host": {
+    "browser": "Edge 155 (CDP 9222)",
+    "note": "本文件不记录任何 token/header 值",
+    "os": "windows",
+    "auth": "Cookie uaa-token 可读；请求头 Authorization: Bearer <jwt>"
+  },
+  "target": "https://discovery.intern-ai.org.cn/chat",
+  "a5_stop": {
+    "body": {
+      "message_id": 1402879
+    },
+    "request": "POST /api/orbit/v1/chat/{chat_id}/stop",
+    "message_id_source": "对话流 workflow_started/message 事件中的 mid",
+    "duplicate_stop_observed": true,
+    "response": {
+      "status": 200,
+      "content_type": "application/json",
+      "note": "CDP getResponseBody 对流式/完成后的请求未取到正文",
+      "body_captured": false
+    },
+    "ui": {
+      "send_button": "button._sendBtn_*",
+      "idle_aria": "开始探索",
+      "click_observed": true,
+      "streaming_aria": "中止对话"
+    }
+  },
+  "a6_models": {
+    "request": "GET /api/orbit/v1/models",
+    "models": [
+      "Default",
+      "书生-Agents-A1",
+      "书生-S2",
+      "书生-Atria-Dawn-Preview",
+      "Qwen3.7-Plus",
+      "Qwen3.8-Flash",
+      "DeepSeek-V4-Flash",
+      "Kimi-K2.7-Code"
+    ],
+    "auth_required": {
+      "bare_fetch": {
+        "code": -10002,
+        "status": 401
+      },
+      "with_bearer": {
+        "code": 0,
+        "status": 200
+      }
+    },
+    "response": {
+      "code": 0,
+      "conclusion": "模型以 name 标识，无 id/key 字段",
+      "data_keys": [
+        "models"
+      ],
+      "count": 8,
+      "status": 200,
+      "item_keys": [
+        "name",
+        "tags",
+        "icon"
+      ]
+    }
+  }
+}

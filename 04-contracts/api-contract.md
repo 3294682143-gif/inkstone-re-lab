@@ -96,3 +96,26 @@
 
 - 未登录：401 + `text/plain`（A0 实测）。
 - 取消（A5）：源码有 `onStop`/`abort`；真实语义未验证（U7）。
+
+
+---
+
+## 补充：2026-10-20 网页端实测新增端点（A5/A6 采集）
+
+采集方式：Edge(CDP `Network`) 抓 `/chat` 页真实请求；凭证不入库（仅记录"存在 Authorization: Bearer"这一事实）。
+
+| 方法 | 路径 | 状态 | 作用 | 证据 |
+| --- | --- | --- | --- | --- |
+| POST | `/api/user-center/v1/users/getUserInfo` | 200 | 用户信息（请求体含 `jwt` 字段，**不得入库**） | 抓包 |
+| GET | `/api/user-center/v1/team/my_team_list` | 200 | 团队列表 | 抓包 |
+| GET | `/api/user-center/v1/messages/unreadlist` | 200 | 未读消息 | 抓包 |
+| GET | `/api/tokenplan/v1/users/free-grant-status` | 200 | 免费额度状态 | 抓包 |
+| GET | `/api/orbit/v1/chat/list?page=1&size=20&scenario=1` | 200 | **历史列表（GET，非 POST）** | 抓包 |
+| GET | `/api/orbit/v1/models` | 200（带 Bearer）；裸请求 401/code=-10002 | 模型列表，见 A6 契约 | 抓包 + 页面 fetch |
+| GET | `/api/spacebe/v1/space/list?page=1&page_size=100` | 200 | 空间列表 | 抓包 |
+| POST | `/api/orbit/v1/chat/{chat_id}/stop` | 200 | 停止生成，见 A5 契约 | web-a5a6-capture |
+| POST | `/api/orbit/v1/chat/{chat_id}/title` | 200 | 发送后自动设置标题 | 抓包 |
+
+**修正**：早前把 `/chat/list` 记作"POST 候选"，实测为 **GET**。
+
+**发送请求体字段补全（实测）**：`scenario`、`thinking_mode`、`planning_mode`、`model`、`query`、`chat_id`。
