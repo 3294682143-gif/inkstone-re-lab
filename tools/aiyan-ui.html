@@ -5,33 +5,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>智衍 衡鉴 · 科研智能工作台</title>
 <style>
-:root{
-  --bg:#f6f7f9; --panel:#ffffff; --line:#e8eaee; --line-2:#eef0f4;
-  --ink:#1b1f24; --ink-2:#4a5058; --ink-3:#8a9099;
-  --brand:#2f6fed; --brand-weak:#eef3ff; --brand-line:#bcd2ff;
-  --serif:"Songti SC","STSong","Noto Serif SC",Georgia,serif;
-  --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
+:root{--bg:#f6f7f9;--panel:#fff;--line:#e8eaee;--line-2:#eef0f4;--ink:#1b1f24;--ink-2:#4a5058;--ink-3:#8a9099;--brand:#2f6fed;--brand-weak:#eef3ff;--brand-line:#bcd2ff;--serif:"Songti SC","STSong","Noto Serif SC",Georgia,serif;--sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px}
-a{color:inherit;text-decoration:none}
-button{font-family:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}button{font-family:inherit;cursor:pointer}
 .app{display:flex;height:100vh;overflow:hidden}
-.side{width:232px;flex:0 0 232px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px}
+.side{width:236px;flex:0 0 236px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px}
 .brand{display:flex;align-items:center;gap:8px;padding:4px 6px 14px}
 .mark{width:30px;height:30px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
 .brand b{font-size:16px;letter-spacing:.5px}
 .new{display:flex;align-items:center;gap:8px;width:100%;height:40px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:0 12px;color:var(--ink-2);font-size:14px}
 .new:hover{border-color:var(--brand-line);color:var(--brand)}
-.nav{margin-top:14px;display:flex;flex-direction:column;gap:2px;overflow:auto;flex:1}
-.nav a{display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:9px;color:var(--ink-2);font-size:14px}
+.nav{margin-top:12px;display:flex;flex-direction:column;gap:2px;overflow:auto;flex:1}
+.nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px;border-radius:9px;color:var(--ink-2);font-size:14px}
 .nav a .ic{width:18px;text-align:center;opacity:.75}
 .nav a:hover{background:#f7f8fa}
 .nav a.on{background:var(--brand-weak);color:var(--brand);font-weight:600}
+.histTitle{margin:14px 8px 6px;color:var(--ink-3);font-size:12px}
+.hist a{display:block;height:32px;line-height:32px;padding:0 12px;border-radius:8px;color:var(--ink-2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist a:hover{background:#f7f8fa}
 .promo{margin:10px 0;border:1px solid var(--line);border-radius:12px;padding:10px;position:relative;background:linear-gradient(180deg,#fbfcfe,#f4f6fa)}
-.promo b{font-size:13px;display:block;margin-bottom:2px}
-.promo span{font-size:11px;color:var(--ink-3)}
+.promo b{font-size:13px;display:block;margin-bottom:2px}.promo span{font-size:11px;color:var(--ink-3)}
 .promo button{margin-top:8px;background:var(--ink);color:#fff;border:0;border-radius:7px;height:26px;padding:0 10px;font-size:11px}
 .promo .x{position:absolute;right:6px;top:4px;background:transparent;border:0;color:var(--ink-3);font-size:14px;line-height:1}
 .who{display:flex;align-items:center;gap:8px;padding:10px 6px 2px;border-top:1px solid var(--line-2);margin-top:6px}
@@ -58,29 +52,35 @@ button{font-family:inherit;cursor:pointer}
 .send:disabled{opacity:.4;cursor:not-allowed}
 .chips{display:flex;gap:10px;justify-content:center;margin:18px 0 0;flex-wrap:wrap}
 .chip{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-size:12px}
+.chip.on{background:var(--brand-weak);border-color:var(--brand-line);color:var(--brand)}
 .foot{position:relative;padding:18px 0 10px;text-align:center;color:var(--ink-3);font-size:12px}
 .thread{max-width:780px;margin:0 auto;padding:20px 24px}
-.msg{margin-bottom:22px}
-.msg .who2{font-size:12px;color:var(--ink-3);margin-bottom:6px}
+.msg{margin-bottom:22px}.msg .who2{font-size:12px;color:var(--ink-3);margin-bottom:6px}
 .bubble{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;white-space:pre-wrap;line-height:1.65}
 .me .bubble{background:var(--brand-weak);border-color:var(--brand-line)}
 .think{border-left:3px solid var(--line);padding:4px 10px;color:var(--ink-3);font-size:13px;margin-bottom:8px;white-space:pre-wrap}
 .meta{color:var(--ink-3);font-size:12px;margin-top:6px}
 .page{max-width:980px;margin:0 auto;padding:28px 24px 40px}
-.page h2{font-size:20px;margin:0 0 4px}
-.page .sub{color:var(--ink-3);font-size:13px;margin-bottom:18px}
+.page h2{font-size:20px;margin:0 0 4px}.page .sub{color:var(--ink-3);font-size:13px;margin-bottom:18px}
 .row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
 input.search,select{border:1px solid var(--line);border-radius:10px;height:36px;padding:0 12px;background:#fff;color:var(--ink);font:inherit;outline:0}
 input.search{flex:1;min-width:220px}
 .btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink-2)}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.btn.mini{height:28px;padding:0 10px;font-size:12px;border-radius:8px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer}
 .card:hover{border-color:var(--brand-line);box-shadow:0 4px 16px rgba(20,30,50,.05)}
-.card b{display:block;font-size:14px;margin-bottom:6px}
-.card span{color:var(--ink-3);font-size:12px}
+.card b{display:block;font-size:14px;margin-bottom:6px}.card span{color:var(--ink-3);font-size:12px}
 .section{grid-column:1/-1;background:#fbfcfe;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;color:var(--ink-2);font-size:13px}
-.tag{display:inline-block;height:24px;line-height:24px;padding:0 10px;border-radius:999px;background:#f2f4f8;color:var(--ink-2);font-size:12px;margin:0 6px 6px 0;cursor:pointer}
+.detail{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}
+.detail h3{margin:0 0 8px;font-size:17px}
+.detail .kv{color:var(--ink-3);font-size:12px;margin:4px 0}
+.detail p{line-height:1.7;color:var(--ink-2)}
+.tag{display:inline-block;height:26px;line-height:26px;padding:0 10px;border-radius:999px;background:#f2f4f8;color:var(--ink-2);font-size:12px;margin:0 6px 6px 0;cursor:pointer}
+.tag.on{background:var(--brand-weak);color:var(--brand);border:1px solid var(--brand-line)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:.92}
 </style>
 </head>
 <body>
@@ -98,10 +98,11 @@ input.search{flex:1;min-width:220px}
       <a href="/compute" data-route="/compute"><span class="ic">▥</span>科学计算</a>
       <a href="/token-plan/home" data-route="/token-plan/home"><span class="ic">▦</span>科研模型</a>
     </nav>
+    <div class="histTitle">最近对话</div>
+    <div class="hist" id="hist"></div>
     <div class="promo" id="promo">
       <button class="x" id="promoX">×</button>
-      <b>下载智衍 衡鉴客户端</b>
-      <span>本地工作 · 快人一步</span>
+      <b>下载智衍 衡鉴客户端</b><span>本地工作 · 快人一步</span>
       <button>下载客户端</button>
     </div>
     <div class="who"><div class="avatar">智</div><div><div>本地用户</div><small>离线演练</small></div></div>
@@ -112,158 +113,170 @@ input.search{flex:1;min-width:220px}
     <div class="scroll" id="view"></div>
   </main>
 </div>
+<div class="toast" id="toast"></div>
 <script>
 (function () {
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var view = $('#view');
-  var esc = function (s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
-    });
-  };
-  function api(p, opts) {
-    return fetch(p, Object.assign({ headers: { accept: 'application/json' } }, opts || {})).then(function (r) { return r.json(); });
-  }
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
+  function api(p, opts) { return fetch(p, Object.assign({ headers: { accept: 'application/json' } }, opts || {})).then(function (r) { return r.json(); }); }
+  function post(p, body) { return fetch(p, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(body || {}) }).then(function (r) { return r.json(); }); }
+  function toast(msg) { var t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._tm); t._tm = setTimeout(function () { t.classList.remove('on'); }, 1800); }
   var chatState = { chatId: null, mid: null, ac: null, thinkMode: true, model: 'Auto' };
 
+  async function loadHist() {
+    try {
+      var j = await api('/api/orbit/v1/chat/list?page=1&size=20&scenario=1');
+      var list = (j && j.data && j.data.list) || [];
+      $('#hist').innerHTML = list.map(function (x) {
+        return '<a href="#" data-id="' + esc(x.id) + '">' + esc(x.title || x.name || '未命名会话') + '</a>';
+      }).join('') || '<a href="#" style="color:#b6bcc6">暂无</a>';
+      $$('#hist a[data-id]').forEach(function (a) {
+        a.addEventListener('click', function (e) { e.preventDefault(); chatState.chatId = Number(a.getAttribute('data-id')); history.pushState({}, '', '/chat'); renderThreadFromHistory(); });
+      });
+    } catch (e) { $('#hist').innerHTML = ''; }
+  }
+  async function renderThreadFromHistory() {
+    view.innerHTML = '<div class="thread"><div class="section">载入会话 ' + esc(chatState.chatId) + ' …</div></div>';
+    var j = await api('/api/orbit/v1/chat/' + chatState.chatId);
+    var list = (j && j.data && j.data.messages) || [];
+    var th = '<div class="thread">';
+    list.forEach(function (m) {
+      th += '<div class="msg me"><div class="who2">我</div><div class="bubble">' + esc(m.request) + '</div></div>';
+      th += '<div class="msg bot"><div class="who2">智衍 衡鉴 Agent</div><div class="bubble">' + esc(m.response) + '</div></div>';
+    });
+    th += '<div class="row" style="padding:0 24px"><button class="btn" id="backChat">← 新对话</button></div></div>';
+    view.innerHTML = th;
+    $('#backChat').addEventListener('click', function () { chatHome(); });
+  }
+
   function chatHome() {
+    chatState.chatId = null;
     view.innerHTML = ''
-      + '<div class="hero">'
-      + '<div class="logo">智</div>'
-      + '<h1>衡鉴万象 衍智求真</h1>'
+      + '<div class="hero"><div class="logo">智</div><h1>衡鉴万象 衍智求真</h1>'
       + '<p>连接科研全流程的智能工作台 · 让每一个洞察都有迹可循</p>'
-      + '<div class="composer">'
-      + '<textarea id="q" placeholder="描述一个科研问题、假设，或者直接粘贴一段论文片段……"></textarea>'
-      + '<div class="crow">'
-      + '<button class="pill" id="plus">＋</button>'
-      + '<button class="pill" id="quick">快速</button>'
-      + '<button class="pill on" id="deep">深度</button>'
-      + '<span class="grow"></span>'
-      + '<span class="model">◍ Auto ▾</span>'
-      + '<button class="send" id="send" disabled>↑</button>'
-      + '</div></div>'
-      + '<div class="chips">'
-      + '<button class="chip">⚗ 高空大气环境</button>'
-      + '<button class="chip">🧬 表型本体查询</button>'
-      + '<button class="chip">💡 光子能量计算</button>'
-      + '</div></div>'
+      + '<div class="composer"><textarea id="q" placeholder="描述一个科研问题、假设，或者直接粘贴一段论文片段……"></textarea>'
+      + '<div class="crow"><button class="pill" id="plus">＋</button><button class="pill" id="quick">快速</button><button class="pill on" id="deep">深度</button>'
+      + '<span class="grow"></span><span class="model">◍ Auto ▾</span><button class="send" id="send" disabled>↑</button></div></div>'
+      + '<div class="chips"><button class="chip">⚗ 高空大气环境</button><button class="chip">🧬 表型本体查询</button><button class="chip">💡 光子能量计算</button></div></div>'
       + '<div class="foot">智衍 衡鉴 · 本地离线演练</div>';
     var q = $('#q');
     q.addEventListener('input', function () { $('#send').disabled = q.value.trim() === ''; });
-    q.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-    });
+    q.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
     $('#send').addEventListener('click', send);
     $('#quick').addEventListener('click', function () { chatState.thinkMode = false; syncMode(); });
     $('#deep').addEventListener('click', function () { chatState.thinkMode = true; syncMode(); });
-    function syncMode() {
-      $('#quick').classList.toggle('on', !chatState.thinkMode);
-      $('#deep').classList.toggle('on', chatState.thinkMode);
-    }
+    $$('.chip').forEach(function (c) { c.addEventListener('click', function () { q.value = c.textContent.replace(/^[^ ]+ /, ''); q.dispatchEvent(new Event('input')); }); });
+    function syncMode() { $('#quick').classList.toggle('on', !chatState.thinkMode); $('#deep').classList.toggle('on', chatState.thinkMode); }
     syncMode();
     setTimeout(function () { q.focus(); }, 50);
-  }
-
-  function threadShell() {
-    view.innerHTML = '<div class="thread" id="thread"></div>';
-    return $('#thread');
   }
   function addMsg(thread, who, text) {
     var el = document.createElement('div');
     el.className = 'msg ' + who;
     el.innerHTML = '<div class="who2">' + (who === 'me' ? '我' : '智衍 衡鉴 Agent') + '</div><div class="bubble">' + esc(text) + '</div>';
-    thread.appendChild(el);
-    view.scrollTop = view.scrollHeight;
-    return el;
+    thread.appendChild(el); view.scrollTop = view.scrollHeight; return el;
   }
-
+  function stopBtn(thread) {
+    var bar = document.createElement('div');
+    bar.className = 'row'; bar.style.padding = '0 24px';
+    bar.innerHTML = '<button class="btn" id="stopGen">■ 停止生成</button>';
+    thread.appendChild(bar);
+    $('#stopGen').addEventListener('click', async function () {
+      if (chatState.ac) chatState.ac.abort();
+      if (chatState.chatId) { try { await post('/api/orbit/v1/chat/' + chatState.chatId + '/stop', { message_id: chatState.mid }); } catch (e) {} }
+      bar.remove(); toast('已停止生成');
+    });
+    return bar;
+  }
   async function send() {
-    var el = $('#q');
-    var text = (el && el.value || '').trim();
-    if (!text) return;
-    var thread = threadShell();
+    var el = $('#q'); var text = (el && el.value || '').trim(); if (!text) return;
+    view.innerHTML = '<div class="thread" id="thread"></div>';
+    var thread = $('#thread');
     addMsg(thread, 'me', text);
     var bot = addMsg(thread, 'bot', '');
-    var thinkEl = document.createElement('div');
-    thinkEl.className = 'think';
-    thinkEl.style.display = 'none';
+    var thinkEl = document.createElement('div'); thinkEl.className = 'think'; thinkEl.style.display = 'none';
     bot.querySelector('.bubble').before(thinkEl);
-    var meta = document.createElement('div');
-    meta.className = 'meta';
-    bot.appendChild(meta);
+    var meta = document.createElement('div'); meta.className = 'meta'; bot.appendChild(meta);
+    var bar = stopBtn(thread);
     chatState.ac = new AbortController();
     try {
       var r = await fetch('/api/orbit/v1/chat', {
-        method: 'POST',
-        signal: chatState.ac.signal,
+        method: 'POST', signal: chatState.ac.signal,
         headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
-        body: JSON.stringify({
-          scenario: 1, thinking_mode: chatState.thinkMode, planning_mode: false,
-          model: chatState.model, query: text, chat_id: chatState.chatId
-        })
+        body: JSON.stringify({ scenario: 1, thinking_mode: chatState.thinkMode, planning_mode: false, model: chatState.model, query: text, chat_id: chatState.chatId })
       });
-      if (!r.ok || (r.headers.get('content-type') || '').indexOf('text/event-stream') < 0) {
-        bot.querySelector('.bubble').textContent = '服务返回异常（HTTP ' + r.status + '）';
-        return;
-      }
-      var reader = r.body.getReader();
-      var dec = new TextDecoder();
-      var buf = '';
+      if (!r.ok || (r.headers.get('content-type') || '').indexOf('text/event-stream') < 0) { bot.querySelector('.bubble').textContent = '服务返回异常（HTTP ' + r.status + '）'; return; }
+      var reader = r.body.getReader(); var dec = new TextDecoder(); var buf = '';
       for (;;) {
-        var step = await reader.read();
-        if (step.done) break;
+        var step = await reader.read(); if (step.done) break;
         buf += dec.decode(step.value, { stream: true });
-        var parts = buf.split('\n\n');
-        buf = parts.pop();
+        var parts = buf.split('\n\n'); buf = parts.pop();
         for (var i = 0; i < parts.length; i++) {
-          var line = parts[i].split('\n').find(function (l) { return l.indexOf('data:') === 0; });
-          if (!line) continue;
-          var e;
-          try { e = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
+          var line = parts[i].split('\n').find(function (l) { return l.indexOf('data:') === 0; }); if (!line) continue;
+          var e; try { e = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
           if (e.event === 'workflow_started') { chatState.chatId = e.cid; chatState.mid = e.mid; }
           if (e.event === 'message') {
             if (e.thinking) { thinkEl.style.display = 'block'; thinkEl.textContent += e.thinking; }
             if (e.answer) bot.querySelector('.bubble').textContent += e.answer;
           }
           if (e.event === 'followup') {
-            var list = (e.followup || []).map(function (f) {
-              return '<button class="chip">' + esc(f.text || f) + '</button>';
-            }).join(' ');
+            var list = (e.followup || []).map(function (f) { return '<button class="chip">' + esc(f.text || f) + '</button>'; }).join(' ');
             meta.innerHTML = 'cid=' + esc(chatState.chatId) + ' · 追问：' + list;
           }
-          if (e.event === 'error') {
-            bot.querySelector('.bubble').textContent += '\n[错误] ' + esc(e.error || '未知');
-          }
+          if (e.event === 'error') { bot.querySelector('.bubble').textContent += '\n[错误] ' + esc(e.error || '未知'); }
         }
       }
     } catch (err) {
       if (err.name !== 'AbortError') bot.querySelector('.bubble').textContent += '\n[网络错误] ' + err.message;
-    }
+    } finally { if (bar && bar.parentNode) bar.remove(); loadHist(); }
   }
 
   function pageShell(title, sub) {
     view.innerHTML = '<div class="page"><h2>' + esc(title) + '</h2><div class="sub">' + esc(sub) + '</div><div id="pc"></div></div>';
     return $('#pc');
   }
-  function cards(list, render) {
-    return '<div class="grid">' + list.map(render).join('') + '</div>';
+  function cards(list, render) { return '<div class="grid">' + list.map(render).join('') + '</div>'; }
+  function backBtn(box, fn, label) {
+    var row = document.createElement('div'); row.className = 'row'; row.style.marginTop = '14px';
+    row.innerHTML = '<button class="btn" id="bk">' + esc(label || '← 返回') + '</button>';
+    box.appendChild(row);
+    $('#bk', box).addEventListener('click', fn);
   }
 
   async function paperPage() {
     var box = pageShell('论文工具', '深入挖掘学术前沿，追踪最新研究进展');
     box.innerHTML = '<div class="row"><select id="tab"><option value="works">论文</option><option value="authors">作者</option><option value="journals">期刊</option></select>'
-      + '<input class="search" id="q" placeholder="输入检索词，例如 protein / crystal"/><button class="btn primary" id="go">检索</button></div><div id="out"></div>';
+      + '<input class="search" id="q" placeholder="输入检索词，例如 protein / crystal"/><button class="btn primary" id="go">检索</button><span id="cnt" style="color:#8a9099;font-size:12px"></span></div><div id="out"></div>';
     var run = async function () {
-      var tab = $('#tab').value;
-      var q = ($('#q').value || 'x').trim();
+      var tab = $('#tab').value; var q = ($('#q').value || 'x').trim();
       var ep = tab === 'authors' ? '/api/nova/v1/search/authors' : tab === 'journals' ? '/api/nova/v1/search/journals' : '/api/nova/v1/search/works';
       var j = await api(ep + '?query=' + encodeURIComponent(q));
       var list = (j && j.data && j.data.list) || [];
+      $('#cnt').textContent = '共 ' + list.length + ' 条';
       $('#out').innerHTML = cards(list, function (x) {
         if (tab === 'authors') return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.affiliation) + ' · 论文 ' + esc(x.papers) + ' · 引用 ' + esc(x.citations) + '</span></div>';
         if (tab === 'journals') return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.issn) + ' · ' + esc(x.impact) + '</span></div>';
-        return '<div class="card"><b>' + esc(x.title) + '</b><span>' + esc(x.venue) + ' · ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + '</span></div>';
+        return '<div class="card" data-id="' + esc(x.id) + '"><b>' + esc(x.title) + '</b><span>' + esc(x.venue) + ' · ' + esc(x.year) + ' · 引用 ' + esc(x.citations) + '</span></div>';
+      });
+      $$('#out .card[data-id]').forEach(function (c) {
+        c.addEventListener('click', async function () {
+          var id = c.getAttribute('data-id');
+          var dj = await api('/api/nova/v1/paper/detail?id=' + encodeURIComponent(id));
+          var d = (dj && dj.data) || {};
+          var out = $('#out');
+          out.innerHTML = '<div class="detail"><h3>' + esc(d.title) + '</h3>'
+            + '<div class="kv">' + esc(d.venue) + ' · ' + esc(d.year) + ' · 引用 ' + esc(d.citations) + ' · DOI ' + esc(d.doi) + '</div>'
+            + '<div class="kv">作者：' + esc((d.authors || []).join(', ')) + '</div>'
+            + '<p>' + esc(d.abstract) + '</p>'
+            + '<button class="btn primary" id="addSpace">＋ 加入课题</button></div>';
+          $('#addSpace', out).addEventListener('click', async function () {
+            await post('/api/spacebe/v1/space/create', { name: d.title });
+            toast('已加入课题（本地合成）');
+          });
+          backBtn(out, paperPage, '← 返回检索');
+        });
       });
     };
     $('#go').addEventListener('click', run);
@@ -274,20 +287,25 @@ input.search{flex:1;min-width:220px}
     var box = pageShell('课题空间', '按课题组织对话、资料、计算与产出');
     var j = await api('/api/spacebe/v1/space/list?page=1&page_size=10');
     var list = (j && j.data && j.data.list) || [];
-    box.innerHTML = cards(list, function (s) {
-      return '<div class="card" data-id="' + esc(s.id) + '"><b>' + esc(s.name) + '</b><span>成员 ' + esc(s.members) + ' · 文件 ' + esc(s.files) + '</span></div>';
+    box.innerHTML = '<div class="row"><button class="btn primary" id="createSpace">＋ 新建课题</button></div>'
+      + cards(list, function (s) { return '<div class="card" data-id="' + esc(s.id) + '"><b>' + esc(s.name) + '</b><span>成员 ' + esc(s.members) + ' · 文件 ' + esc(s.files) + '</span></div>'; });
+    $('#createSpace').addEventListener('click', async function () {
+      var r = await post('/api/spacebe/v1/space/create', { name: '新建课题' });
+      toast('已创建课题 ' + ((r && r.data && r.data.id) || ''));
+      repoPage();
     });
-    $$('.card', box).forEach(function (c) {
+    $$('.card[data-id]', box).forEach(function (c) {
       c.addEventListener('click', async function () {
         var both = await Promise.all([api('/api/spacebe/v1/space/details'), api('/api/spacebe/v1/space/assets/files')]);
         var dd = (both[0] && both[0].data) || {};
         var files = (both[1] && both[1].data && both[1].data.list) || [];
-        box.innerHTML = '<div class="section"><b>' + esc(dd.name) + '</b><br/>' + esc(dd.description) + '<br/>成员 ' + esc(dd.members) + ' · 文件 ' + files.length + '</div>'
-          + '<div class="grid">' + files.map(function (x) {
+        box.innerHTML = '<div class="detail"><h3>' + esc(dd.name) + '</h3>'
+          + '<div class="kv">成员 ' + esc(dd.members) + ' · 文件 ' + esc(dd.files) + ' · 更新 ' + esc(dd.updated_at) + '</div>'
+          + '<p>' + esc(dd.description) + '</p></div>'
+          + '<div class="grid" style="margin-top:12px">' + files.map(function (x) {
             return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.type) + ' · ' + esc(x.size) + ' B</span></div>';
-          }).join('') + '</div>'
-          + '<div class="row" style="margin-top:14px"><button class="btn" id="back">← 返回</button></div>';
-        $('#back').addEventListener('click', repoPage);
+          }).join('') + '</div>';
+        backBtn(box, repoPage, '← 返回课题列表');
       });
     });
   }
@@ -297,89 +315,135 @@ input.search{flex:1;min-width:220px}
     var both = await Promise.all([api('/api/moce/v1/apps/list'), api('/api/moce/v1/dry_wet_loop/apply/status/list')]);
     var list = (both[0] && both[0].data && both[0].data.list) || [];
     var reqs = (both[1] && both[1].data && both[1].data.list) || [];
-    box.innerHTML = '<div class="section">FEATURED · 干湿闭环平台 · 汇集前沿 AI4S 模型与端到端工作流</div>'
-      + cards(list, function (x) {
-        return '<div class="card"><b>' + esc(x.name) + '</b><span>' + esc(x.domain) + ' · ' + esc(x.summary) + '</span></div>';
-      })
+    box.innerHTML = '<div class="section">FEATURED · 干湿闭环平台</div>'
+      + cards(list, function (x) { return '<div class="card" data-id="' + esc(x.id || 'app1') + '"><b>' + esc(x.name) + '</b><span>' + esc(x.domain) + ' · ' + esc(x.summary) + '</span></div>'; })
       + '<div class="section" style="margin-top:14px">我的干湿闭环申请 · ' + reqs.length + ' 个'
       + (reqs.length ? '：' + reqs.map(function (r) { return esc(r.title) + '（' + esc(r.status) + '）'; }).join(' · ') : '：暂无') + '</div>';
+    $$('.card[data-id]', box).forEach(function (c) {
+      c.addEventListener('click', async function () {
+        var id = c.getAttribute('data-id');
+        var dj = await api('/api/moce/v1/apps/detail?id=' + encodeURIComponent(id));
+        var d = (dj && dj.data) || {};
+        box.innerHTML = '<div class="detail"><h3>' + esc(d.name) + '</h3><div class="kv">领域 ' + esc(d.domain) + ' · 入口 ' + esc(d.entry) + '</div>'
+          + '<p>' + esc(d.summary) + '</p>'
+          + '<div class="kv">能力：' + esc((d.features || []).join(' · ')) + '</div>'
+          + '<button class="btn primary" id="apply">申请干湿闭环</button></div>';
+        $('#apply', box).addEventListener('click', async function () {
+          await post('/api/moce/v1/dry_wet_loop/apply', { app_id: id });
+          toast('已提交申请（本地合成）');
+        });
+        backBtn(box, appPage, '← 返回应用列表');
+      });
+    });
   }
 
   async function scpPage() {
     var box = pageShell('科学工具', 'SCP 工具 · Skills 技能包 · 为科研 Agent 与工作流提供可组合的原子能力');
-    var j = await api('/api/scphub/v1/scp/tags');
-    var list = (j && j.data && j.data.list) || [];
-    box.innerHTML = '<div class="row">' + list.map(function (t) {
-      return '<span class="tag">' + esc(t.name || t) + '</span>';
-    }).join('') + '</div>'
-      + '<div class="grid"><div class="card"><b>Skills</b><span>SCP · 本地合成数据</span></div></div>';
+    var tags = await api('/api/scphub/v1/scp/tags');
+    var tagList = ['全部领域'].concat(((tags && tags.data && tags.data.list) || []).map(function (t) { return t.name || t; }));
+    box.innerHTML = '<div class="row"><input class="search" id="sq" placeholder="搜索 SCP / Skills / 能力"/></div>'
+      + '<div class="row" id="tags">' + tagList.map(function (t, i) { return '<span class="tag' + (i === 0 ? ' on' : '') + '">' + esc(t) + '</span>'; }).join('') + '</div>'
+      + '<div id="out"></div>';
+    var current = '全部领域';
+    var run = async function () {
+      var kw = ($('#sq').value || '').trim().toLowerCase();
+      var j = await api('/api/scphub/v1/scp/list?tag=' + encodeURIComponent(current));
+      var list = ((j && j.data && j.data.list) || []).filter(function (x) { return !kw || (x.name + x.tag).toLowerCase().indexOf(kw) >= 0; });
+      $('#out').innerHTML = list.length
+        ? cards(list, function (x) { return '<div class="card" data-id="' + esc(x.id) + '"><b>' + esc(x.name) + '</b><span>' + esc(x.type) + ' · ' + esc(x.tag) + ' · 下载 ' + esc(x.downloads) + '</span></div>'; })
+        : '<div class="section">没有匹配的工具</div>';
+      $$('#out .card[data-id]').forEach(function (c) {
+        c.addEventListener('click', function () {
+          var id = c.getAttribute('data-id');
+          var item = list.filter(function (x) { return x.id === id; })[0] || {};
+          box.innerHTML = '<div class="detail"><h3>' + esc(item.name) + '</h3><div class="kv">' + esc(item.type) + ' · ' + esc(item.tag) + ' · 下载 ' + esc(item.downloads) + '</div>'
+            + '<p>用于科研 Agent 的原子能力（本地合成描述）。</p><button class="btn primary" id="useIt">▶ 立即使用</button></div>';
+          $('#useIt', box).addEventListener('click', function () { toast('已加入工作流（本地合成）'); });
+          backBtn(box, scpPage, '← 返回工具列表');
+        });
+      });
+    };
+    $$('#tags .tag').forEach(function (t) {
+      t.addEventListener('click', function () { $$('#tags .tag').forEach(function (x) { x.classList.remove('on'); }); t.classList.add('on'); current = t.textContent; run(); });
+    });
+    $('#sq').addEventListener('input', run);
+    run();
   }
 
   async function datasetPage() {
     var box = pageShell('科学数据', '从蛋白序列到气候模型 · 覆盖六大学科、多种模态的开放科学数据集广场');
     var j = await api('/api/datasets/v1/dataset/square_list?page=1&page_size=12');
     var list = (j && j.data && j.data.list) || [];
-    box.innerHTML = cards(list, function (d) {
-      return '<div class="card" data-id="' + esc(d.id) + '"><b>' + esc(d.name) + '</b><span>' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + '</span></div>';
-    });
-    $$('.card', box).forEach(function (c) {
-      c.addEventListener('click', async function () {
-        var id = c.getAttribute('data-id');
-        var dj = await api('/api/datasets/v1/dataset/detail?id=' + encodeURIComponent(id));
-        var d = (dj && dj.data) || {};
-        box.innerHTML = '<div class="section"><b>' + esc(d.name || id) + '</b><br/>' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license)
-          + '<br/>文件 ' + esc(d.files) + ' · ' + esc(d.description || '') + '</div>'
-          + '<div class="row" style="margin-top:14px"><button class="btn" id="back">← 返回数据集</button></div>';
-        $('#back').addEventListener('click', datasetPage);
+    box.innerHTML = '<div class="row"><input class="search" id="dq" placeholder="搜索数据集"/></div><div id="out"></div>';
+    var run = function () {
+      var kw = ($('#dq').value || '').trim().toLowerCase();
+      var rows = list.filter(function (d) { return !kw || (d.name + d.domain).toLowerCase().indexOf(kw) >= 0; });
+      $('#out').innerHTML = cards(rows, function (d) { return '<div class="card" data-id="' + esc(d.id) + '"><b>' + esc(d.name) + '</b><span>' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + '</span></div>'; });
+      $$('#out .card[data-id]').forEach(function (c) {
+        c.addEventListener('click', async function () {
+          var id = c.getAttribute('data-id');
+          var dj = await api('/api/datasets/v1/dataset/detail?id=' + encodeURIComponent(id));
+          var d = (dj && dj.data) || {};
+          box.innerHTML = '<div class="detail"><h3>' + esc(d.name || id) + '</h3>'
+            + '<div class="kv">' + esc(d.domain) + ' · ' + esc(d.size) + ' · ' + esc(d.license) + ' · 文件 ' + esc(d.files) + '</div>'
+            + '<p>' + esc(d.description || '') + '</p><button class="btn primary" id="dl">⬇ 申请下载</button></div>';
+          $('#dl', box).addEventListener('click', function () { toast('下载申请已提交（本地合成）'); });
+          backBtn(box, datasetPage, '← 返回数据集');
+        });
       });
-    });
+    };
+    $('#dq').addEventListener('input', run);
+    run();
   }
 
   async function computePage() {
     var box = pageShell('科学计算', '开发机 · 云盘 · 训练任务，一站式机器学习平台');
     var all = await Promise.all([
-      api('/api/ml/v1/dev-machine/list'),
-      api('/api/ml/v1/dev-machine/user_resource'),
-      api('/api/ml/v1/cloud-disk/quota'),
-      api('/api/ml/v1/training/list')
+      api('/api/ml/v1/dev-machine/list'), api('/api/ml/v1/dev-machine/user_resource'),
+      api('/api/ml/v1/cloud-disk/quota'), api('/api/ml/v1/cloud-disk/list'), api('/api/ml/v1/training/list')
     ]);
     var machines = (all[0] && all[0].data && all[0].data.list) || [];
     var r = (all[1] && all[1].data) || {};
     var d = (all[2] && all[2].data) || {};
-    var tasks = (all[3] && all[3].data && all[3].data.list) || [];
+    var files = (all[3] && all[3].data && all[3].data.list) || [];
+    var tasks = (all[4] && all[4].data && all[4].data.list) || [];
     box.innerHTML = '<div class="section">开发机管理 · ' + esc(r.running || 0) + ' 运行中 / ' + esc(r.quota || 0) + ' 配额 · ' + esc(r.gpu_type || '') + '</div>'
       + cards(machines, function (m) {
-        return '<div class="card"><b>' + esc(m.name) + '</b><span>' + esc(m.status) + ' · ' + esc(m.gpu) + '</span></div>';
+        return '<div class="card"><b>' + esc(m.name) + '</b><span>' + esc(m.status) + ' · ' + esc(m.gpu) + '</span>'
+          + '<div class="row" style="margin:10px 0 0"><button class="btn mini" data-act="start" data-id="' + esc(m.id || m.name) + '">启动</button>'
+          + '<button class="btn mini" data-act="stop" data-id="' + esc(m.id || m.name) + '">停止</button></div></div>';
       })
-      + '<div class="section" style="margin-top:14px">云盘管理 · 已用 ' + esc(d.used_gb) + ' GB / ' + esc(d.total_gb) + ' GB · 文件 ' + esc(d.file_count) + '</div>'
+      + '<div class="section" style="margin-top:14px">云盘管理 · 已用 ' + esc(d.used_gb) + ' / ' + esc(d.total_gb) + ' GB · 文件 ' + esc(d.file_count) + '</div>'
+      + '<div class="grid">' + files.map(function (f) { return '<div class="card"><b>' + esc(f.name) + '</b><span>' + esc(f.type) + ' · ' + esc(f.size) + ' B</span></div>'; }).join('') + '</div>'
       + '<div class="section" style="margin-top:14px">训练任务管理 · ' + tasks.length + ' 个</div>'
-      + cards(tasks, function (t) {
-        return '<div class="card"><b>' + esc(t.name) + '</b><span>' + esc(t.status) + ' · ' + esc(t.gpu) + ' · ' + esc(t.duration_min) + ' 分钟</span></div>';
+      + cards(tasks, function (t) { return '<div class="card"><b>' + esc(t.name) + '</b><span>' + esc(t.status) + ' · ' + esc(t.gpu) + ' · ' + esc(t.duration_min) + ' 分钟</span></div>'; });
+    $$('.btn[data-act]', box).forEach(function (b) {
+      b.addEventListener('click', async function (ev) {
+        ev.stopPropagation();
+        var act = b.getAttribute('data-act');
+        await post('/api/ml/v1/dev-machine/' + act, { id: b.getAttribute('data-id') });
+        toast(act === 'start' ? '已启动（合成）' : '已停止（合成）');
       });
+    });
   }
 
   async function tokenPlanPage() {
     var box = pageShell('科研模型', 'API Key · 模型列表 · 用量查询');
-    box.innerHTML = '<div class="row"><select id="tab"><option value="models">模型列表</option><option value="keys">API Key</option><option value="usage">用量查询</option></select></div>'
+    box.innerHTML = '<div class="row"><select id="tab"><option value="models">模型列表</option><option value="keys">API Key</option><option value="usage">用量查询</option></select>'
+      + '<button class="btn primary" id="createKey">＋ 创建 Key</button></div>'
       + '<div id="bal" class="section">余额加载中…</div><div id="out" style="margin-top:14px"></div>';
     api('/api/tokenplan/v1/credits/balance').then(function (j) {
-      var d = (j && j.data) || {};
-      var w = d.usage_windows || {};
-      var five = w['5h'] || {};
-      var seven = w['7d'] || {};
+      var d = (j && j.data) || {}; var w = d.usage_windows || {};
+      var f5 = w['5h'] || {}; var d7 = w['7d'] || {};
       $('#bal').innerHTML = '余额 ' + esc(d.balance) + ' ' + esc(d.currency)
-        + ' · 5 小时额度 ' + esc(five.remaining_credits) + '/' + esc(five.limit_credits)
-        + ' · 7 天额度 ' + esc(seven.remaining_credits) + '/' + esc(seven.limit_credits);
+        + ' · 5 小时额度 ' + esc(f5.remaining_credits) + '/' + esc(f5.limit_credits)
+        + ' · 7 天额度 ' + esc(d7.remaining_credits) + '/' + esc(d7.limit_credits);
     }).catch(function () {});
     var run = async function () {
       var tab = $('#tab').value;
       var ep = tab === 'keys' ? '/api/tokenplan/v1/keys' : tab === 'usage' ? '/api/tokenplan/v1/usage/summary' : '/api/tokenplan/v1/models';
-      var j = await api(ep);
-      var d = (j && j.data) || {};
-      if (tab === 'usage') {
-        $('#out').innerHTML = '<div class="section">请求 ' + esc(d.requests) + ' · 输入 ' + esc(d.prompt_tokens) + ' · 输出 ' + esc(d.completion_tokens) + ' · 合计 ' + esc(d.total_tokens) + '</div>';
-        return;
-      }
+      var j = await api(ep); var d = (j && j.data) || {};
+      if (tab === 'usage') { $('#out').innerHTML = '<div class="section">请求 ' + esc(d.requests) + ' · 输入 ' + esc(d.prompt_tokens) + ' · 输出 ' + esc(d.completion_tokens) + ' · 合计 ' + esc(d.total_tokens) + '</div>'; return; }
       var list = d.list || [];
       $('#out').innerHTML = cards(list, function (x) {
         return tab === 'keys'
@@ -388,46 +452,31 @@ input.search{flex:1;min-width:220px}
       });
     };
     $('#tab').addEventListener('change', run);
+    $('#createKey').addEventListener('click', async function () {
+      var r = await post('/api/tokenplan/v1/keys/create', { name: '新建 Key' });
+      toast('已创建 ' + ((r && r.data && r.data.masked) || 'Key'));
+      $('#tab').value = 'keys'; run();
+    });
     run();
   }
 
-  var ROUTES = {
-    '/chat': chatHome,
-    '/paper': paperPage,
-    '/repo': repoPage,
-    '/app': appPage,
-    '/scp': scpPage,
-    '/dataset': datasetPage,
-    '/compute': computePage,
-    '/token-plan/home': tokenPlanPage
-  };
-  function current() {
-    var p = (location.pathname || '/chat').replace(/\/+$/, '');
-    return p || '/chat';
-  }
+  var ROUTES = { '/chat': chatHome, '/paper': paperPage, '/repo': repoPage, '/app': appPage, '/scp': scpPage, '/dataset': datasetPage, '/compute': computePage, '/token-plan/home': tokenPlanPage };
+  function current() { var p = (location.pathname || '/chat').replace(/\/+$/, ''); return p || '/chat'; }
   function render() {
-    var path = current();
-    if (!ROUTES[path]) path = '/chat';
-    $$('#nav a').forEach(function (a) {
-      a.classList.toggle('on', a.getAttribute('data-route') === path);
-    });
+    var path = current(); if (!ROUTES[path]) path = '/chat';
+    $$('#nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-route') === path); });
     ROUTES[path]();
   }
   $('#nav').addEventListener('click', function (e) {
-    var a = e.target.closest('a[data-route]');
-    if (!a) return;
-    e.preventDefault();
-    history.pushState({}, '', a.getAttribute('href'));
-    render();
+    var a = e.target.closest('a[data-route]'); if (!a) return;
+    e.preventDefault(); history.pushState({}, '', a.getAttribute('href')); render();
   });
   window.addEventListener('popstate', render);
-  $('#newChat').addEventListener('click', function () {
-    chatState.chatId = null;
-    history.pushState({}, '', '/chat');
-    render();
-  });
+  $('#newChat').addEventListener('click', function () { history.pushState({}, '', '/chat'); chatHome(); });
   $('#promoX').addEventListener('click', function () { var p = $('#promo'); if (p) p.remove(); });
+
   render();
+  loadHist();
 })();
 </script>
 </body>

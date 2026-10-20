@@ -626,6 +626,10 @@ export function createMockGatewayServer(opts = {}) {
           labels: ['结构生物学', '蛋白质', 'PDB'],
         } }));
       }
+      if (method === 'POST' && path === '/api/tokenplan/v1/keys/create') {
+        log('POST /tokenplan/v1/keys/create -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { id: 'key_new', name: '新建 Key', masked: 'sk-****' + Math.floor(Math.random() * 9000 + 1000), status: 'active', created_at: new Date().toISOString() } }));
+      }
       if (method === 'GET' && path === '/api/tokenplan/v1/keys') {
         log('GET /tokenplan/v1/keys -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: { list: [
@@ -663,6 +667,10 @@ export function createMockGatewayServer(opts = {}) {
           { id: 'f3', name: 'runs/', size: 0, type: 'dir', updated_at: '2026-10-18T09:12:00Z' },
         ], total: 3 } }));
       }
+      if (method === 'POST' && path === '/api/spacebe/v1/space/create') {
+        log('POST /spacebe/v1/space/create -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { id: 'sp' + Date.now(), name: '新建课题', members: 1, files: 0 } }));
+      }
       if (method === 'GET' && path === '/api/spacebe/v1/space/details') {
         log('GET /spacebe/v1/space/details -> 200 (synthetic)');
         return send(200, JSON.stringify({ code: 0, data: {
@@ -675,6 +683,15 @@ export function createMockGatewayServer(opts = {}) {
         return send(200, JSON.stringify({ code: 0, data: { list: [
           { id: 'dw1', title: '蛋白表达湿实验', status: 'reviewing', submitted_at: '2026-10-12', owner: '禾青' },
         ], total: 1 } }));
+      }
+      if (method === 'GET' && path === '/api/moce/v1/apps/detail') {
+        const id = String((url.searchParams && url.searchParams.get('id')) || 'app1');
+        log('GET /moce/v1/apps/detail id=' + id + ' -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { id: id, name: '干湿闭环平台', domain: '生命科学', summary: '从假设到湿实验的一体化编排（本地合成）', features: ['方案生成', '实验排期', '结果回流'], entry: '/app/dry-wet' } }));
+      }
+      if (method === 'POST' && path === '/api/moce/v1/dry_wet_loop/apply') {
+        log('POST /moce/v1/dry_wet_loop/apply -> 200 (synthetic accepted)');
+        return send(200, JSON.stringify({ code: 0, data: { apply_id: 'dw' + Date.now(), status: 'submitted' } }));
       }
       if (method === 'GET' && path === '/api/moce/v1/apps/list') {
         log('GET /moce/v1/apps/list -> 200 (synthetic)');
@@ -695,6 +712,18 @@ export function createMockGatewayServer(opts = {}) {
           { id: 'tr-1', name: 'yolov8-baseline', status: 'running', duration_min: 128, gpu: 'A100 80G' },
           { id: 'tr-2', name: 'coco-finetune', status: 'finished', duration_min: 436, gpu: 'A100 80G' },
         ], total: 2 } }));
+      }
+      if (method === 'POST' && (path === '/api/ml/v1/dev-machine/start' || path === '/api/ml/v1/dev-machine/stop')) {
+        log('POST ' + path + ' -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { ok: true, action: path.endsWith('start') ? 'start' : 'stop' } }));
+      }
+      if (method === 'GET' && path === '/api/ml/v1/cloud-disk/list') {
+        log('GET /ml/v1/cloud-disk/list -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [
+          { name: 'train.py', type: 'file', size: 4210 },
+          { name: 'coco.yaml', type: 'file', size: 1204 },
+          { name: 'runs/', type: 'dir', size: 0 },
+        ], total: 3 } }));
       }
       if (method === 'GET' && path === '/api/ml/v1/dev-machine/list') {
         log('GET /ml/v1/dev-machine/list -> 200 (synthetic)');
@@ -724,6 +753,15 @@ export function createMockGatewayServer(opts = {}) {
           total_count: list.length,
           list: list,
         } }));
+      }
+      if (method === 'GET' && path === '/api/nova/v1/paper/detail') {
+        const id = String((url.searchParams && url.searchParams.get('id')) || 'w1');
+        const base = id === 'w2' ? { title: 'Foundation models for scientific discovery', venue: 'Science', year: 2025, citations: 640 }
+          : id === 'w3' ? { title: 'AI4S: from tools to autonomous labs', venue: 'Cell', year: 2025, citations: 315 }
+          : id === 'w4' ? { title: 'Crystal graph networks for materials screening', venue: 'Nature Materials', year: 2024, citations: 428 }
+          : { title: 'Deep learning for protein structure prediction', venue: 'Nature', year: 2024, citations: 1280 };
+        log('GET /nova/v1/paper/detail id=' + id + ' -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: Object.assign({ id: id, abstract: '本文提出一种面向科学发现的方法，并在多个基准上验证其有效性（本地合成摘要）。', authors: ['Zhang Y.', 'Li M.', 'Wang X.'], doi: '10.1000/local.' + id, open_access: true }, base) }));
       }
       if (method === 'GET' && path === '/api/nova/v1/search/authors') {
         log('GET /nova/v1/search/authors -> 200 (synthetic)');
@@ -757,6 +795,19 @@ export function createMockGatewayServer(opts = {}) {
           { id: 3914, name: 'COCO 与 YOLOv8 复现', description: '目标检测基线复现与方法对比', space_type: 1 },
           { id: 3915, name: '离线回归项目', description: '桌面/网页协议回归验证用', space_type: 1 },
         ], total: 2 } }));
+      }
+      if (method === 'GET' && path === '/api/scphub/v1/scp/list') {
+        const tag = String((url.searchParams && url.searchParams.get('tag')) || '');
+        const all = [
+          { id: 'scp1', name: '蛋白结构预测', tag: '生命科学', type: 'SCP', downloads: 1280 },
+          { id: 'scp2', name: '气候模式降尺度', tag: '地球科学', type: 'SCP', downloads: 860 },
+          { id: 'scp3', name: '晶体结构筛选', tag: '物质科学', type: 'Skills', downloads: 2140 },
+          { id: 'scp4', name: '单细胞聚类', tag: '生命科学', type: 'Skills', downloads: 530 },
+          { id: 'scp5', name: '光子能量计算', tag: '物理科学', type: 'SCP', downloads: 310 },
+        ];
+        const list = tag && tag !== '全部领域' ? all.filter(x => x.tag === tag) : all;
+        log('GET /scphub/v1/scp/list tag=' + (tag || '-') + ' -> 200 (synthetic)');
+        return send(200, JSON.stringify({ code: 0, data: { list: list, total: list.length } }));
       }
       if (method === 'GET' && path === '/api/scphub/v1/scp/tags') {
         log('GET /scphub/v1/scp/tags -> 200 (public)');
