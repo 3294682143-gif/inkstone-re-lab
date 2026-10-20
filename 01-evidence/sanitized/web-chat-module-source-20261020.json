@@ -1,0 +1,88 @@
+{
+  "schema_version": "inkstone-web-chat-module/1",
+  "captured_at": "2026-10-20T06:10:00Z",
+  "sample": {
+    "file": "02-sources/original/static.openxlab.org.cn_moce_index-Cd5teKeb.js",
+    "bytes": 542557,
+    "url": "https://static.openxlab.org.cn/discovery-fe/prod/discovery-moce-fe/3b8d2b32/assets/index-Cd5teKeb.js",
+    "note": "MOCE 远程应用的聊天协议模块（此前未下载，本轮补齐）"
+  },
+  "findings": [
+    {
+      "id": "S1",
+      "what": "提交体构造（内联转换，无独立转换函数）",
+      "offset": 509319,
+      "code": "O({query:t, chat_id:A, thinking_mode:e.thinkingMode, planning_mode:!1, model:e.modelKey, files:a.length?a:void 0, extra:e.extra})",
+      "reading": "UI 层 camelCase（thinkingMode/modelKey）在同一次调用里直接映射到 wire 的 snake_case（thinking_mode/model），planning_mode 恒为 false。",
+      "closes_unknown": "camelCase → snake_case 转换函数位置"
+    },
+    {
+      "id": "S2",
+      "what": "追问提交体",
+      "offset": 510200,
+      "code": "O({query:t, chat_id:A, thinking_mode:k, planning_mode:!1, model:ie, extra:e.extra})",
+      "reading": "追问与首轮同一套字段，均不带 messages 数组（上下文由 chat_id 承载）。"
+    },
+    {
+      "id": "S3",
+      "what": "停止调用",
+      "offset": 53066,
+      "code": "const l=i.current.stopEndpoint; if(l&&e.chatId&&r) await fetch(ra(l,e.chatId),{method:'POST',headers:await s(),body:JSON.stringify({message_id:r})}); o({type:'ITEM_STOPPED',itemId:t})",
+      "reading": "stopEndpoint=`${base}/{chatId}/stop`；body 仅 {message_id}（取 activeMessageId）；请求发出后立即本地 abort 并置 ITEM_STOPPED。运行时抓包（A5）与此完全一致。"
+    },
+    {
+      "id": "S4",
+      "what": "终态事件集合",
+      "offset": 514689,
+      "code": "lm=new Set([\"message_end\",\"done\",\"close\",\"error\",\"workflow_finished\"])",
+      "reading": "代码把 5 个事件都视为终态；此前契约写成\"只有 workflow_finished 是终止标记\"是不完整的。"
+    },
+    {
+      "id": "S5",
+      "what": "chat 端点常量",
+      "offset": 34994,
+      "code": "Ro=\"/api/orbit/v1/chat\"",
+      "reading": "与运行时抓包一致；stop/history 均以它为基址拼接。"
+    },
+    {
+      "id": "S6",
+      "what": "历史接口",
+      "offset": 514523,
+      "code": "im=e=>`${Ee}/${e??\"\"}`.replace(/\\/$/,\"\")；pageSize:100，mode: replace|append",
+      "reading": "历史通过 /api/orbit/v1/chat/{chatId} 取，分页 100；前端支持 replace/append 两种合并。"
+    },
+    {
+      "id": "S7",
+      "what": "反馈接口",
+      "offset": 480225,
+      "code": "POST /api/orbit/v1/chat/feedback {chat_id, message_id, feedback}",
+      "reading": "新增端点（此前契约未记）。"
+    },
+    {
+      "id": "S8",
+      "what": "工作区文件接口",
+      "offset": 519906,
+      "code": "GET /api/orbit/v1/workspace/{id}/files",
+      "reading": "与 space/assets/files 是不同一族；此处按 workspace 维度取文件。"
+    },
+    {
+      "id": "S9",
+      "what": "默认请求体",
+      "offset": 523252,
+      "code": "defaultRequest:{scenario:Te, thinking_mode:a, planning_mode:i, model:q, space_id:_}",
+      "reading": "存在 space_id 字段（课题空间内对话时携带）。Te 的具体数值未在本次定位中确认（UNKNOWN）。"
+    },
+    {
+      "id": "S10",
+      "what": "附件字段形状",
+      "offset": 509319,
+      "code": "files.push({type, file_type: t.file_type||t.type, url: oss_url||url, file_hash, name, size})",
+      "reading": "附件随发送体以 files[] 提交，必含 url 与 file_hash。"
+    }
+  ],
+  "still_unknown": [
+    "Te（scenario 数值）的确切取值",
+    "SSE 事件的完整 type 集合（本次只确认终态子集）",
+    "stop 响应体字段（源码只 await fetch 不看响应体）"
+  ]
+}

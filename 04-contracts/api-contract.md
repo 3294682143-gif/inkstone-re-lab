@@ -152,3 +152,24 @@
 3. `feedback/upload_url` 的上传凭证流程（附件链路）。
 4. camelCase → snake_case 转换函数位置。
 5. `/chat/list` 分页与返回字段（仅确认 GET 形态）。
+
+
+## 补充 R3：MOCE 聊天模块源码级证据（2026-10-20）
+
+- 数据源：`MOCE assets/index-Cd5teKeb.js`（542 KB，本轮补齐下载）
+- 证据：`01-evidence/sanitized/web-chat-module-source-20261020.json`
+
+| 结论 | 源码位置 | 说明 |
+| --- | --- | --- |
+| 提交体构造**内联转换** | @509319 | `thinking_mode: e.thinkingMode`、`model: e.modelKey`、`planning_mode: !1` —— 不存在独立转换函数，此 UNKNOWN 关闭 |
+| 追问同一套字段 | @510200 | 无 messages 数组，上下文由 chat_id 承载 |
+| 停止 = POST + 本地 abort | @53066 | `POST {base}/{chatId}/stop {message_id}` 后 `ITEM_STOPPED`；与 A5 抓包一致 |
+| 终态事件集合 | @514689 | 5 个：message_end / done / close / error / workflow_finished |
+| chat 基址 | @34994 | `/api/orbit/v1/chat` |
+| 历史 | @514523 | `/api/orbit/v1/chat/{chatId}`，pageSize 100，replace/append |
+| 反馈（新增端点） | @480225 | `POST /api/orbit/v1/chat/feedback {chat_id,message_id,feedback}` |
+| 工作区文件（新增） | @519906 | `GET /api/orbit/v1/workspace/{id}/files` |
+| 默认请求体 | @523252 | 含 `space_id`；scenario 取值 UNKNOWN |
+| 附件形状 | @509319 | `files[].{type,file_type,url,file_hash,name,size}`，url 与 file_hash 必填 |
+
+剩余 UNKNOWN：scenario 数值、SSE 完整 type 集合、stop 响应体字段。

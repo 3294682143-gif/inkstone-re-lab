@@ -54,3 +54,14 @@ workflow_finished   ← 结束
 - 错误结束事件的形态（需人为触发）—— U4/U7。
 - `thinking_mode`/`planning_mode`/`model` 与事件内容的映射 —— U9（A6）。
 - 取消时的收尾事件 —— U7（A5）。
+
+
+---
+
+## 源码级修正（2026-10-20）
+
+- 证据：`01-evidence/sanitized/web-chat-module-source-20261020.json` S4（MOCE 聊天模块 @514689）
+- 修正：**终态事件不止 `workflow_finished`**。实际代码把以下 5 个都当终态：
+  `message_end` / `done` / `close` / `error` / `workflow_finished`
+- 影响：客户端判定"本轮结束"时不能只等 `workflow_finished`；收到任一终态即应收尾。
+- 提交体与停止语义另有源码证据（S1/S3），见 `04-contracts/api-contract.md` 的 R3 章节。
