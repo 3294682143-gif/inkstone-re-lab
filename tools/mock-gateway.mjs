@@ -94,7 +94,21 @@ const CHAT_HTML = `<!doctype html><html lang="zh"><head><meta charset="utf-8"><t
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 system-ui,Segoe UI,Arial}
 header{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 header b{font-size:15px}.tag{background:#3a1d1d;color:#ff8f8f;border:1px solid #5a2a2a;border-radius:10px;padding:1px 8px;font-size:12px}
-.wrap{max-width:920px;margin:0 auto;padding:16px}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
+.brand{font-weight:700;font-size:15px;padding:4px 6px 10px;display:flex;gap:8px;align-items:center}
+.brand .dot{color:#2f6fed}
+.newchat{display:flex;gap:8px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;cursor:pointer}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.nav a{padding:8px 10px;border-radius:8px;font-size:13px;color:#3a3f47;cursor:pointer;text-decoration:none}
+.nav a:hover{background:#f3f6fb}
+.main{display:flex;flex-direction:column}
+.hero{text-align:center;padding:36px 16px 8px}
+.hero h1{font-family:"Songti SC","SimSun",serif;font-size:34px;letter-spacing:2px;margin:6px 0 8px}
+.hero p{color:#8a8f99;font-size:13px;margin:0}
+.foot{text-align:center;color:#a2a7b0;font-size:11px;padding:14px 0 18px;margin-top:auto}
+.foot .sep{margin:0 8px}
+.wrap{max-width:920px;margin:0 auto;padding:16px;width:100%}
 .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 input,select,button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
 input{flex:1;min-width:220px}button{cursor:pointer}button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
@@ -118,6 +132,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <a href="report" style="color:var(--acc)">成果总览</a>
   <a href="debug" style="color:var(--acc)">端点调试</a>
 </header>
+<div class="app">
+<aside class="side">
+  <div class="brand"><span class="dot">◍</span> 书生·端砚</div>
+  <button class="newchat">＋ 新建对话</button>
+  <nav class="nav">
+    <a>▤ 论文工具</a><a>▥ 课题空间</a><a>◈ 科研应用</a><a>▦ 科学工具</a>
+    <a>▤ 科学数据</a><a>▥ 科学计算</a><a>▦ 科研模型</a>
+  </nav>
+</aside>
+<main class="main">
+<div class="hero"><h1>科学发现 探索未来</h1><p>连接科研全流程的智能工作台 · 让每一个洞察都有迹可循</p></div>
 <div class="wrap">
   <div class="row">
     <label>base</label><input id="base">
@@ -134,6 +159,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
   <div class="row" id="tagsRow" style="flex-wrap:wrap;gap:6px"></div>
   <div class="meta" id="status"></div>
+</div>
+<footer class="foot"><span>平台服务协议</span><span class="sep">|</span><span>个人信息保护政策</span><span class="sep">|</span><span>沪ICP备2021009351号-21</span></footer>
+</main>
 </div>
 <script>
 const $=(s)=>document.querySelector(s);
