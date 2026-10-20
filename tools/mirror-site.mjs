@@ -18,7 +18,7 @@ export function rewriteHtml(html, origin) {
   return out;
 }
 
-export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.env.HTTPS_PROXY || process.env.https_proxy || null, snapshot = false, bearer = process.env.INKSTONE_WEB_TOKEN || null, log = () => {} } = {}) {
+export function createMirrorServer({ origin = DEFAULT_ORIGIN, proxy = process.env.HTTPS_PROXY || process.env.https_proxy || null, snapshot = true, bearer = process.env.INKSTONE_WEB_TOKEN || null, log = () => {} } = {}) {
   const dispatcher = proxy ? new ProxyAgent(proxy) : undefined;
   const get = async (url) => {
     const opts = { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 (mirror)', 'accept': '*/*' } };
@@ -90,8 +90,8 @@ if (__isMain) {
   const host = arg('host', '0.0.0.0');
   const port = Number(arg('port', 8788));
   const origin = arg('origin', DEFAULT_ORIGIN);
-  const snapshot = process.argv.includes('--snapshot');
+  const snapshot = !process.argv.includes('--live-shell');
   const server = createMirrorServer({ origin, snapshot, log: (m) => console.log('[mirror] ' + m) });
-  console.log('[mirror] mode=' + (snapshot ? 'snapshot(a0-page.html)' : 'live-shell(proxy origin)'));
+  console.log('[mirror] mode=' + (snapshot ? 'snapshot(a0-page.html 默认)' : 'live-shell(proxy origin, --live-shell)'));
   server.listen(port, host, () => console.log(`[mirror] listening on http://${host}:${port}/  (origin=${origin})`));
 }

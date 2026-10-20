@@ -7,7 +7,21 @@
 // 全部离线、无凭据、不启动 Electron/Windows。
 //   node tools/mock-gateway.mjs [--port 8787] [--host 0.0.0.0]
 import http from 'node:http';
+import { pathToFileURL } from 'node:url';
 import { renderReportHtml } from './re-findings-report.mjs';
+
+// 网页协议（A5/A6 契约）的合成模型表：真实接口只返回 name/tags/icon
+const WEB_MODELS = [
+  { name: 'Default', tags: [], icon: '' },
+  { name: '书生-Agents-A1', tags: ['多模态'], icon: '' },
+  { name: '书生-S2', tags: ['多模态'], icon: '' },
+  { name: '书生-Atria-Dawn-Preview', tags: ['大语言模型'], icon: '' },
+  { name: 'Qwen3.7-Plus', tags: [], icon: '' },
+  { name: 'Qwen3.8-Flash', tags: [], icon: '' },
+  { name: 'DeepSeek-V4-Flash', tags: [], icon: '' },
+  { name: 'Kimi-K2.7-Code', tags: [], icon: '' },
+];
+const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const CAPABILITIES = (marker) => ({
   protocol_version: '2.0',
@@ -92,6 +106,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="row">
     <label>base</label><input id="base">
     <label>model</label><input id="model" value="synthetic-model-a" style="max-width:200px">
+    <label>协议</label><select id="pmode"><option value="desktop">桌面协议</option><option value="web">网页协议</option></select>
+    <select id="wmodel" style="max-width:200px;display:none"></select>
     <button id="new">新建会话</button>
     <button id="stop" disabled>停止</button>
   </div>
@@ -113,13 +129,14 @@ function bubble(cls){const d=document.createElement('div');d.className='msg '+cl
 
 async function newConv(){
   setStatus('创建会话…');
-  const r=await fetch($('#base').value+'/chat/new',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({scenario:2,type:0,provider:0,agent:'local_agent'})});
+  const r=await fetch($('#base').value+'/chat/new',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify($('#pmode').value==='web'?{scenario:1}:{scenario:2,type:0,provider:0,agent:'local_agent'})});
   const j=await r.json();
   if(!r.ok||j.code!==0||!j.data?.id){setStatus('创建失败 HTTP '+r.status);return;}
   chatId=j.data.id;$('#ids').textContent='chat_id: '+chatId;setStatus('会话已创建');
 }
 
 async function send(){
+  if($('#pmode').value==='web'){return webSend();}
   if(chatId==null){await newConv();if(chatId==null)return;}
   const text=$('#text').value.trim();if(!text)return;
   $('#text').value='';
@@ -176,9 +193,71 @@ async function localTurnSync(){
   }catch(e){ setStatus('本地轮次同步失败: '+e.message); }
 }
 
+// ===== 网页协议客户端（依 A5/A6 契约）=====
+let webMid=null;
+async function loadWebModels(){
+  try{
+    const j=await (await fetch($('#base').value+'/models')).json();
+    const ms=(j&&j.data&&j.data.models)||[];
+    $('#wmodel').innerHTML=ms.map(m=>'<option>'+m.name+'</option>').join('');
+    setStatus('已加载 '+ms.length+' 个模型（网页协议）');
+  }catch(e){ setStatus('模型列表加载失败: '+e.message); }
+}
+async function webSend(){
+  if(chatId==null){await newConv();if(chatId==null)return;}
+  const text=$('#text').value.trim();if(!text)return;
+  $('#text').value='';
+  bubble('user').textContent=text;
+  const box=bubble('assistant');
+  const think=document.createElement('div');think.className='think';think.style.display='none';box.appendChild(think);
+  const content=document.createElement('div');box.appendChild(content);
+  const meta=document.createElement('div');meta.className='meta';box.appendChild(meta);
+  const model=$('#wmodel').value||'Default';
+  ac=new AbortController(); $('#send').disabled=true; $('#stop').disabled=false;
+  setStatus('网页协议：推理中（流式）…');
+  let err=null, finished=false;
+  try{
+    const r=await fetch($('#base').value+'/chat',{method:'POST',signal:ac.signal,headers:{'content-type':'application/json','accept':'text/event-stream'},body:JSON.stringify({scenario:1,thinking_mode:true,planning_mode:false,model,query:text,chat_id:chatId})});
+    if(!r.ok||!(r.headers.get('content-type')||'').includes('text/event-stream')){err='响应不是 SSE（HTTP '+r.status+'）';}
+    else{
+      const reader=r.body.getReader(),dec=new TextDecoder();let buf='';
+      for(;;){const {done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});
+        const parts=buf.split('\\n\\n');buf=parts.pop();
+        for(const p of parts){const line=p.split('\\n').find(l=>l.startsWith('data:'));if(!line)continue;let e;try{e=JSON.parse(line.slice(5).trim());}catch{continue;}
+          if(e.event==='workflow_started'){ webMid=e.mid; meta.textContent='cid='+e.cid+' mid='+e.mid; }
+          else if(e.event==='message'){ if(e.thinking){think.style.display='block';think.textContent+=e.thinking;} if(e.answer)content.textContent+=e.answer; }
+          else if(e.event==='message_end'){ if(e.stopped){err='已停止（message_end.stopped=true）';} }
+          else if(e.event==='followup'){ meta.textContent+=(meta.textContent?' · ':'')+'followup ×'+((e.followup||[]).length); }
+          else if(e.event==='workflow_finished'){ finished=true; }
+          chat.scrollTop=chat.scrollHeight;
+        }
+      }
+    }
+  }catch(e){ if(e.name!=='AbortError') err='网络/读取错误: '+e.message; else err='已停止（本地 abort）'; }
+  finally{
+    $('#send').disabled=false; $('#stop').disabled=true;
+    if(err){const d=document.createElement('div');d.className='err';d.textContent=err;box.appendChild(d);}
+    setStatus(finished?'完成 · workflow_finished':(err?('结束：'+err):'结束（未见 workflow_finished）'));
+  }
+}
+async function stopWeb(){
+  if(chatId==null||webMid==null){ if(ac)ac.abort(); return; }
+  try{
+    const j=await (await fetch($('#base').value+'/chat/'+chatId+'/stop',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({message_id:webMid})})).json();
+    setStatus('已发送 stop（stopped='+(j&&j.data&&j.data.stopped)+'）');
+  }catch(e){ setStatus('stop 失败: '+e.message); }
+  if(ac)ac.abort();
+}
+$('#pmode').addEventListener('change',()=>{
+  const web=$('#pmode').value==='web';
+  $('#wmodel').style.display=web?'':'none';
+  $('#model').style.display=web?'none':'';
+  setStatus(web?'已切到网页协议（/chat SSE）':'已切到桌面协议（/local-agent/messages）');
+  if(web) loadWebModels();
+});
 $('#new').addEventListener('click',()=>newConv());
 $('#send').addEventListener('click',()=>send());
-$('#stop').addEventListener('click',()=>{ if(ac)ac.abort(); });
+$('#stop').addEventListener('click',()=>{ if($('#pmode').value==='web'){ stopWeb(); } else if(ac)ac.abort(); });
 $('#text').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
 </script></body></html>`;
 
@@ -188,6 +267,8 @@ export function createMockGatewayServer(opts = {}) {
   const withTool = opts.withTool === true;
   const log = opts.log ?? (() => {});
   let chatSeq = 7000000;
+  let midSeq = 1400000;
+  const webCancelled = new Map();
   const requestCount = { total: 0 };
 
   const server = http.createServer(async (req, res) => {
@@ -221,6 +302,46 @@ export function createMockGatewayServer(opts = {}) {
       if (method === 'POST' && path === '/api/orbit/v1/chat/new') {
         const id = ++chatSeq; log(`POST /chat/new -> id=${id}`);
         return send(200, envelope({ id }));
+      }
+      // ===== 网页协议（依据 04-contracts/api-contract.md + web-a5/web-a6）=====
+      if (method === 'GET' && path === '/api/orbit/v1/models') {
+        log('GET /models -> 200 (web)');
+        return send(200, JSON.stringify({ code: 0, data: { models: WEB_MODELS } }));
+      }
+      if (method === 'POST' && path === '/api/orbit/v1/chat') {
+        const body = await readBody(req);
+        const cid = body?.chat_id ?? ++chatSeq;
+        const mid = ++midSeq;
+        const st = { cancelled: false };
+        webCancelled.set(String(cid), st);
+        log(`POST /chat chat_id=${cid} model=${body?.model} thinking=${body?.thinking_mode} -> SSE (web)`);
+        res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store' });
+        const emit = (o) => { if (!res.writableEnded) res.write('data: ' + JSON.stringify(o) + '\n\n'); };
+        emit({ event: 'workflow_started', cid, mid });
+        await sleepMs(120);
+        if (!st.cancelled) emit({ event: 'message', thinking: '这是合成的思考增量（网页协议 message.thinking）。', cid, mid });
+        for (const ch of answerText.split('')) {
+          await sleepMs(60);
+          if (st.cancelled) break;
+          emit({ event: 'message', answer: ch, cid, mid });
+        }
+        emit({ event: 'message_end', cid, mid, ...(st.cancelled ? { stopped: true } : {}) });
+        if (!st.cancelled) emit({ event: 'followup', followup: [{ text: '继续追问示例', type: 1, extra: null }] });
+        emit({ event: 'workflow_finished', cid, mid });
+        webCancelled.delete(String(cid));
+        return res.end();
+      }
+      const mStop = path.match(/^\/api\/orbit\/v1\/chat\/(\d+)\/stop$/);
+      if (method === 'POST' && mStop) {
+        const body = await readBody(req);
+        const st = webCancelled.get(String(mStop[1]));
+        if (st) st.cancelled = true;
+        log(`POST /chat/${mStop[1]}/stop message_id=${body?.message_id} -> 200 (cancelled=${!!st})`);
+        return send(200, JSON.stringify({ code: 0, data: { stopped: !!st, chat_id: Number(mStop[1]), message_id: body?.message_id ?? null } }));
+      }
+      if (method === 'GET' && path === '/api/orbit/v1/chat/list') {
+        log('GET /chat/list -> 200 (web)');
+        return send(200, JSON.stringify({ code: 0, data: { list: [{ id: chatSeq, title: '合成会话（离线）', scenario: 1 }], total: 1, page: 1 } }));
       }
       if (method === 'GET' && path === '/api/orbit/v1/local-agent/models') {
         log('GET /local-agent/models -> 200');
@@ -264,7 +385,9 @@ export function createMockGatewayServer(opts = {}) {
   return server;
 }
 
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// Windows: 盘符路径不能直接拼成 file:// URL，必须用 pathToFileURL 比较
+const __isMain = (() => { try { return !!process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url; } catch { return false; } })();
+if (__isMain) {
   const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 ? process.argv[i + 1] : d; };
   const host = arg('host', '0.0.0.0');
   const port = Number(arg('port', 8787));
