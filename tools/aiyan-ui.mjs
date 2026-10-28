@@ -4,6 +4,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function cliArg(name, fallback) {
   const i = process.argv.indexOf('--' + name);
@@ -12,7 +13,9 @@ function cliArg(name, fallback) {
 const PORT = Number(cliArg('port', process.env.PORT || 8899));
 const HOST = cliArg('host', process.env.HOST || '127.0.0.1');
 const MOCK_ORIGIN = process.env.MOCK_ORIGIN || 'http://127.0.0.1:8787';
-const HTML_PATH = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), 'aiyan-ui.html');
+// 用 fileURLToPath 解码，兼容中文/空格等非 ASCII 目录（pathname 会百分号编码）
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const HTML_PATH = path.join(HERE, 'aiyan-ui.html');
 
 function html() {
   try {
