@@ -1134,6 +1134,28 @@ export function createMockGatewayServer(opts = {}) {
         return send(200, envelope(CAPABILITIES(marker)));
       }
       if (method === 'POST' && path === '/api/orbit/v1/local-agent/messages') {
+        // ?fault=429|409001|409005 合成故障注入（供韧性演示离线复现；
+        // 全部带 synthetic 诚实标记，409 信封对齐 recovery.mjs 识别的 {code, data:{reason}} 形状）
+        const faultType = url.searchParams.get('fault');
+        if (faultType === '429') {
+          log('POST /local-agent/messages?fault=429 -> 429 (synthetic rate limit)');
+          return send(429, JSON.stringify({
+            code: 429000,
+            data: { reason: 'RATE_LIMIT_EXCEEDED' },
+            message: 'Synthetic 429 rate limit fault injected for resilience verification',
+            synthetic: true,
+          }), { 'Retry-After': '3', 'x-rpm-limit': '60', 'x-rpm-remaining': '0', 'X-Synthetic-Fault': 'true' });
+        }
+        if (faultType === '409001' || faultType === '409005') {
+          log(`POST /local-agent/messages?fault=${faultType} -> 409 (synthetic conflict)`);
+          return send(409, JSON.stringify({
+            code: Number(faultType),
+            data: faultType === '409001'
+              ? { reason: 'TURN_CONFLICT' }
+              : { reason: 'INFERENCE_ALREADY_RUNNING', retryable: true },
+            synthetic: true,
+          }), { 'X-Synthetic-Fault': 'true' });
+        }
         const body = await readBody(req);
         const events = [
           { type: 'message_start', response_id: 'synthetic-resp-1', model: body?.model ?? 'synthetic-model-a' },
