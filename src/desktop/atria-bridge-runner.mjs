@@ -138,6 +138,26 @@ async function executeWithRecovery(req, { registerSigterm = true } = {}) {
       throw new Error(`Unrecoverable 409 conflict: ${conflictCode ?? "unknown"}`);
     }
 
+    if (resp.status === 429) {
+      const retryAfter = resp.headers?.get?.("retry-after") || "3";
+      appendProtocolLog(protocolLogPath, {
+        kind: "THROTTLE_429_CHECK",
+        attempt,
+        status: 429,
+        retryAfter,
+      });
+      throw new Error(`Gateway HTTP 429`);
+    }
+
+    if (resp.status >= 500) {
+      appendProtocolLog(protocolLogPath, {
+        kind: "GATEWAY_5XX_CHECK",
+        attempt,
+        status: resp.status,
+      });
+      throw new Error(`Gateway HTTP ${resp.status}`);
+    }
+
     if (!resp.ok) {
       throw new Error(`Gateway HTTP ${resp.status}`);
     }
@@ -207,7 +227,22 @@ async function executeWithRecovery(req, { registerSigterm = true } = {}) {
       }
     }
 
+    if (semanticTerminal !== "message_end") {
+      const reconnect = Boolean(req.allowSseReconnect && attempt === 0);
+      appendProtocolLog(protocolLogPath, {
+        kind: "SSE_DISCONNECT_CHECK",
+        attempt,
+        semanticTerminal,
+        streamDrained,
+        shouldReconnect: reconnect,
+      });
+      if (reconnect) {
+        continue;
+      }
+    }
+
     const finalDecision = buildCancelDecision();
+    appendProtocolLog(protocolLogPath, { kind: "CANCEL_DECISION", decision: finalDecision });
 
     if (finalDecision.recordsRecoveryProof) {
       recoveryProof = { drainedAt: Date.now(), requestId };
